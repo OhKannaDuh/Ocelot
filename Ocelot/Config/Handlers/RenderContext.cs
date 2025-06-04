@@ -1,0 +1,87 @@
+using System;
+using System.Numerics;
+using System.Reflection;
+using Dalamud.Interface;
+using ImGuiNET;
+using Ocelot.Config.Attributes;
+using Ocelot.Modules;
+
+namespace Ocelot.Config.Handlers;
+
+public class RenderContext
+{
+    private readonly PropertyInfo prop;
+
+    private readonly Type type;
+
+    private readonly ModuleConfig self;
+
+    public RenderContext(PropertyInfo prop, Type type, ModuleConfig self)
+    {
+        this.prop = prop;
+        this.type = type;
+        this.self = self;
+    }
+
+    public bool IsValid() => prop.PropertyType == type;
+
+    public bool ShoulRender()
+    {
+        var render = prop.GetCustomAttribute<RenderIfAttribute>();
+        if (render == null)
+        {
+            return true;
+        }
+
+        foreach (var dependency in render.dependencies)
+        {
+            var dependent = GetType().GetProperty(dependency);
+            if (dependent == null || dependent.PropertyType != typeof(bool))
+            {
+                return false;
+            }
+
+            if (!(bool)(dependent.GetValue(self) ?? false))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public bool IsExperimental() => prop.GetCustomAttribute<ExperimentalAttribute>() != null;
+
+    public void Experimental()
+    {
+        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.9f, 0.0f, 1.0f));
+        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.TextUnformatted(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+        ImGui.PopFont();
+        ImGui.PopStyleColor();
+
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Experimental");
+        }
+
+        ImGui.SameLine();
+    }
+
+    public void Tooltip()
+    {
+        var tooltip = prop.GetCustomAttribute<TooltipAttribute>();
+        if (tooltip != null && ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip(tooltip.text);
+        }
+    }
+
+    public string GetLabel() => prop.GetCustomAttribute<LabelAttribute>()?.text ?? prop.Name;
+
+    public string GetLabelWithId() => $"{GetLabel()}##{prop.GetHashCode()}";
+
+    public object? GetValue() => prop.GetValue(self);
+
+    public void SetValue(object? value) => prop.SetValue(self, value);
+}
