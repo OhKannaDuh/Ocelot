@@ -9,8 +9,7 @@ public class ActionLink : IChainlink
 
     public ActionLink(Action action)
     {
-        _action = () =>
-        {
+        _action = () => {
             action();
             return Task.CompletedTask;
         };

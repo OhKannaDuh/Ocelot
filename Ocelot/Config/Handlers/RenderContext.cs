@@ -23,9 +23,16 @@ public class RenderContext
         this.self = self;
     }
 
+    public void LogTypes()
+    {
+        Logger.Info($"prop.PropertyType: {prop.PropertyType}");
+        Logger.Info($"type: {type}");
+        Logger.Info($"self.GetType(): {self.GetType()}");
+    }
+
     public bool IsValid() => prop.PropertyType == type;
 
-    public bool ShoulRender()
+    public bool ShouldRender()
     {
         var render = prop.GetCustomAttribute<RenderIfAttribute>();
         if (render == null)
@@ -35,7 +42,7 @@ public class RenderContext
 
         foreach (var dependency in render.dependencies)
         {
-            var dependent = GetType().GetProperty(dependency);
+            var dependent = self.GetType().GetProperty(dependency);
             if (dependent == null || dependent.PropertyType != typeof(bool))
             {
                 return false;

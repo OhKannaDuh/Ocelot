@@ -1,9 +1,14 @@
 using System;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
+using Ocelot.Commands;
+using Ocelot.IPC;
+using Ocelot.Windows;
 
 namespace Ocelot.Modules;
 
-public abstract class Module<P, C> : IDisposable
+public abstract class Module<P, C> : IModule
     where P : OcelotPlugin
     where C : IOcelotConfig
 {
@@ -11,27 +16,62 @@ public abstract class Module<P, C> : IDisposable
 
     public readonly C _config;
 
-    public virtual ModuleConfig? config
+    // Accessors for OcelotPlugin managers
+    // Modules
+    public ModuleManager? modules => plugin.modules;
+
+    public T? GetModule<T>() where T : class, IModule => modules?.GetModule<T>();
+
+
+    public bool TryGetModule<T>(out T? module) where T : class, IModule
     {
-        get => null;
+        module = default;
+        return modules != null && modules.TryGetModule(out module);
     }
 
-    public virtual bool enabled
+    // IPC
+    public IPCManager? ipc => plugin.ipc;
+
+    public T? GetIPCProvider<T>() where T : IPCProvider => ipc?.GetProvider<T>();
+
+    public bool TryGetIPCProvider<T>(out T? provider) where T : IPCProvider
     {
-        get => true;
+        provider = default;
+        return ipc != null && ipc.TryGetProvider(out provider);
+    }
+
+
+    public virtual bool enabled => true;
+
+    public virtual ModuleConfig? config {
+        get => null;
     }
 
     public Module(P plugin, C config)
     {
         this.plugin = plugin;
-        _config = config;
+        this._config = config;
     }
 
     public virtual void Initialize() { }
 
     public virtual void Tick(IFramework _) { }
 
-    public virtual void Render() { }
+    public virtual void Draw() { }
+
+    public virtual bool DrawMainUi() => false;
+
+    public virtual void DrawConfigUi()
+    {
+        if (config != null && config.Draw())
+        {
+            _config.Save();
+        }
+    }
+
+    public virtual void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled) { }
+
+    public virtual void OnTerritoryChanged(ushort id) { }
 
     public virtual void Dispose() { }
 }

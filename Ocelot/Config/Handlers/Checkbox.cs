@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using ImGuiNET;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
@@ -9,8 +10,8 @@ public class Checkbox : Handler
 {
     protected override Type type => typeof(bool);
 
-    public Checkbox(ModuleConfig self, ConfigAttribute attribute)
-        : base(self, attribute) { }
+    public Checkbox(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop)
+        : base(self, attribute, prop) { }
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext payload)
     {

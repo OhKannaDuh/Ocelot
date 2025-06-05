@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using ECommons.DalamudServices;
 using ImGuiNET;
 using Lumina.Excel;
@@ -12,19 +13,21 @@ namespace Ocelot.Config.Handlers;
 public class ExcelSheet<T> : Handler
     where T : struct, IExcelRow<T>
 {
-    protected override Type type => typeof(bool);
+    protected override Type type => typeof(uint);
 
     private readonly IExcelSheetItemProvider<T> provider;
 
-    public ExcelSheet(ModuleConfig self, ConfigAttribute attribute, string provider)
-        : base(self, attribute)
+    public ExcelSheet(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop, string provider)
+        : base(self, attribute, prop)
     {
-        if (self.ProviderNamespace != "")
+        if (!string.IsNullOrEmpty(self.ProviderNamespace))
         {
             provider = $"{self.ProviderNamespace}.{provider}";
         }
 
-        var providerType = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(provider)).FirstOrDefault(t => t != null);
+        // Use your Registry to find the type
+        var providerType = Registry.GetAllLoadableTypes()
+            .FirstOrDefault(t => t.FullName == provider);
 
         if (providerType == null)
         {
@@ -32,13 +35,32 @@ public class ExcelSheet<T> : Handler
         }
 
         var expectedInterface = typeof(IExcelSheetItemProvider<>).MakeGenericType(typeof(T));
+
         if (!expectedInterface.IsAssignableFrom(providerType))
         {
-            throw new InvalidOperationException($"Provider type '{provider}' does not implement IExcelSheetItemProvider<{typeof(T).Name}>.");
+            // Provide more helpful debugging info
+            var implementedInterfaces = providerType.GetInterfaces();
+            var matchingInterfaces = implementedInterfaces
+                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IExcelSheetItemProvider<>))
+                .ToList();
+
+            string debugInfo = string.Join("\n", matchingInterfaces.Select(i => $"- {i.FullName}"));
+            throw new InvalidOperationException(
+                $"Provider type '{providerType.FullName}' does not implement IExcelSheetItemProvider<{typeof(T).Name}>.\n" +
+                $"Found generic interfaces:\n{debugInfo}"
+            );
         }
 
-        this.provider = (IExcelSheetItemProvider<T>)Activator.CreateInstance(providerType)!;
+        try
+        {
+            this.provider = (IExcelSheetItemProvider<T>)Activator.CreateInstance(providerType)!;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create instance of provider '{providerType.FullName}': {ex.Message}", ex);
+        }
     }
+
 
     private List<T> GetData() => Svc.Data.GetExcelSheet<T>().Where(provider.Filter).ToList();
 

@@ -24,11 +24,48 @@ public class ChainBuilder
         return this;
     }
 
+    public ChainBuilder ThenIf(Action action, Func<bool> condition)
+    {
+        chain.Add(new ConditionalLink(condition, new ActionLink(action)));
+        return this;
+    }
+
+    public ChainBuilder ThenIf(Func<Task> action, Func<bool> condition)
+    {
+        chain.Add(new ConditionalLink(condition, new ActionLink(action)));
+        return this;
+    }
+
+    public ChainBuilder ThenOnFrameworkThread(Action action)
+    {
+        chain.Add(new FrameworkThreadLink(action));
+        return this;
+    }
+
+    public ChainBuilder BreakIf(Func<bool> condition, string? reason = null)
+    {
+        chain.Add(new BreakIfLink(condition));
+        return this;
+    }
+
     public ChainBuilder Wait(int milliseconds)
     {
         chain.Add(new DelayLink(milliseconds));
         return this;
     }
+
+    public ChainBuilder WaitUntil(Func<bool> condition, int timeout = 5000, int interval = 250)
+    {
+        chain.Add(new WaitUntilLink(condition, timeout, interval));
+        return this;
+    }
+
+    public ChainBuilder WaitWhile(Func<bool> condition, int timeout = 5000, int interval = 250)
+    {
+        chain.Add(new WaitWhileLink(condition, timeout, interval));
+        return this;
+    }
+
 
     public ChainBuilder Retry(Action action, int retries, int delayMs = 0)
     {

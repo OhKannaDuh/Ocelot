@@ -14,23 +14,17 @@ public abstract class Handler
 
     private ConfigAttribute attribute;
 
-    public Handler(ModuleConfig self, ConfigAttribute attribute)
+    private readonly PropertyInfo property;
+
+    public Handler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo property)
     {
         this.self = self;
         this.attribute = attribute;
+        this.property = property;
     }
 
     protected RenderContext GetContext()
     {
-        var property = self.GetType()
-            .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-            .FirstOrDefault(p => p.GetCustomAttributes<ConfigAttribute>(true).Any(attr => attr == attribute));
-
-        if (property == null)
-        {
-            throw new InvalidOperationException("No valid property for attribute found.");
-        }
-
         return new RenderContext(property, type, self);
     }
 
@@ -38,10 +32,13 @@ public abstract class Handler
     {
         RenderContext context = GetContext();
 
-        if (!context.IsValid() || !context.ShoulRender())
+        if (!context.IsValid() || !context.ShouldRender())
         {
+            context.LogTypes();
             return (false, false);
         }
+
+
 
         if (context.IsExperimental())
         {

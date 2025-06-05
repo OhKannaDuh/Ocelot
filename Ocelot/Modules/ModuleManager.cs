@@ -1,83 +1,94 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
-using ECommons.Reflection;
+using ImGuiNET;
 
 namespace Ocelot.Modules;
 
-public class ModuleManager<P, C>
-    where P : OcelotPlugin
-    where C : IOcelotConfig
+public class ModuleManager
 {
-    private readonly List<Module<P, C>> modules = new();
+    private readonly List<IModule> modules = new();
 
-    private List<Module<P, C>> enabled => modules.Where(m => m.enabled).ToList();
+    private readonly Dictionary<IModule, int> configOrders = new();
 
-    public void Add(Module<P, C> module) => modules.Add(module);
+    private readonly Dictionary<IModule, int> mainOrders = new();
 
-    public void AutoRegister(P plugin, C config)
+    private List<IModule> enabled => modules.Where(m => m.enabled).ToList();
+
+    public void Add(Module<OcelotPlugin, IOcelotConfig> module) => modules.Add(module);
+
+    public void AutoRegister(OcelotPlugin plugin, IOcelotConfig config)
     {
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        var moduleTypes = Registry
+            .GetTypesWithAttributeData<OcelotModuleAttribute>()
+            .Where(t => typeof(IModule).IsAssignableFrom(t.type));
 
-        foreach (var assembly in assemblies)
+        foreach (var (type, attr) in moduleTypes)
         {
-            Type[] types;
-            try
-            {
-                types = assembly.GetTypes();
-            }
-            catch (ReflectionTypeLoadException ex)
-            {
-                types = ex.Types.Where(t => t != null).ToArray();
-            }
-            catch
-            {
-                // Could not load types from this assembly, skip
-                continue;
-            }
-
-            foreach (var type in types)
-            {
-                if (type.GetCustomAttribute<OcelotModuleAttribute>() != null && typeof(Module<P, C>).IsAssignableFrom(type))
-                {
-                    // Create instance and add to list
-                    var moduleInstance = (Module<P, C>)Activator.CreateInstance(type, plugin, config);
-                    Logger.Info($"Registering module: {type.FullName}");
-                    modules.Add(moduleInstance);
-                }
-            }
+            Logger.Info($"Registering module: {type.FullName}");
+            var moduleInstance = (IModule)Activator.CreateInstance(type, plugin, config)!;
+            modules.Add(moduleInstance);
+            configOrders[moduleInstance] = attr.configOrder;
+            mainOrders[moduleInstance] = attr.mainOrder;
         }
     }
 
-    public void Initialize(P plugin, C config)
-    {
-        AutoRegister(plugin, config);
-        enabled.ForEach(m => m.Initialize());
-    }
+    private IEnumerable<IModule> GetModulesByMainOrder() =>
+        enabled.OrderBy(m => mainOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
+
+    private IEnumerable<IModule> GetModulesByConfigOrder() =>
+        modules.OrderBy(m => configOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
+
+    public void Initialize(OcelotPlugin plugin, IOcelotConfig config) => enabled.ForEach(m => m.Initialize());
 
     public void Tick(IFramework framework) => enabled.ForEach(m => m.Tick(framework));
 
-    public void Render()
-    {
-        Logger.Info($"Enabled modules: {enabled.Count}");
-        enabled.ForEach(m => m.Render());
-    }
+    public void Draw() => enabled.ForEach(m => m.Draw());
 
-    public void RenderConfig()
+    public void DrawMainUi()
     {
-        foreach (var module in enabled)
+        foreach (var module in GetModulesByMainOrder())
         {
-            var config = module.config;
-            if (config != null)
-            {
-                if (config.Draw())
+            OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () => {
+                if (module.DrawMainUi())
                 {
-                    module._config.Save();
+                    OcelotUI.VSpace();
+                    if (module != modules.Last())
+                    {
+                        OcelotUI.Separator();
+                    }
                 }
+            });
+        }
+    }
+    public void DrawConfigUi()
+    {
+        foreach (var module in GetModulesByConfigOrder())
+        {
+            module.DrawConfigUi();
+            OcelotUI.VSpace();
+            if (module != modules.Last())
+            {
+                OcelotUI.Separator();
             }
         }
+    }
+
+
+    public void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled)
+        => enabled.ForEach(m => m.OnChatMessage(type, timestamp, sender, message, isHandled));
+
+    public void OnTerritoryChanged(ushort id) => enabled.ForEach(m => m.OnTerritoryChanged(id));
+
+    public T? GetModule<T>() where T : class, IModule => modules.OfType<T>().FirstOrDefault();
+
+    public bool TryGetModule<T>(out T? module) where T : class, IModule
+    {
+        module = GetModule<T>();
+        return module != null;
     }
 
     public void Dispose() => modules.ForEach(m => m.Dispose());

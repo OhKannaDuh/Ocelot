@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Ocelot.Config.Handlers;
 using Ocelot.Modules;
 
@@ -17,6 +18,6 @@ public class ExcelSheetAttribute : ConfigAttribute
         this.provider = provider;
     }
 
-    public override Handler GetHandler(ModuleConfig self) =>
-        (Handler)Activator.CreateInstance(typeof(ExcelSheet<>).MakeGenericType(type), self, this, provider)!;
+    public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop) =>
+        (Handler)Activator.CreateInstance(typeof(ExcelSheet<>).MakeGenericType(type), self, attr, prop, provider)!;
 }
