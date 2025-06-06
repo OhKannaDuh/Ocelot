@@ -1,21 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Dalamud.Interface.Windowing;
 using ECommons;
 using ECommons.DalamudServices;
+using ECommons.SimpleGui;
 using Ocelot.Modules;
 
 namespace Ocelot.Windows;
 
 public class WindowManager : IDisposable
 {
-    private readonly WindowSystem windows = new($"Ocelot##{Svc.PluginInterface?.InternalName}");
+    private readonly WindowSystem manager = new($"Ocelot##{Svc.PluginInterface?.InternalName}");
 
     private OcelotMainWindow? mainWindow;
 
     private OcelotConfigWindow? configWindow;
+
+    private List<OcelotWindow> windows = [];
 
     public void Initialize(OcelotPlugin plugin, IOcelotConfig config)
     {
@@ -24,7 +26,8 @@ public class WindowManager : IDisposable
             mainWindow = Activator.CreateInstance(mainWindowType, plugin, config) as OcelotMainWindow;
             if (mainWindow != null)
             {
-                windows.AddWindow(mainWindow);
+                manager.AddWindow(mainWindow);
+                windows.Add(mainWindow);
             }
         }
 
@@ -33,28 +36,100 @@ public class WindowManager : IDisposable
             configWindow = Activator.CreateInstance(configWindowType, plugin, config) as OcelotConfigWindow;
             if (configWindow != null)
             {
-                windows.AddWindow(configWindow);
+                manager.AddWindow(configWindow);
+                windows.Add(configWindow);
             }
         }
 
-        Svc.PluginInterface.UiBuilder.Draw += windows.Draw;
+        foreach (var type in Registry.GetTypesWithAttribute<OcelotWindowAttribute>())
+        {
+            var instance = Activator.CreateInstance(type, plugin, config) as OcelotWindow;
+            if (instance != null)
+            {
+                manager.AddWindow(instance);
+                windows.Add(instance);
+            }
+        }
+
+
+
+        Svc.PluginInterface.UiBuilder.Draw += manager.Draw;
         Svc.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
         Svc.PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
     }
 
     public void ToggleConfigUI() => configWindow?.Toggle();
 
+    public bool IsConfigUIOpen() => configWindow?.IsOpen ?? false;
+
+    public void OpenConfigUI()
+    {
+        if (!IsConfigUIOpen())
+        {
+            ToggleConfigUI();
+        }
+    }
+
+    public void CloseConfigUI()
+    {
+        if (IsConfigUIOpen())
+        {
+            ToggleConfigUI();
+        }
+    }
+
     public void ToggleMainUI() => mainWindow?.Toggle();
+
+    public bool IsMainUIOpen() => mainWindow?.IsOpen ?? false;
+
+    public void OpenMainUI()
+    {
+        if (!IsMainUIOpen())
+        {
+            ToggleMainUI();
+        }
+    }
+
+    public void CloseMainUI()
+    {
+        if (IsMainUIOpen())
+        {
+            ToggleMainUI();
+        }
+    }
+
+    public void AddWindow(OcelotWindow window)
+    {
+        if (!windows.Contains(window))
+        {
+            manager.AddWindow(window);
+            windows.Add(window);
+        }
+    }
+
+    public bool HasWindow<T>() where T : OcelotWindow => windows.OfType<T>().Any();
+
+    public T? GetWindow<T>() where T : OcelotWindow => windows.OfType<T>().FirstOrDefault();
+
+    public bool TryGetWindow<T>(out T? window) where T : OcelotWindow
+    {
+        window = windows.OfType<T>().FirstOrDefault();
+        return window != null;
+    }
 
     public void Dispose()
     {
-        Svc.PluginInterface.UiBuilder.Draw -= windows.Draw;
+        Svc.PluginInterface.UiBuilder.Draw -= manager.Draw;
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUI;
         Svc.PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUI;
 
-        windows.RemoveAllWindows();
+        manager.RemoveAllWindows();
 
-        configWindow?.Dispose();
-        mainWindow?.Dispose();
+        foreach (var window in windows)
+        {
+            window.Dispose();
+        }
+
+        windows.Clear();
     }
 }

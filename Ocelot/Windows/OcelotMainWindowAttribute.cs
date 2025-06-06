@@ -1,6 +1,6 @@
 using System;
 
-namespace Ocelot.Modules;
+namespace Ocelot.Windows;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class OcelotMainWindowAttribute : Attribute { }
