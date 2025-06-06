@@ -34,3 +34,9 @@
 
 - Added Error(string error)
   - Prints as red message
+
+# 0.5.0
+
+- Implemented lots of ChainBuilder extensions
+- Added PreInitialize and PostInitialize to modules
+- Implemented RequiredPlugin for config attributes
