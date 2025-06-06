@@ -50,9 +50,11 @@ public class ModuleManager
 
     public void DrawMainUi()
     {
-        foreach (var module in GetModulesByMainOrder())
+        var modules = GetModulesByMainOrder();
+        foreach (var module in modules)
         {
-            OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () => {
+            OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () =>
+            {
                 if (module.DrawMainUi())
                 {
                     OcelotUI.VSpace();
@@ -66,7 +68,8 @@ public class ModuleManager
     }
     public void DrawConfigUi()
     {
-        foreach (var module in GetModulesByConfigOrder())
+        var modules = GetModulesByConfigOrder();
+        foreach (var module in modules)
         {
             module.DrawConfigUi();
             OcelotUI.VSpace();

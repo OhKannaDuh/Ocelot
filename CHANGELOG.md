@@ -13,3 +13,9 @@
 ## Ocelot.Windows.[OcelotConfigWindowAttribute/OcelotMainWindowAttribute]
 
 - Corrected namespace
+
+# 0.3.1
+
+## Ocelot.Modules.ModuleManager
+
+- Ensure module order is respected when check if a module is last in the list
