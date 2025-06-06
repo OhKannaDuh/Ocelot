@@ -9,6 +9,8 @@ public class OcelotUI
 {
     public static void Title(string title) => ImGui.TextColored(new Vector4(1f, 0.75f, 0.25f, 1f), title);
 
+    public static void Error(string error) => ImGui.TextColored(new Vector4(0.89f, 0.29f, 0.29f, 1f), error);
+
 
     public static void Region(string id, Action contents)
     {

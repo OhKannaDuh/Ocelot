@@ -19,3 +19,18 @@
 ## Ocelot.Modules.ModuleManager
 
 - Ensure module order is respected when check if a module is last in the list
+
+# 0.4.0
+
+## Ocelot.Config.Attributes.RequiredPluginAttribute
+
+- Added
+
+## Ocelot.Modules.ModuleConfig
+
+- Use RequiredPluginAttribute to ensure we only display configs where we have valid plugins
+
+## Ocelot.OcelotUI
+
+- Added Error(string error)
+  - Prints as red message

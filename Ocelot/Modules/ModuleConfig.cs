@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.Serialization;
+using ECommons.Reflection;
 using ImGuiNET;
 using Ocelot.Config.Attributes;
 using Ocelot.Config.Handlers;
@@ -50,15 +51,40 @@ public abstract class ModuleConfig
     public bool Draw()
     {
         bool dirty = false;
-
-        OcelotUI.Region($"OcelotConfig##{GetType().FullName}", () => {
+        OcelotUI.Region($"OcelotConfig##{GetType().FullName}", () =>
+        {
             var title = GetType().GetCustomAttribute<TitleAttribute>();
             if (title != null)
             {
                 ImGui.TextColored(new Vector4(1f, 0.75f, 0.25f, 1f), $"{title.text}:");
             }
 
-            OcelotUI.Indent(16, () => {
+            var requiredPlugin = GetType().GetCustomAttribute<RequiredPluginAttribute>();
+            if (requiredPlugin != null)
+            {
+                List<string> unloaded = [];
+
+                foreach (var plugin in requiredPlugin.dependencies)
+                {
+                    if (!DalamudReflector.TryGetDalamudPlugin(plugin, out _, false, true))
+                    {
+                        unloaded.Add(plugin);
+                    }
+                }
+
+                if (unloaded.Count > 0)
+                {
+                    OcelotUI.Error("The following plugins are required for this module:");
+                    ImGui.SameLine();
+                    ImGui.TextUnformatted(string.Join(", ", unloaded));
+                    return;
+                }
+
+            }
+
+
+            OcelotUI.Indent(16, () =>
+            {
                 foreach (var handler in GetHandlers())
                 {
                     (bool handled, bool changed) = handler.Render();
