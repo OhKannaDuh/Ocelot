@@ -12,7 +12,6 @@ using Ocelot.IPC;
 using Ocelot.Modules;
 using Ocelot.Windows;
 
-
 namespace Ocelot;
 
 public abstract class OcelotPlugin : IDalamudPlugin
@@ -21,13 +20,13 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public abstract IOcelotConfig _config { get; }
 
-    public ModuleManager? modules = null;
+    public readonly ModuleManager modules = new();
 
-    public WindowManager? windows = null;
+    public readonly WindowManager windows = new();
 
-    public CommandManager? commands = null;
+    public readonly CommandManager commands = new();
 
-    public IPCManager? ipc = null;
+    public readonly IPCManager ipc = new();
 
     private List<OcelotFeature> features = [];
 
@@ -37,6 +36,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
         Registry.RegisterAssemblies(typeof(OcelotPlugin).Assembly);
         Registry.RegisterAssemblies(GetType().Assembly);
+
     }
 
     protected void OcelotInitialize(params OcelotFeature[] features)
@@ -53,7 +53,6 @@ public abstract class OcelotPlugin : IDalamudPlugin
         if (this.features.ContainsAny(OcelotFeature.ModuleManager, OcelotFeature.All))
         {
             Logger.Info("Initializing Module Manager...");
-            modules = new();
             modules.AutoRegister(this, _config);
             modules.Initialize(this, _config);
             Svc.PluginInterface.UiBuilder.Draw += modules.Draw;
@@ -62,21 +61,18 @@ public abstract class OcelotPlugin : IDalamudPlugin
         if (this.features.ContainsAny(OcelotFeature.WindowManager, OcelotFeature.All))
         {
             Logger.Info("Initializing Window Manager...");
-            windows = new();
             windows.Initialize(this, _config);
         }
 
         if (this.features.ContainsAny(OcelotFeature.CommandManager, OcelotFeature.All))
         {
             Logger.Info("Initializing Command Manager...");
-            commands = new();
             commands.Initialize(this);
         }
 
         if (this.features.ContainsAny(OcelotFeature.IPC, OcelotFeature.All))
         {
             Logger.Info("Initializing IPC Manager...");
-            ipc = new();
             ipc.Initialze();
         }
 
@@ -111,8 +107,6 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
         windows?.Dispose();
         commands?.Dispose();
-
-
 
         Svc.Framework.Update -= Tick;
         Svc.Chat.ChatMessage -= OnChatMessage;

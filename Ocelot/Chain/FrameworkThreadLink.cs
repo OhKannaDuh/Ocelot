@@ -20,7 +20,8 @@ public class FrameworkThreadLink : IChainlink
 
         var completion = new TaskCompletionSource();
 
-        Svc.Framework.RunOnFrameworkThread(() => {
+        Svc.Framework.RunOnFrameworkThread(() =>
+        {
             try
             {
                 action();

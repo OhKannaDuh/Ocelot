@@ -24,6 +24,8 @@ public class OcelotUI
         ImGui.Unindent(depth);
     }
 
+    public static void Indent(Action contents) => Indent(16, contents);
+
     public static void DrawLine(Vector3 start, Vector3 end, float thickness, Vector4 color)
     {
         bool startValid = Svc.GameGui.WorldToScreen(start, out Vector2 startScreen);

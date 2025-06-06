@@ -66,7 +66,6 @@ public class ChainBuilder
         return this;
     }
 
-
     public ChainBuilder Retry(Action action, int retries, int delayMs = 0)
     {
         chain.Add(new RetryLink(new ActionLink(action), retries, delayMs));
@@ -76,6 +75,18 @@ public class ChainBuilder
     public ChainBuilder Retry(Func<Task> action, int retries, int delayMs = 0)
     {
         chain.Add(new RetryLink(new ActionLink(action), retries, delayMs));
+        return this;
+    }
+
+    public ChainBuilder Log(string message)
+    {
+        chain.Add(new LogLink(message));
+        return this;
+    }
+
+    public ChainBuilder Log(Func<string> message)
+    {
+        chain.Add(new LogLink(message));
         return this;
     }
 
@@ -91,4 +102,20 @@ public class ChainBuilder
         chain.AddRange(this.chain);
         return chain;
     }
+
+    public ChainBuilder Merge(ChainBuilder other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        chain.AddRange(other.chain);
+        return this;
+    }
+
+    public ChainBuilder Merge(Chain other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        chain.AddRange(other);
+        return this;
+    }
+
+    public async Task Run() => ChainRunner.Run(Build());
 }

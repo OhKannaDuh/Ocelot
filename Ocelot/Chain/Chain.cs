@@ -15,4 +15,6 @@ public class Chain : List<IChainlink>, IChainlink
             await task.RunAsync(context);
         }
     }
+
+    public async Task Run() => await ChainRunner.Run(this);
 }
