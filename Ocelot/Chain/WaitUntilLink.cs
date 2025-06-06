@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using ECommons.DalamudServices;
 
@@ -25,9 +26,16 @@ public class WaitUntilLink : IChainlink
 
     public async Task RunAsync(ChainContext context)
     {
-        var waited = 0;
-        while (!context.token.IsCancellationRequested && waited < timeout)
+        var stopwatch = Stopwatch.StartNew();
+
+        while (!context.token.IsCancellationRequested)
         {
+            if (stopwatch.ElapsedMilliseconds >= timeout)
+            {
+                context.source.Cancel();
+                continue;
+            }
+
             bool result = false;
 
             if (framework)
@@ -52,10 +60,11 @@ public class WaitUntilLink : IChainlink
             }
 
             if (result)
+            {
                 break;
+            }
 
             await Task.Delay(interval, context.token);
-            waited += interval;
         }
     }
 }

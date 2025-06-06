@@ -28,6 +28,8 @@ public abstract class Handler
 
     public bool HasUnloadedRequiredPlugins(out List<string> unloaded) => GetContext().HasUnloadedRequiredPlugins(out unloaded);
 
+    public bool HasLoadedConflictingPlugins(out List<string> loaded) => GetContext().HasLoadedConflictingPlugins(out loaded);
+
     public (bool handled, bool changed) Render()
     {
         RenderContext context = GetContext();

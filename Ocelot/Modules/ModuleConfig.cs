@@ -59,6 +59,7 @@ public abstract class ModuleConfig
                 ImGui.TextColored(new Vector4(1f, 0.75f, 0.25f, 1f), $"{title.text}:");
             }
 
+            var error = false;
             var requiredPlugin = GetType().GetCustomAttribute<RequiredPluginAttribute>();
             if (requiredPlugin != null)
             {
@@ -73,14 +74,43 @@ public abstract class ModuleConfig
 
                 if (missingClass.Count > 0)
                 {
+                    error = true;
                     OcelotUI.Indent(() =>
                     {
                         OcelotUI.Error("The following plugins are required for this module:");
                         ImGui.SameLine();
                         ImGui.TextUnformatted(string.Join(", ", missingClass));
-                        return;
                     });
                 }
+            }
+
+            var conflictingPlugin = GetType().GetCustomAttribute<ConflictingPluginAttribute>();
+            if (conflictingPlugin != null)
+            {
+                List<string> conflictingClass = [];
+                foreach (var plugin in conflictingPlugin.conflicts)
+                {
+                    if (DalamudReflector.TryGetDalamudPlugin(plugin, out _, false, true))
+                    {
+                        conflictingClass.Add(plugin);
+                    }
+                }
+
+                if (conflictingClass.Count > 0)
+                {
+                    error = true;
+                    OcelotUI.Indent(() =>
+                    {
+                        OcelotUI.Error("The following plugins are conflicting with this module:");
+                        ImGui.SameLine();
+                        ImGui.TextUnformatted(string.Join(", ", conflictingClass));
+                    });
+                }
+            }
+
+            if (error)
+            {
+                return;
             }
 
             List<string> missingAttrs = [];
@@ -102,12 +132,36 @@ public abstract class ModuleConfig
             {
                 OcelotUI.Indent(() =>
                 {
-                    OcelotUI.Error("Some options are hidden due to mission plugins: ");
+                    OcelotUI.Error("Some options are hidden due to missing plugins: ");
                     ImGui.SameLine();
                     ImGui.TextUnformatted(string.Join(", ", missingAttrs));
                 });
             }
 
+            List<string> conflictingAttrs = [];
+            foreach (var handler in GetHandlers())
+            {
+                if (handler.HasLoadedConflictingPlugins(out var loaded))
+                {
+                    foreach (var item in loaded)
+                    {
+                        if (!conflictingAttrs.Contains(item))
+                        {
+                            conflictingAttrs.Add(item);
+                        }
+                    }
+                }
+            }
+
+            if (conflictingAttrs.Count > 0)
+            {
+                OcelotUI.Indent(() =>
+                {
+                    OcelotUI.Error("Some options are hidden due to conflicting plugins: ");
+                    ImGui.SameLine();
+                    ImGui.TextUnformatted(string.Join(", ", conflictingAttrs));
+                });
+            }
 
             OcelotUI.Indent(16, () =>
             {

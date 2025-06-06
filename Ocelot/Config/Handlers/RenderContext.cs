@@ -41,6 +41,11 @@ public class RenderContext
             return false;
         }
 
+        if (HasLoadedConflictingPlugins(out var _))
+        {
+            return false;
+        }
+
         var render = prop.GetCustomAttribute<RenderIfAttribute>();
         if (render == null)
         {
@@ -81,6 +86,27 @@ public class RenderContext
         }
 
         return unloaded.Count > 0;
+    }
+
+
+
+    public bool HasLoadedConflictingPlugins(out List<string> loaded)
+    {
+        loaded = [];
+
+        var attr = prop.GetCustomAttribute<ConflictingPluginAttribute>();
+        if (attr == null)
+            return false;
+
+        foreach (var plugin in attr.conflicts)
+        {
+            if (DalamudReflector.TryGetDalamudPlugin(plugin, out _, false, true))
+            {
+                loaded.Add(plugin);
+            }
+        }
+
+        return loaded.Count > 0;
     }
 
 
