@@ -9,7 +9,9 @@ public interface IModule : IDisposable
 {
     bool enabled { get; }
 
+    void PreInitialize();
     void Initialize();
+    void PostInitialize();
 
     // Functions
     void Tick(IFramework framework);

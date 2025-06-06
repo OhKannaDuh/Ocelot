@@ -10,83 +10,13 @@ public class ChainBuilder
 
     private ChainBuilder() { }
 
+    public bool debug { get; private set; } = false;
+
     public static ChainBuilder Begin() => new();
 
-    public ChainBuilder Then(Action action)
+    public ChainBuilder EnableDebug()
     {
-        chain.Add(new ActionLink(action));
-        return this;
-    }
-
-    public ChainBuilder Then(Func<Task> action)
-    {
-        chain.Add(new ActionLink(action));
-        return this;
-    }
-
-    public ChainBuilder ThenIf(Action action, Func<bool> condition)
-    {
-        chain.Add(new ConditionalLink(condition, new ActionLink(action)));
-        return this;
-    }
-
-    public ChainBuilder ThenIf(Func<Task> action, Func<bool> condition)
-    {
-        chain.Add(new ConditionalLink(condition, new ActionLink(action)));
-        return this;
-    }
-
-    public ChainBuilder ThenOnFrameworkThread(Action action)
-    {
-        chain.Add(new FrameworkThreadLink(action));
-        return this;
-    }
-
-    public ChainBuilder BreakIf(Func<bool> condition, string? reason = null)
-    {
-        chain.Add(new BreakIfLink(condition));
-        return this;
-    }
-
-    public ChainBuilder Wait(int milliseconds)
-    {
-        chain.Add(new DelayLink(milliseconds));
-        return this;
-    }
-
-    public ChainBuilder WaitUntil(Func<bool> condition, int timeout = 5000, int interval = 250)
-    {
-        chain.Add(new WaitUntilLink(condition, timeout, interval));
-        return this;
-    }
-
-    public ChainBuilder WaitWhile(Func<bool> condition, int timeout = 5000, int interval = 250)
-    {
-        chain.Add(new WaitWhileLink(condition, timeout, interval));
-        return this;
-    }
-
-    public ChainBuilder Retry(Action action, int retries, int delayMs = 0)
-    {
-        chain.Add(new RetryLink(new ActionLink(action), retries, delayMs));
-        return this;
-    }
-
-    public ChainBuilder Retry(Func<Task> action, int retries, int delayMs = 0)
-    {
-        chain.Add(new RetryLink(new ActionLink(action), retries, delayMs));
-        return this;
-    }
-
-    public ChainBuilder Log(string message)
-    {
-        chain.Add(new LogLink(message));
-        return this;
-    }
-
-    public ChainBuilder Log(Func<string> message)
-    {
-        chain.Add(new LogLink(message));
+        debug = true;
         return this;
     }
 

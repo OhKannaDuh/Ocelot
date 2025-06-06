@@ -43,7 +43,11 @@ public abstract class Module<P, C> : IModule
         this._config = config;
     }
 
+    public virtual void PreInitialize() { }
+
     public virtual void Initialize() { }
+
+    public virtual void PostInitialize() { }
 
     public virtual void Tick(IFramework _) { }
 

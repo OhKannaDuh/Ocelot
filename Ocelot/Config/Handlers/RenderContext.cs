@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using Dalamud.Interface;
+using ECommons.Reflection;
 using ImGuiNET;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
@@ -34,6 +36,11 @@ public class RenderContext
 
     public bool ShouldRender()
     {
+        if (HasUnloadedRequiredPlugins(out var _))
+        {
+            return false;
+        }
+
         var render = prop.GetCustomAttribute<RenderIfAttribute>();
         if (render == null)
         {
@@ -56,6 +63,26 @@ public class RenderContext
 
         return true;
     }
+
+    public bool HasUnloadedRequiredPlugins(out List<string> unloaded)
+    {
+        unloaded = [];
+
+        var attr = prop.GetCustomAttribute<RequiredPluginAttribute>();
+        if (attr == null)
+            return false;
+
+        foreach (var plugin in attr.dependencies)
+        {
+            if (!DalamudReflector.TryGetDalamudPlugin(plugin, out _, false, true))
+            {
+                unloaded.Add(plugin);
+            }
+        }
+
+        return unloaded.Count > 0;
+    }
+
 
     public bool IsExperimental() => prop.GetCustomAttribute<ExperimentalAttribute>() != null;
 

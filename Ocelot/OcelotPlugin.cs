@@ -54,6 +54,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             Logger.Info("Initializing Module Manager...");
             modules.AutoRegister(this, _config);
+            modules.PreInitialize(this, _config);
             modules.Initialize(this, _config);
             Svc.PluginInterface.UiBuilder.Draw += modules.Draw;
         }
@@ -75,6 +76,9 @@ public abstract class OcelotPlugin : IDalamudPlugin
             Logger.Info("Initializing IPC Manager...");
             ipc.Initialze();
         }
+
+
+        modules?.PostInitialize(this, _config);
 
         Svc.Framework.Update += Tick;
         Svc.Chat.ChatMessage += OnChatMessage;

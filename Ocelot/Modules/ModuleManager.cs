@@ -42,7 +42,11 @@ public class ModuleManager
     private IEnumerable<IModule> GetModulesByConfigOrder() =>
         modules.OrderBy(m => configOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
 
+    public void PreInitialize(OcelotPlugin plugin, IOcelotConfig config) => enabled.ForEach(m => m.PreInitialize());
+
     public void Initialize(OcelotPlugin plugin, IOcelotConfig config) => enabled.ForEach(m => m.Initialize());
+
+    public void PostInitialize(OcelotPlugin plugin, IOcelotConfig config) => enabled.ForEach(m => m.PostInitialize());
 
     public void Tick(IFramework framework) => enabled.ForEach(m => m.Tick(framework));
 

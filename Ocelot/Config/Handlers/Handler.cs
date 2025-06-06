@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Ocelot.Config.Attributes;
@@ -23,10 +24,9 @@ public abstract class Handler
         this.property = property;
     }
 
-    protected RenderContext GetContext()
-    {
-        return new RenderContext(property, type, self);
-    }
+    protected RenderContext GetContext() => new RenderContext(property, type, self);
+
+    public bool HasUnloadedRequiredPlugins(out List<string> unloaded) => GetContext().HasUnloadedRequiredPlugins(out unloaded);
 
     public (bool handled, bool changed) Render()
     {

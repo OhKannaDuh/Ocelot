@@ -84,6 +84,7 @@ public class WindowManager : IDisposable
 
     public void OpenMainUI()
     {
+
         if (!IsMainUIOpen())
         {
             ToggleMainUI();

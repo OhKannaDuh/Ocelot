@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using ECommons.DalamudServices;
 
 namespace Ocelot.Chain;
 
@@ -11,18 +12,48 @@ public class WaitUntilLink : IChainlink
 
     private readonly int interval;
 
-    public WaitUntilLink(Func<bool> predicate, int timeout = 5000, int interval = 250)
+    private readonly bool framework;
+
+    public WaitUntilLink(Func<bool> predicate, int timeout = 5000, int interval = 250, bool framework = false)
     {
         this.predicate = predicate;
         this.timeout = timeout;
         this.interval = interval;
+        this.framework = framework;
     }
+
 
     public async Task RunAsync(ChainContext context)
     {
         var waited = 0;
-        while (!predicate() && waited < timeout && !context.token.IsCancellationRequested)
+        while (!context.token.IsCancellationRequested && waited < timeout)
         {
+            bool result = false;
+
+            if (framework)
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                await Svc.Framework.RunOnFrameworkThread(() =>
+                {
+                    try
+                    {
+                        tcs.SetResult(predicate());
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
+                });
+                result = await tcs.Task;
+            }
+            else
+            {
+                result = predicate();
+            }
+
+            if (result)
+                break;
+
             await Task.Delay(interval, context.token);
             waited += interval;
         }

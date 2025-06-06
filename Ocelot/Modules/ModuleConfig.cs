@@ -62,24 +62,50 @@ public abstract class ModuleConfig
             var requiredPlugin = GetType().GetCustomAttribute<RequiredPluginAttribute>();
             if (requiredPlugin != null)
             {
-                List<string> unloaded = [];
-
+                List<string> missingClass = [];
                 foreach (var plugin in requiredPlugin.dependencies)
                 {
                     if (!DalamudReflector.TryGetDalamudPlugin(plugin, out _, false, true))
                     {
-                        unloaded.Add(plugin);
+                        missingClass.Add(plugin);
                     }
                 }
 
-                if (unloaded.Count > 0)
+                if (missingClass.Count > 0)
                 {
-                    OcelotUI.Error("The following plugins are required for this module:");
-                    ImGui.SameLine();
-                    ImGui.TextUnformatted(string.Join(", ", unloaded));
-                    return;
+                    OcelotUI.Indent(() =>
+                    {
+                        OcelotUI.Error("The following plugins are required for this module:");
+                        ImGui.SameLine();
+                        ImGui.TextUnformatted(string.Join(", ", missingClass));
+                        return;
+                    });
                 }
+            }
 
+            List<string> missingAttrs = [];
+            foreach (var handler in GetHandlers())
+            {
+                if (handler.HasUnloadedRequiredPlugins(out var unloaded))
+                {
+                    foreach (var item in unloaded)
+                    {
+                        if (!missingAttrs.Contains(item))
+                        {
+                            missingAttrs.Add(item);
+                        }
+                    }
+                }
+            }
+
+            if (missingAttrs.Count > 0)
+            {
+                OcelotUI.Indent(() =>
+                {
+                    OcelotUI.Error("Some options are hidden due to mission plugins: ");
+                    ImGui.SameLine();
+                    ImGui.TextUnformatted(string.Join(", ", missingAttrs));
+                });
             }
 
 
