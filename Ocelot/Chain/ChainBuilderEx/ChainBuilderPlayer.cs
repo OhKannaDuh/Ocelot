@@ -1,6 +1,11 @@
+using System;
 using ECommons.DalamudServices;
+using ECommons.GameFunctions;
+using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 
 namespace Ocelot.Chain.ChainBuilderEx;
+
+public class CastInteruptedException : Exception { }
 
 public static class ChainBuilderPlayer
 {
@@ -8,7 +13,7 @@ public static class ChainBuilderPlayer
     {
         return builder
             .Debug("Waiting for player to start casting")
-            .WaitOnFrameworkThreadUntil(() =>
+            .WaitUntil(() =>
             {
                 var player = Svc.ClientState.LocalPlayer;
                 if (player == null) return false;
@@ -21,8 +26,17 @@ public static class ChainBuilderPlayer
     {
         return builder
             .Debug("Waiting for player to stop casting")
-            .WaitOnFrameworkThreadWhile(() =>
+            .WaitWhile(() =>
             {
+                unsafe
+                {
+                    var cast = CastBarNumberArray.Instance();
+                    if (cast->Interupted)
+                    {
+                        throw new CastInteruptedException();
+                    }
+                }
+
                 var player = Svc.ClientState.LocalPlayer;
                 if (player == null) return false;
 
@@ -42,7 +56,7 @@ public static class ChainBuilderPlayer
     {
         return builder
             .Debug("Waiting for player to be dead")
-            .WaitOnFrameworkThreadUntil(() =>
+            .WaitUntil(() =>
             {
                 var player = Svc.ClientState.LocalPlayer;
                 if (player == null) return false;
@@ -55,7 +69,7 @@ public static class ChainBuilderPlayer
     {
         return builder
             .Debug("Waiting for player to be alive")
-            .WaitOnFrameworkThreadWhile(() =>
+            .WaitWhile(() =>
             {
                 var player = Svc.ClientState.LocalPlayer;
                 if (player == null) return false;

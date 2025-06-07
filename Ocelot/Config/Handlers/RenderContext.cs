@@ -25,13 +25,6 @@ public class RenderContext
         this.self = self;
     }
 
-    public void LogTypes()
-    {
-        Logger.Info($"prop.PropertyType: {prop.PropertyType}");
-        Logger.Info($"type: {type}");
-        Logger.Info($"self.GetType(): {self.GetType()}");
-    }
-
     public bool IsValid() => prop.PropertyType == type;
 
     public bool ShouldRender()

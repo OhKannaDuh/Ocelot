@@ -36,11 +36,8 @@ public abstract class Handler
 
         if (!context.IsValid() || !context.ShouldRender())
         {
-            context.LogTypes();
             return (false, false);
         }
-
-
 
         if (context.IsExperimental())
         {

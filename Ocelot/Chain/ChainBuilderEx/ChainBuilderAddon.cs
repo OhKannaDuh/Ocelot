@@ -8,8 +8,7 @@ namespace Ocelot.Chain.ChainBuilderEx;
 public static class ChainBuilderAddon
 {
     public static ChainBuilder WaitForAddonReady(this ChainBuilder builder, string addonName)
-    {
-        return builder
+        => builder
             .Debug($"Waiting for addon to be ready {addonName}")
             .WaitUntil(() =>
             {
@@ -29,11 +28,9 @@ public static class ChainBuilderAddon
 
                 return false;
             });
-    }
 
     public static ChainBuilder AddonCallback(this ChainBuilder builder, string addonName, bool updateState = true, params object[] callbackValues)
-    {
-        return builder
+        => builder
             .Debug($"Firing callback on addon {addonName} updateState: {updateState} values: {string.Join(", ", callbackValues)}")
             .WaitUntil(() =>
             {
@@ -53,6 +50,4 @@ public static class ChainBuilderAddon
 
                 return false;
             });
-    }
-
 }

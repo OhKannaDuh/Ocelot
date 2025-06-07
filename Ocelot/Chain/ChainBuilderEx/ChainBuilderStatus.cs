@@ -8,10 +8,9 @@ namespace Ocelot.Chain.ChainBuilderEx;
 public static class ChainBuilderStatus
 {
     public static ChainBuilder WaitUntilStatus(this ChainBuilder builder, StatusFlags status, int timeout = 5000, int interval = 250)
-    {
-        return builder
+        => builder
             .Debug($"Waiting until status {status} is active")
-            .WaitOnFrameworkThreadUntil(() =>
+            .WaitUntil(() =>
             {
                 var player = Svc.ClientState.LocalPlayer;
                 if (player == null)
@@ -21,13 +20,11 @@ public static class ChainBuilderStatus
 
                 return player.StatusFlags.HasFlag(status);
             }, timeout, interval);
-    }
 
     public static ChainBuilder WaitWhileStatus(this ChainBuilder builder, StatusFlags status, int timeout = 5000, int interval = 250)
-    {
-        return builder
+        => builder
             .Debug($"Waiting while status {status} is active")
-            .WaitOnFrameworkThreadWhile(() =>
+            .WaitWhile(() =>
             {
                 var player = Svc.ClientState.LocalPlayer;
                 if (player == null)
@@ -39,5 +36,4 @@ public static class ChainBuilderStatus
                 builder.Debug($"Player has status {status}: {hasStatus}");
                 return hasStatus;
             }, timeout, interval);
-    }
 }

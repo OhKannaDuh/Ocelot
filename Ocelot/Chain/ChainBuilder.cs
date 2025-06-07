@@ -6,19 +6,17 @@ namespace Ocelot.Chain;
 
 public class ChainBuilder
 {
-    private readonly List<IChainlink> chain = new();
+    private readonly Chain chain = new();
+
+    internal readonly List<Action<Exception>> OnErrorHandlers = new();
+
+    internal readonly List<Action> OnStopHandlers = new();
+
+    internal readonly List<Action> OnFinallyHandlers = new();
 
     private ChainBuilder() { }
 
-    public bool debug { get; private set; } = false;
-
     public static ChainBuilder Begin() => new();
-
-    public ChainBuilder EnableDebug()
-    {
-        debug = true;
-        return this;
-    }
 
     public ChainBuilder AddLink(IChainlink link)
     {
@@ -30,6 +28,11 @@ public class ChainBuilder
     {
         var chain = new Chain();
         chain.AddRange(this.chain);
+
+        foreach (var h in OnErrorHandlers) chain.OnError(h);
+        foreach (var h in OnStopHandlers) chain.OnStop(h);
+        foreach (var h in OnFinallyHandlers) chain.OnFinally(h);
+
         return chain;
     }
 
@@ -44,6 +47,7 @@ public class ChainBuilder
     {
         if (other == null) throw new ArgumentNullException(nameof(other));
         chain.AddRange(other);
+
         return this;
     }
 
