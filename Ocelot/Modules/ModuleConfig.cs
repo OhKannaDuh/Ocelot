@@ -132,7 +132,7 @@ public abstract class ModuleConfig
             {
                 OcelotUI.Indent(() =>
                 {
-                    OcelotUI.Error("Some options are hidden due to missing plugins: ");
+                    OcelotUI.Error("Some options are hidden due to missing plugins:");
                     ImGui.SameLine();
                     ImGui.TextUnformatted(string.Join(", ", missingAttrs));
                 });
