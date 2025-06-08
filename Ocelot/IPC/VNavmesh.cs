@@ -21,6 +21,10 @@ public class VNavmesh : IPCProvider
     [EzIPC("Path.IsRunning")]
     public readonly Func<bool> IsRunning;
 
+
+    [EzIPC("Path.Stop")]
+    public readonly Action Stop;
+
     public async Task WaitToStop()
     {
         while (true)

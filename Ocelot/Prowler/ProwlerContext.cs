@@ -27,6 +27,8 @@ public class ProwlerContext
 
     private int? elapsed = null;
 
+    private int? elapsedSinceMove = null;
+
     public ProwlerContext(VNavmesh vnav, float distanceThreshold = 0.0005f, float lastMovedThresholod = 0.25f)
     {
         this.vnav = vnav;
@@ -40,7 +42,12 @@ public class ProwlerContext
     {
         var player = Svc.ClientState.LocalPlayer;
         if (player == null) return false;
-        bool hasMoved = Vector3.Distance(player.Position, last) > lastMovedThresholod;
+
+        var current2D = new Vector2(player.Position.X, player.Position.Z);
+        var last2D = new Vector2(last.X, last.Z);
+
+        bool hasMoved = Vector2.Distance(current2D, last2D) > lastMovedThresholod;
+
         last = player.Position;
 
         return hasMoved;
@@ -70,11 +77,24 @@ public class ProwlerContext
                 return false;
             }
 
-            if (!HasMoved() && HasWarmedUp())
+            bool hasMoved = HasMoved();
+            if (!hasMoved && HasWarmedUp())
             {
+                elapsedSinceMove += interval;
                 Logger.Info("[Prowler] No significant movement detected, jumping");
                 Jump();
             }
+
+            if (hasMoved)
+            {
+                elapsed = 0;
+            }
+
+            if (elapsedSinceMove >= 3000)
+            {
+                throw new StuckException();
+            }
+
 
             var result = !vnav.IsRunning() || Vector3.Distance(player.Position, destination) <= distanceThreshold;
             if (result)
@@ -109,5 +129,10 @@ public class ProwlerContext
     }
 
     private bool HasWarmedUp() => elapsed >= 1000;
+
+    public bool IsNear(Vector3 a, Vector3 b, float threshold = 1f)
+    {
+        return Vector3.DistanceSquared(a, b) <= threshold;
+    }
 
 }

@@ -35,6 +35,6 @@ public abstract class NavAction : IProwlerAction
             }
 
             return context.Check(GetKey(), destination);
-        });
+        }, new() { TimeLimitMS = int.MaxValue });
     }
 }
