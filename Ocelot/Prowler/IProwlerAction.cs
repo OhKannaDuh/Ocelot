@@ -1,8 +1,10 @@
-using System.Threading.Tasks;
+using ECommons.Automation.NeoTaskManager;
 
 namespace Ocelot.Prowler;
 
 public interface IProwlerAction
 {
-    Task ExecuteAsync(ProwlerContext context);
+    TaskManagerTask Create(ProwlerContext context);
+
+    string Identify();
 }

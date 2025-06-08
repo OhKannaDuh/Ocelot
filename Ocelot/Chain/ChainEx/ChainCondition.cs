@@ -22,7 +22,9 @@ public static class ChainCondition
 
     public static Chain WaitUntilCondition(this Chain chain, ConditionFlag flag, int timeout = 5000, int interval = 250)
     {
-        return chain.Then(WaitUntilCondition(flag, timeout, interval));
+        return chain
+            .Debug($"Waiting until player has condition {flag}")
+            .Then(WaitUntilCondition(flag, timeout, interval));
     }
 
 
@@ -41,7 +43,9 @@ public static class ChainCondition
 
     public static Chain WaitUntilNotCondition(this Chain chain, ConditionFlag flag, int timeout = 5000, int interval = 250)
     {
-        return chain.Then(WaitUntilNotCondition(flag, timeout, interval));
+        return chain
+            .Debug($"Waiting until player does not have condition {flag}")
+            .Then(WaitUntilNotCondition(flag, timeout, interval));
     }
 
 

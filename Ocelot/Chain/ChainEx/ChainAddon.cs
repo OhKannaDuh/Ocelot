@@ -33,6 +33,8 @@ public static class ChainAddon
 
     public static Chain AddonCallback(this Chain chain, string addonName, bool updateState = true, params object[] callbackValues)
     {
-        return chain.Then(AddonCallback(addonName, updateState, callbackValues));
+        return chain
+            .Debug($"Waiting for addon callback to fire {addonName} {updateState} {string.Join(", ", callbackValues)}")
+            .Then(AddonCallback(addonName, updateState, callbackValues));
     }
 }

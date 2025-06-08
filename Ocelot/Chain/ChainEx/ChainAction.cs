@@ -22,7 +22,9 @@ public static class ChainAction
 
     public static Chain WaitGcd(this Chain chain, int timeout = 3000, int interval = 50)
     {
-        return chain.Then(WaitGcd(timeout, interval));
+        return chain
+            .Debug("Waiting for GCD")
+            .Then(WaitGcd(timeout, interval));
     }
 
     private unsafe static TaskManagerTask UseAction(ActionType actionType, uint actionId, int timeout = 3000, int interval = 500)
@@ -40,7 +42,9 @@ public static class ChainAction
 
     public static Chain UseAction(this Chain chain, ActionType actionType, uint actionId, int timeout = 3000, int interval = 500)
     {
-        return chain.Then(UseAction(actionType, actionId, timeout, interval));
+        return chain
+            .Debug($"Using action ({actionType}, {actionId})")
+            .Then(UseAction(actionType, actionId, timeout, interval));
     }
 
     public static Chain UseGcdAction(this Chain chain, ActionType actionType, uint actionId, int timeout = 3000, int interval = 500)

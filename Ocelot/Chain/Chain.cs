@@ -55,7 +55,7 @@ public class Chain
         {
             if (chain == null)
             {
-                Svc.Log.Info("Creating chain from factory");
+                Logger.Info("Creating chain from factory");
                 chain = factory();
             }
 
@@ -69,13 +69,13 @@ public class Chain
         return this;
     }
 
-    public Chain Info(string message) => Then(_ => Svc.Log.Info(message));
+    public Chain Info(string message) => Then(_ => Logger.Info(message));
 
     public Chain Log(string message) => Info(message);
 
-    public Chain Error(string message) => Then(_ => Svc.Log.Error(message));
+    public Chain Error(string message) => Then(_ => Logger.Error(message));
 
-    public Chain Debug(string message) => Then(_ => Svc.Log.Debug(message));
+    public Chain Debug(string message) => Then(_ => Logger.Debug(message));
 
     public void Abort() => tasks.Abort();
 

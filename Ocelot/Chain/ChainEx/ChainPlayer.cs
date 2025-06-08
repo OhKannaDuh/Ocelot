@@ -24,7 +24,9 @@ public static class ChainPlayer
 
     public static Chain WaitUntilCasting(this Chain chain, int timeout = 5000, int interval = 50)
     {
-        return chain.Then(WaitUntilCasting(timeout, interval));
+        return chain
+            .Debug("Waiting for player to start casting")
+            .Then(WaitUntilCasting(timeout, interval));
     }
 
     private unsafe static TaskManagerTask WaitUntilNotCasting(int timeout = 5000, int interval = 50)
@@ -42,7 +44,9 @@ public static class ChainPlayer
 
     public static Chain WaitUntilNotCasting(this Chain chain, int timeout = 5000, int interval = 50)
     {
-        return chain.Then(WaitUntilNotCasting(timeout, interval));
+        return chain
+            .Debug("Waiting for player to stop casting")
+            .Then(WaitUntilNotCasting(timeout, interval));
     }
 
     public static Chain WaitToCast(this Chain chain, int timeout = 5000, int interval = 50)
