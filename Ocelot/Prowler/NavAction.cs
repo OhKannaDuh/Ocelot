@@ -1,5 +1,6 @@
 using System.Numerics;
 using ECommons.Automation.NeoTaskManager;
+using ECommons.DalamudServices;
 
 namespace Ocelot.Prowler;
 
@@ -24,17 +25,30 @@ public abstract class NavAction : IProwlerAction
         {
             if (context.ShouldInit())
             {
+                Logger.Debug($"[Prowloer] Initialising Prowler Action: {GetKey()}");
                 Init(context);
                 return false;
             }
 
-            if (!context.HasStarted() && context.vnav.IsRunning())
+
+            if (!context.HasStarted())
             {
-                context.Start();
+                if (context.vnav.IsRunning())
+                {
+                    Logger.Debug($"[Prowler] Starting: {GetKey()}");
+                    context.Start();
+                }
+
                 return false;
             }
 
-            return context.Check(GetKey(), destination);
+            var isAtDestination = context.IsAtDestination(destination);
+            if (!context.vnav.IsRunning() && !isAtDestination)
+            {
+                throw new System.Exception("Vnav stopped before reaching destination");
+            }
+
+            return isAtDestination;
         }, new() { TimeLimitMS = int.MaxValue });
     }
 }

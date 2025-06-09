@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Threading;
 using ECommons.DalamudServices;
+using ECommons.GameHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Ocelot.IPC;
@@ -25,11 +26,7 @@ public class ProwlerContext
 
     private bool started = false;
 
-    private int? elapsed = null;
-
-    private int? elapsedSinceMove = null;
-
-    public ProwlerContext(VNavmesh vnav, float distanceThreshold = 0.0005f, float lastMovedThresholod = 0.25f)
+    public ProwlerContext(VNavmesh vnav, float distanceThreshold = 5f, float lastMovedThresholod = 0.25f)
     {
         this.vnav = vnav;
         this.distanceThreshold = distanceThreshold;
@@ -53,60 +50,7 @@ public class ProwlerContext
         return hasMoved;
     }
 
-    public unsafe void Jump()
-    {
-        ActionManager.Instance()->UseAction(ActionType.GeneralAction, 2);
-    }
-
-    public bool Check(string key, Vector3 destination, int interval = 100)
-    {
-        if (elapsed == null)
-        {
-            Logger.Info("[Prowler] Initialising timer");
-            elapsed = -interval;
-        }
-
-        if (EzThrottler.Throttle(key, interval))
-        {
-            elapsed += interval;
-
-            var player = Svc.ClientState.LocalPlayer;
-            if (player == null)
-            {
-                Logger.Error("[Prowler] Unable to get player");
-                return false;
-            }
-
-            bool hasMoved = HasMoved();
-            if (!hasMoved && HasWarmedUp())
-            {
-                elapsedSinceMove += interval;
-                Logger.Info("[Prowler] No significant movement detected, jumping");
-                Jump();
-            }
-
-            if (hasMoved)
-            {
-                elapsed = 0;
-            }
-
-            if (elapsedSinceMove >= 3000)
-            {
-                throw new StuckException();
-            }
-
-
-            var result = !vnav.IsRunning() || Vector3.Distance(player.Position, destination) <= distanceThreshold;
-            if (result)
-            {
-                Logger.Info("[Prowler] Finished");
-            }
-
-            return result;
-        }
-
-        return false;
-    }
+    public unsafe void Jump() => ActionManager.Instance()->UseAction(ActionType.GeneralAction, 2);
 
     public bool ShouldInit()
     {
@@ -128,11 +72,21 @@ public class ProwlerContext
         started = true;
     }
 
-    private bool HasWarmedUp() => elapsed >= 1000;
+    public bool IsNear(Vector3 a, Vector3 b, float threshold = 1f) => Vector3.DistanceSquared(a, b) <= threshold;
 
-    public bool IsNear(Vector3 a, Vector3 b, float threshold = 1f)
+    public bool IsAtDestination(Vector3 destination)
     {
-        return Vector3.DistanceSquared(a, b) <= threshold;
+        var player = Svc.ClientState.LocalPlayer;
+        if (player == null)
+        {
+            Logger.Error("[Prowler] Unable to get player");
+            return false;
+        }
+
+
+        Logger.Debug($"[Prowler] Distance: {Vector3.Distance(player.Position, destination)} <= {distanceThreshold}");
+
+        return Vector3.Distance(player.Position, destination) <= distanceThreshold;
     }
 
 }

@@ -51,8 +51,6 @@ public class Chain
         return this;
     }
 
-    public Chain Then(Chain chain) => Then(new TaskManagerTask(chain.IsComplete));
-
     public Chain Then(Func<Chain> factory)
     {
         Chain? chain = null;

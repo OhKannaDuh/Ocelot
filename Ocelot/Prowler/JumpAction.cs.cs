@@ -1,4 +1,5 @@
 using ECommons.Automation.NeoTaskManager;
+using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace Ocelot.Prowler;
@@ -9,7 +10,13 @@ public class JumpAction : IProwlerAction
     {
         return new(() =>
         {
-            context.Jump();
+            if (context.ShouldInit())
+            {
+                context.Jump();
+                return false;
+            }
+
+            return !Player.IsJumping;
         });
     }
 

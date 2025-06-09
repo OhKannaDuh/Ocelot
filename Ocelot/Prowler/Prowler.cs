@@ -6,13 +6,6 @@ using Ocelot.Prowler;
 
 public class Prowler
 {
-    private readonly ProwlerContext context;
-
-    public Prowler(ProwlerContext context)
-    {
-        this.context = context;
-    }
-
     public static Func<Chain> Create(ProwlerContext context, List<IProwlerAction> actions)
     {
         return () =>
@@ -56,29 +49,4 @@ public class Prowler
     public static IProwlerAction Pathfind(Vector3 node, bool fly = false) => new PathfindAction(node, fly);
 
     public static IProwlerAction Pathfind(float x, float y, float z, bool fly = false) => Pathfind(new(x, y, z), fly);
-
-    public static IProwlerAction PathWithJumps(List<Vector3> path, List<Vector3> jumps) => new FollowPathWithJumpsAction(path, jumps);
-
-    public static IProwlerAction PathWithJumps(List<float[]> path, List<float[]> jumps)
-    {
-        List<Vector3> actualPath = [];
-        foreach (var point in path)
-        {
-            if (point.Length == 3)
-            {
-                actualPath.Add(new Vector3(point[0], point[1], point[2]));
-            }
-        }
-
-        List<Vector3> actualJumps = [];
-        foreach (var point in jumps)
-        {
-            if (point.Length == 3)
-            {
-                actualJumps.Add(new Vector3(point[0], point[1], point[2]));
-            }
-        }
-
-        return PathWithJumps(actualPath, actualJumps);
-    }
 }

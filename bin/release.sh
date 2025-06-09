@@ -42,6 +42,6 @@ dotnet nuget push "$NUPKG_PATH" -k "$API_KEY" -s "$NUGET_SOURCE"
 echo "✅ Publish complete!"
 
 git tag "$VERSION"
-git push origin "$VERSION"
+git push origin master "$VERSION"
   
 echo "✅ Git tag complete!"
