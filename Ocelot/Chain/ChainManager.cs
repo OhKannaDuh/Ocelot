@@ -28,12 +28,20 @@ public class ChainManager : IDisposable
         }
     }
 
+    public static void Submit(ChainFactory factory) => Submit(factory.Factory());
+
+
     public static void Clear()
     {
         lock (Instance.chains)
         {
             Instance.chains.Clear();
         }
+    }
+
+    public static Chain? Chain()
+    {
+        return Instance.chain;
     }
 
     public static void Tick(IFramework framework)
@@ -51,6 +59,8 @@ public class ChainManager : IDisposable
                 return;
             }
 
+
+            Logger.Debug("Starting next chain...");
             var factory = Instance.chains.Dequeue();
             Instance.chain = factory();
         }

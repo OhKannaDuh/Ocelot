@@ -84,7 +84,6 @@ public static class ChainPathfinding
         return chain
             .Debug($"Pathfinding and moving, and waiting to be near {destination}")
             .WaitToStartPathfinding(vnav)
-            .Then(_ => vnav.PathfindAndMoveTo(destination, false))
             .Then(WaitUntilNear(vnav, destination, distance));
     }
 }

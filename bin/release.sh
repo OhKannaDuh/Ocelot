@@ -25,9 +25,8 @@ else
   # Replace existing <Version>...</Version> or add if missing
   if grep -q "<Version>.*</Version>" "$CSPROJ_PATH"; then
     sed -i "s|<Version>.*</Version>|<Version>$VERSION</Version>|" "$CSPROJ_PATH"
-  else
-    # Insert before the closing </PropertyGroup>
-    sed -i "s|</PropertyGroup>|  <Version>$VERSION</Version>\n</PropertyGroup>|" "$CSPROJ_PATH"
+    git add $CSPROJ_PATH
+    git commit -m"Version: $VERSION"
   fi
 fi
 

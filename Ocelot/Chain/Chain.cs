@@ -1,10 +1,7 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Dalamud.Plugin.Services;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.DalamudServices;
-using ECommons.Throttlers;
 
 namespace Ocelot.Chain;
 
@@ -14,16 +11,24 @@ public class Chain
 
     private ChainContext context = new();
 
-    private Chain(TaskManagerConfiguration? defaultConfiguration = null)
+    public readonly string name = "Unnamed";
+
+    public float progress => tasks.Progress;
+
+    private Chain(string name, TaskManagerConfiguration? defaultConfiguration = null)
     {
+        this.name = name;
+
         tasks = new(defaultConfiguration);
 
         Svc.Framework.Update += Tick;
+
+        Log($"Starting Chain [{name}]");
     }
 
-    public static Chain Create(TaskManagerConfiguration? defaultConfiguration = null) => new(defaultConfiguration);
+    public static Chain Create(string name, TaskManagerConfiguration? defaultConfiguration = null) => new(name, defaultConfiguration);
 
-    public static Chain Create(string name, TaskManagerConfiguration? defaultConfiguration = null) => Create(defaultConfiguration).Log($"Starting Chain {name}");
+    public static Chain Create(TaskManagerConfiguration? defaultConfiguration = null) => Create("Unnamed", defaultConfiguration);
 
     private void Tick(IFramework _)
     {
@@ -55,8 +60,8 @@ public class Chain
         {
             if (chain == null)
             {
-                Logger.Info("Creating chain from factory");
                 chain = factory();
+                Logger.Debug($"Creating chain {chain.name} from factory");
             }
 
             return chain.IsComplete();
