@@ -28,6 +28,9 @@ public class WindowManager : IDisposable
             {
                 manager.AddWindow(mainWindow);
                 windows.Add(mainWindow);
+
+                mainWindow.PreInitialize();
+                mainWindow.Initialize();
             }
         }
 
@@ -38,6 +41,9 @@ public class WindowManager : IDisposable
             {
                 manager.AddWindow(configWindow);
                 windows.Add(configWindow);
+
+                configWindow.PreInitialize();
+                configWindow.Initialize();
             }
         }
 
@@ -48,7 +54,15 @@ public class WindowManager : IDisposable
             {
                 manager.AddWindow(instance);
                 windows.Add(instance);
+
+                instance.PreInitialize();
+                instance.Initialize();
             }
+        }
+
+        foreach (var window in windows)
+        {
+            window.PostInitialize();
         }
 
 
