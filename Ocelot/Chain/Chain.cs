@@ -63,6 +63,8 @@ public class Chain
         }));
     }
 
+    public Chain Then(ChainFactory chain) => Then(chain.Factory());
+
     public Chain Wait(int delay)
     {
         tasks.EnqueueDelay(delay);

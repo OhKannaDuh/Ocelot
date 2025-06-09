@@ -87,7 +87,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public virtual bool ShouldTick() => true;
 
-    public void Tick(IFramework framework)
+    public virtual void Tick(IFramework framework)
     {
         if (!ShouldTick())
         {
@@ -101,7 +101,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public virtual void OnTerritoryChanged(ushort id) => modules?.OnTerritoryChanged(id);
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         if (modules != null)
         {
