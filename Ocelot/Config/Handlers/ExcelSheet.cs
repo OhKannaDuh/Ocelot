@@ -68,7 +68,7 @@ public class ExcelSheet<T> : Handler
     {
         var data = GetData();
         uint value = (uint)(context.GetValue() ?? 1);
-        var selected = data.FirstOrDefault(d => d.RowId == value);
+        var selected = Svc.Data.GetExcelSheet<T>().First(d => d.RowId == value);
 
         bool dirty = false;
         if (ImGui.BeginCombo(context.GetLabelWithId(), provider.GetLabel(selected)))
