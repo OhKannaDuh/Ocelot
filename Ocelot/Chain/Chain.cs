@@ -19,6 +19,14 @@ public class Chain
     {
         this.name = name;
 
+        if (defaultConfiguration == null)
+        {
+            defaultConfiguration = new()
+            {
+                TimeLimitMS = int.MaxValue,
+            };
+        }
+
         tasks = new(defaultConfiguration);
 
         Svc.Framework.Update += Tick;
@@ -51,7 +59,7 @@ public class Chain
         return this;
     }
 
-    public Chain Then(Func<Chain> factory)
+    public Chain Then(Func<Chain> factory, TaskManagerConfiguration? config = null)
     {
         Chain? chain = null;
         return Then(new TaskManagerTask(() =>
@@ -63,10 +71,10 @@ public class Chain
             }
 
             return chain.IsComplete();
-        }));
+        }, config));
     }
 
-    public Chain Then(ChainFactory chain) => Then(chain.Factory());
+    public Chain Then(ChainFactory chain) => Then(chain.Factory(), chain.Config());
 
     public Chain Wait(int delay)
     {

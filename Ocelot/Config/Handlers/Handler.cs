@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ImGuiNET;
+using Microsoft.VisualBasic;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
 
@@ -32,6 +34,8 @@ public abstract class Handler
 
     public (bool handled, bool changed) Render()
     {
+
+
         RenderContext context = GetContext();
 
         if (!context.IsValid() || !context.ShouldRender())
@@ -39,16 +43,24 @@ public abstract class Handler
             return (false, false);
         }
 
-
-
-        if (context.IsExperimental())
+        bool handled = false;
+        bool changed = false;
+        OcelotUI.Indent(context.GetIndentation(), () =>
         {
-            context.Experimental();
-        }
+            if (context.IsIllegal())
+            {
+                context.Illegal();
+            }
 
-        (bool handled, bool changed) = RenderComponent(context);
+            if (context.IsExperimental())
+            {
+                context.Experimental();
+            }
 
-        context.Tooltip();
+            (handled, changed) = RenderComponent(context);
+
+            context.Tooltip();
+        });
 
         return (handled, changed);
     }

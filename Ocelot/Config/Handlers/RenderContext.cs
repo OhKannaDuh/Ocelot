@@ -40,7 +40,7 @@ public class RenderContext
             return false;
         }
 
-        var render = prop.GetCustomAttribute<RenderIfAttribute>();
+        var render = prop.GetCustomAttribute<DependsOnAttribute>();
         if (render == null)
         {
             return true;
@@ -106,6 +106,8 @@ public class RenderContext
 
     public bool IsExperimental() => prop.GetCustomAttribute<ExperimentalAttribute>() != null;
 
+    public uint GetIndentation() => prop.GetCustomAttribute<IndentAttribute>()?.depth ?? 0;
+
     public void Experimental()
     {
         ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.9f, 0.0f, 1.0f));
@@ -117,6 +119,24 @@ public class RenderContext
         if (ImGui.IsItemHovered())
         {
             ImGui.SetTooltip("Experimental");
+        }
+
+        ImGui.SameLine();
+    }
+
+    public bool IsIllegal() => prop.GetCustomAttribute<IllegalAttribute>() != null;
+
+    public void Illegal()
+    {
+        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.2f, 0.2f, 1.0f));
+        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.TextUnformatted(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+        ImGui.PopFont();
+        ImGui.PopStyleColor();
+
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("May lead to a ban. Use at your own risk.");
         }
 
         ImGui.SameLine();

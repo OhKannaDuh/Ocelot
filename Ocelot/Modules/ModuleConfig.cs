@@ -178,4 +178,34 @@ public abstract class ModuleConfig
 
         return dirty;
     }
+
+    public bool IsPropertyEnabled(string propertyName)
+    {
+        var prop = GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        if (prop == null || prop.PropertyType != typeof(bool))
+        {
+            return false;
+        }
+
+        var dependsOn = prop.GetCustomAttribute<DependsOnAttribute>();
+        if (dependsOn != null)
+        {
+            foreach (var dep in dependsOn.dependencies)
+            {
+                var depProp = GetType().GetProperty(dep, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (depProp?.PropertyType != typeof(bool))
+                {
+                    return false;
+                }
+
+                var value = (bool)(depProp.GetValue(this) ?? false);
+                if (!value)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return (bool)(prop.GetValue(this) ?? false);
+    }
 }

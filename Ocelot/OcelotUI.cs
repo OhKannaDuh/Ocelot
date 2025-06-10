@@ -21,9 +21,17 @@ public class OcelotUI
 
     public static void Indent(uint depth, Action contents)
     {
-        ImGui.Indent(depth);
+        if (depth > 0)
+        {
+            ImGui.Indent(depth);
+        }
+
         contents();
-        ImGui.Unindent(depth);
+
+        if (depth > 0)
+        {
+            ImGui.Unindent(depth);
+        }
     }
 
     public static void Indent(Action contents) => Indent(16, contents);

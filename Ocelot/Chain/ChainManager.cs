@@ -5,93 +5,75 @@ using ECommons.DalamudServices;
 
 namespace Ocelot.Chain;
 
-public class ChainManager : IDisposable
+public static class ChainManager
 {
-    private static readonly Lazy<ChainManager> _instance = new(() => new ChainManager());
+    private static readonly Dictionary<string, ChainQueue> queues = new();
 
-    private static ChainManager Instance => _instance.Value;
+    private static bool initialized = false;
 
-    private readonly Queue<Func<Chain>> chains = [];
+    public static ChainQueue Get(string id)
+    {
+        lock (queues)
+        {
+            if (!queues.TryGetValue(id, out var queue))
+            {
+                queue = new ChainQueue();
+                queues[id] = queue;
+            }
+            return queue;
+        }
+    }
 
-    private Chain? chain = null;
+    public static Dictionary<string, ChainQueue> Active() => queues;
 
     public static void Initialize()
     {
+        if (initialized) return;
+        initialized = true;
+
         Svc.Framework.Update += Tick;
     }
 
-    public static void Submit(Func<Chain> factory)
+    private static void Tick(IFramework framework)
     {
-        lock (Instance.chains)
+        lock (queues)
         {
-            Instance.chains.Enqueue(factory);
-        }
-    }
+            var toRemove = new List<string>();
 
-    public static void Submit(ChainFactory factory) => Submit(factory.Factory());
-
-
-    public static void Clear()
-    {
-        lock (Instance.chains)
-        {
-            Instance.chains.Clear();
-        }
-    }
-
-    public static Chain? Chain()
-    {
-        return Instance.chain;
-    }
-
-    public static void Tick(IFramework framework)
-    {
-        if (Instance.chain != null && !Instance.chain.IsComplete())
-        {
-            return;
-        }
-
-        lock (Instance.chains)
-        {
-            if (Instance.chains.Count == 0)
+            foreach (var pair in queues)
             {
-                Instance.chain = null;
-                return;
+                var id = pair.Key;
+                var queue = pair.Value;
+
+                queue.Tick(framework);
+
+                if (!queue.IsRunning && queue.QueueCount == 0)
+                {
+                    Logger.Debug($"Disposing ChainQueue '{id}' (inactive and empty)");
+                    queue.Dispose();
+                    toRemove.Add(id);
+                }
             }
 
-
-            Logger.Debug("Starting next chain...");
-            var factory = Instance.chains.Dequeue();
-            Instance.chain = factory();
-        }
-    }
-
-    public static bool IsRunning()
-    {
-        return Instance.chain != null && !Instance.chain.IsComplete();
-    }
-
-    public static int GetChainQueueCount()
-    {
-        lock (Instance.chains)
-        {
-            return Instance.chains.Count;
+            foreach (var id in toRemove)
+            {
+                queues.Remove(id);
+            }
         }
     }
 
     public static void Close()
     {
-        Instance.Dispose();
-    }
-
-    public void Dispose()
-    {
         Svc.Framework.Update -= Tick;
-        if (chain != null)
-        {
-            chain.Abort();
-        }
 
-        Clear();
+        lock (queues)
+        {
+            foreach (var queue in queues.Values)
+            {
+                queue.Dispose();
+            }
+            queues.Clear();
+            initialized = false;
+        }
     }
 }
