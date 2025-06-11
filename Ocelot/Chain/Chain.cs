@@ -122,6 +122,16 @@ public class Chain
         return this;
     }
 
+    public Chain ConditionalWait(Func<ChainContext, bool> condition, int delay)
+    {
+        if (condition(context))
+        {
+            Wait(delay);
+        }
+
+        return this;
+    }
+
     public Chain Info(string message) => Then(_ => Logger.Info(message));
 
     public Chain Log(string message) => Info(message);
