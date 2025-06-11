@@ -13,11 +13,11 @@ public abstract class Handler
 {
     protected abstract Type type { get; }
 
-    private ModuleConfig self;
+    protected ModuleConfig self;
 
-    private ConfigAttribute attribute;
+    protected ConfigAttribute attribute;
 
-    private readonly PropertyInfo property;
+    protected readonly PropertyInfo property;
 
     public Handler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo property)
     {
