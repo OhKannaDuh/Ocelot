@@ -53,9 +53,29 @@ public class Chain
         return this;
     }
 
+    public Chain ConditionalThen(Func<ChainContext, bool> condition, Action<ChainContext> action)
+    {
+        if (condition(context))
+        {
+            Then(action);
+        }
+
+        return this;
+    }
+
     public Chain Then(TaskManagerTask task)
     {
         tasks.EnqueueMulti(task);
+        return this;
+    }
+
+    public Chain ConditionalThen(Func<ChainContext, bool> condition, TaskManagerTask task)
+    {
+        if (condition(context))
+        {
+            Then(task);
+        }
+
         return this;
     }
 
@@ -74,7 +94,27 @@ public class Chain
         }, config));
     }
 
+    public Chain ConditionalThen(Func<ChainContext, bool> condition, Func<Chain> factory, TaskManagerConfiguration? config = null)
+    {
+        if (condition(context))
+        {
+            Then(factory, config);
+        }
+
+        return this;
+    }
+
     public Chain Then(ChainFactory chain) => Then(chain.Factory(), chain.Config());
+
+    public Chain ConditionalThen(Func<ChainContext, bool> condition, ChainFactory chain)
+    {
+        if (condition(context))
+        {
+            Then(chain);
+        }
+
+        return this;
+    }
 
     public Chain Wait(int delay)
     {
