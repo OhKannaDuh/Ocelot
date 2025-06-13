@@ -3,6 +3,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using Ocelot.IPC;
+using Ocelot.Windows;
 
 namespace Ocelot.Modules;
 
@@ -13,22 +14,6 @@ public abstract class Module<P, C> : IModule
     public readonly P plugin;
 
     public readonly C _config;
-
-    // Accessors for OcelotPlugin managers
-    // Modules
-    public ModuleManager modules => plugin.modules;
-
-    public T? GetModule<T>() where T : class, IModule => modules.GetModule<T>();
-
-
-    public bool TryGetModule<T>(out T? module) where T : class, IModule => modules.TryGetModule(out module);
-
-    // IPC
-    public IPCManager ipc => plugin.ipc;
-
-    public T? GetIPCProvider<T>() where T : IPCProvider => ipc.GetProvider<T>();
-
-    public bool TryGetIPCProvider<T>(out T? provider) where T : IPCProvider => ipc.TryGetProvider(out provider);
 
     public virtual bool enabled => true;
 
@@ -80,4 +65,27 @@ public abstract class Module<P, C> : IModule
     public void Verbose(string log) => Svc.Log.Verbose($"[{GetType().Name}] {log}");
 
     public void Warning(string log) => Svc.Log.Warning($"[{GetType().Name}] {log}");
+
+    // Accessors for OcelotPlugin managers
+    // Modules
+    public ModuleManager modules => plugin.modules;
+
+    public T GetModule<T>() where T : class, IModule => modules.GetModule<T>();
+
+
+    public bool TryGetModule<T>(out T? module) where T : class, IModule => modules.TryGetModule(out module);
+
+    // IPC
+    public IPCManager ipc => plugin.ipc;
+
+    public T GetIPCProvider<T>() where T : IPCProvider => ipc.GetProvider<T>();
+
+    public bool TryGetIPCProvider<T>(out T? provider) where T : IPCProvider => ipc.TryGetProvider(out provider);
+
+    // Windows
+    public WindowManager windows => plugin.windows;
+
+    public T GetWindow<T>() where T : OcelotWindow => windows.GetWindow<T>();
+
+    public bool TryGetWindow<T>(out T? provider) where T : OcelotWindow => windows.TryGetWindow(out provider);
 }

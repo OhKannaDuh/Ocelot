@@ -55,10 +55,13 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, Action<ChainContext> action)
     {
-        if (condition(context))
+        tasks.Enqueue(() =>
         {
-            Then(action);
-        }
+            if (condition(context))
+            {
+                tasks.Insert(() => action(context));
+            }
+        });
 
         return this;
     }
@@ -71,10 +74,13 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, TaskManagerTask task)
     {
-        if (condition(context))
+        tasks.Enqueue(() =>
         {
-            Then(task);
-        }
+            if (condition(context))
+            {
+                tasks.InsertMulti(task);
+            }
+        });
 
         return this;
     }
@@ -96,10 +102,14 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, Func<Chain> factory, TaskManagerConfiguration? config = null)
     {
-        if (condition(context))
+        tasks.Enqueue(() =>
         {
-            Then(factory, config);
-        }
+            if (condition(context))
+            {
+                var chain = factory();
+                tasks.InsertMulti(new TaskManagerTask(() => chain.IsComplete(), config));
+            }
+        });
 
         return this;
     }
@@ -108,12 +118,7 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, ChainFactory chain)
     {
-        if (condition(context))
-        {
-            Then(chain);
-        }
-
-        return this;
+        return ConditionalThen(condition, chain.Factory(), chain.Config());
     }
 
     public Chain Wait(int delay)
@@ -124,10 +129,13 @@ public class Chain
 
     public Chain ConditionalWait(Func<ChainContext, bool> condition, int delay)
     {
-        if (condition(context))
+        tasks.Enqueue(() =>
         {
-            Wait(delay);
-        }
+            if (condition(context))
+            {
+                tasks.InsertDelay(delay);
+            }
+        });
 
         return this;
     }

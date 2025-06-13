@@ -42,11 +42,11 @@ public class ModuleManager
     private IEnumerable<IModule> GetModulesByConfigOrder() =>
         modules.OrderBy(m => configOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
 
-    public void PreInitialize(OcelotPlugin plugin, IOcelotConfig config) => enabled.ForEach(m => m.PreInitialize());
+    public void PreInitialize() => enabled.ForEach(m => m.PreInitialize());
 
-    public void Initialize(OcelotPlugin plugin, IOcelotConfig config) => enabled.ForEach(m => m.Initialize());
+    public void Initialize() => enabled.ForEach(m => m.Initialize());
 
-    public void PostInitialize(OcelotPlugin plugin, IOcelotConfig config) => enabled.ForEach(m => m.PostInitialize());
+    public void PostInitialize() => enabled.ForEach(m => m.PostInitialize());
 
     public void Tick(IFramework framework) => enabled.ForEach(m => m.Tick(framework));
 
@@ -90,12 +90,29 @@ public class ModuleManager
 
     public void OnTerritoryChanged(ushort id) => enabled.ForEach(m => m.OnTerritoryChanged(id));
 
-    public T? GetModule<T>() where T : class, IModule => modules.OfType<T>().FirstOrDefault();
+    public T GetModule<T>() where T : class, IModule
+    {
+        var module = modules.OfType<T>().FirstOrDefault();
+        if (module == null)
+        {
+            throw new UnableToLoadModuleException($"Module of type {typeof(T).Name} was not found.");
+        }
+        return module;
+    }
 
     public bool TryGetModule<T>(out T? module) where T : class, IModule
     {
-        module = GetModule<T>();
-        return module != null;
+        try
+        {
+            module = GetModule<T>();
+            return true;
+        }
+        catch (UnableToLoadModuleException ex)
+        {
+            Logger.Error(ex.Message);
+            module = null;
+            return false;
+        }
     }
 
     public void Dispose() => modules.ForEach(m => m.Dispose());

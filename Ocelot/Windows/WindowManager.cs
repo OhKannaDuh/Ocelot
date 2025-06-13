@@ -4,8 +4,6 @@ using System.Linq;
 using Dalamud.Interface.Windowing;
 using ECommons;
 using ECommons.DalamudServices;
-using ECommons.SimpleGui;
-using Ocelot.Modules;
 
 namespace Ocelot.Windows;
 
@@ -124,12 +122,29 @@ public class WindowManager : IDisposable
 
     public bool HasWindow<T>() where T : OcelotWindow => windows.OfType<T>().Any();
 
-    public T? GetWindow<T>() where T : OcelotWindow => windows.OfType<T>().FirstOrDefault();
+    public T GetWindow<T>() where T : OcelotWindow
+    {
+        var window = windows.OfType<T>().FirstOrDefault();
+        if (window == null)
+        {
+            throw new UnableToLoadWindowException($"Window of type {typeof(T).Name} was not found.");
+        }
+        return window;
+    }
 
     public bool TryGetWindow<T>(out T? window) where T : OcelotWindow
     {
-        window = windows.OfType<T>().FirstOrDefault();
-        return window != null;
+        try
+        {
+            window = GetWindow<T>();
+            return true;
+        }
+        catch (UnableToLoadWindowException ex)
+        {
+            Logger.Error(ex.Message);
+            window = null;
+            return false;
+        }
     }
 
     public void Dispose()

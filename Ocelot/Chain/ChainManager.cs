@@ -47,9 +47,13 @@ public static class ChainManager
 
                 queue.Tick(framework);
 
-                if (!queue.IsRunning && queue.QueueCount == 0)
+                if (!queue.IsRunning && queue.QueueCount == 0 && queue.aliveTime >= 1000)
                 {
-                    Logger.Debug($"Disposing ChainQueue '{id}' (inactive and empty)");
+                    if (queue.hasRun)
+                    {
+                        Logger.Debug($"Disposing ChainQueue '{id}' (inactive and empty)");
+                    }
+
                     queue.Dispose();
                     toRemove.Add(id);
                 }

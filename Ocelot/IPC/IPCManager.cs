@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dalamud.Plugin.Services;
 
 namespace Ocelot.IPC;
 
@@ -11,7 +10,7 @@ public class IPCManager
 
     public IReadOnlyList<IPCProvider> Providers => providers.AsReadOnly();
 
-    public void Initialze()
+    public void Initialize()
     {
         foreach (var type in Registry.GetTypesImplementing<IPCProvider>())
         {
@@ -24,16 +23,29 @@ public class IPCManager
         }
     }
 
-    public T? GetProvider<T>() where T : IPCProvider => providers.OfType<T>().FirstOrDefault();
+    public T GetProvider<T>() where T : IPCProvider
+    {
+        var provider = providers.OfType<T>().FirstOrDefault();
+        if (provider == null)
+        {
+            throw new UnableToLoadIpcProviderException($"IPC provider of type {typeof(T).Name} was not found.");
+        }
+
+        return provider;
+    }
 
     public bool TryGetProvider<T>(out T? provider) where T : IPCProvider
     {
-        provider = GetProvider<T>();
-        if (provider == null)
+        try
         {
+            provider = GetProvider<T>();
+            return provider.IsReady();
+        }
+        catch (UnableToLoadIpcProviderException ex)
+        {
+            Logger.Error(ex.Message);
+            provider = null;
             return false;
         }
-
-        return provider.IsReady();
     }
 }

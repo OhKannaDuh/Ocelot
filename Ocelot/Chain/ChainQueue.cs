@@ -9,8 +9,13 @@ public class ChainQueue : IDisposable
     private readonly Queue<Func<Chain>> chains = [];
     private Chain? chain = null;
 
+    public bool hasRun { get; private set; } = false;
+
+    public int aliveTime { get; private set; } = 0;
+
     public void Submit(Func<Chain> factory)
     {
+        hasRun = true;
         lock (chains)
         {
             chains.Enqueue(factory);
@@ -45,8 +50,10 @@ public class ChainQueue : IDisposable
 
     public Chain? CurrentChain => chain;
 
-    public void Tick(IFramework _)
+    public void Tick(IFramework framework)
     {
+        aliveTime += framework.UpdateDelta.Milliseconds;
+
         if (chain != null && !chain.IsComplete())
             return;
 
@@ -58,7 +65,6 @@ public class ChainQueue : IDisposable
                 return;
             }
 
-            Logger.Debug("Starting next chain...");
             var factory = chains.Dequeue();
             chain = factory();
         }
