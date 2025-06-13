@@ -64,18 +64,13 @@ public static class ChainPathfinding
     {
         return new(() =>
         {
-            if (EzThrottler.Throttle($"ChainPathfinding.WaitUntilNear({destination})", 50))
+            var player = Svc.ClientState.LocalPlayer;
+            if (player == null)
             {
-                var player = Svc.ClientState.LocalPlayer;
-                if (player == null)
-                {
-                    return false;
-                }
-
-                return !vnav.IsRunning() || Vector3.Distance(player.Position, destination) <= distance;
+                return false;
             }
 
-            return false;
+            return !vnav.IsRunning() || Vector3.Distance(player.Position, destination) <= distance;
         }, new() { TimeLimitMS = 30000 });
     }
 

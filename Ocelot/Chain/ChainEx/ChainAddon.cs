@@ -28,7 +28,7 @@ public static class ChainAddon
             }
 
             return false;
-        });
+        }, new() { TimeLimitMS = 3000 });
     }
 
     public static Chain AddonCallback(this Chain chain, string addonName, bool updateState = true, params object[] callbackValues)
