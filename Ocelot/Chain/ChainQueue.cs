@@ -6,7 +6,7 @@ namespace Ocelot.Chain;
 
 public class ChainQueue : IDisposable
 {
-    private readonly Queue<Func<Chain>> chains = [];
+    private readonly LinkedList<Func<Chain>> chains = new();
     private Chain? chain = null;
 
     public bool hasRun { get; private set; } = false;
@@ -18,7 +18,16 @@ public class ChainQueue : IDisposable
         hasRun = true;
         lock (chains)
         {
-            chains.Enqueue(factory);
+            chains.AddLast(factory);
+        }
+    }
+
+    public void SubmitFront(Func<Chain> factory)
+    {
+        hasRun = true;
+        lock (chains)
+        {
+            chains.AddFirst(factory);
         }
     }
 
@@ -65,7 +74,8 @@ public class ChainQueue : IDisposable
                 return;
             }
 
-            var factory = chains.Dequeue();
+            var factory = chains.First!.Value;
+            chains.RemoveFirst();
             chain = factory();
         }
     }
