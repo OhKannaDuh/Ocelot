@@ -5,10 +5,10 @@ namespace Ocelot.Config.Attributes;
 [AttributeUsage(AttributeTargets.Property)]
 public class TooltipAttribute : Attribute
 {
-    public string text { get; }
+    public string translation_key { get; }
 
-    public TooltipAttribute(string text)
+    public TooltipAttribute(string translation_key)
     {
-        this.text = text;
+        this.translation_key = translation_key;
     }
 }

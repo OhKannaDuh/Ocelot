@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -56,7 +57,13 @@ public abstract class ModuleConfig
             var title = GetType().GetCustomAttribute<TitleAttribute>();
             if (title != null)
             {
-                ImGui.TextColored(new Vector4(1f, 0.75f, 0.25f, 1f), $"{title.text}:");
+                ImGui.TextColored(new Vector4(1f, 0.75f, 0.25f, 1f), $"{I18N.T(title.translation_key)}:");
+            }
+
+            var texts = GetType().GetCustomAttributes<TextAttribute>().ToList();
+            foreach (var text in texts)
+            {
+                ImGui.TextUnformatted(I18N.T(text.translation_key));
             }
 
             var error = false;

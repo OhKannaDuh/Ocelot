@@ -147,11 +147,20 @@ public class RenderContext
         var tooltip = prop.GetCustomAttribute<TooltipAttribute>();
         if (tooltip != null && ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip(tooltip.text);
+            ImGui.SetTooltip(I18N.T(tooltip.translation_key));
         }
     }
 
-    public string GetLabel() => prop.GetCustomAttribute<LabelAttribute>()?.text ?? prop.Name;
+    public string GetLabel()
+    {
+        var key = prop.GetCustomAttribute<LabelAttribute>()?.translation_key;
+        if (key == null)
+        {
+            return prop.Name;
+        }
+
+        return I18N.T(key);
+    }
 
     public string GetLabelWithId() => $"{GetLabel()}##{prop.GetHashCode()}";
 

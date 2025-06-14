@@ -2,12 +2,12 @@ using System;
 
 namespace Ocelot.Config.Attributes;
 
-[AttributeUsage(AttributeTargets.Property)]
-public class LabelAttribute : Attribute
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class TextAttribute : Attribute
 {
     public string translation_key { get; }
 
-    public LabelAttribute(string translation_key)
+    public TextAttribute(string translation_key)
     {
         this.translation_key = translation_key;
     }

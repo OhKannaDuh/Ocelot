@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
@@ -65,6 +67,24 @@ public abstract class Module<P, C> : IModule
     public void Verbose(string log) => Svc.Log.Verbose($"[{GetType().Name}] {log}");
 
     public void Warning(string log) => Svc.Log.Warning($"[{GetType().Name}] {log}");
+
+    public string Translate(string key)
+    {
+        string ToSnakeCase(string input)
+        {
+            return string.Concat(input.Select((x, i) =>
+                i > 0 && char.IsUpper(x) ? "_" + x : x.ToString())).ToLower();
+        }
+
+        var module = ToSnakeCase(GetType().Name).Replace("_module", "");
+        key = $"modules.{module}." + key;
+
+        return I18N.T(key);
+    }
+
+    public string Trans(string key) => Translate(key);
+
+    public string T(string key) => Translate(key);
 
     // Accessors for OcelotPlugin managers
     // Modules

@@ -11,7 +11,12 @@ public class OcelotUI
 
     public static void Error(string error) => ImGui.TextColored(new Vector4(0.89f, 0.29f, 0.29f, 1f), error);
 
-
+    public static void LabelledValue(string title, string value)
+    {
+        Title($"{title}:");
+        ImGui.SameLine();
+        ImGui.TextUnformatted(value);
+    }
     public static void Region(string id, Action contents)
     {
         ImGui.PushID(id);
