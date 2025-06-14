@@ -48,7 +48,7 @@ public static class ChainStatus
             .Then(WaitUntilNotStatus(status, timeout, interval));
     }
 
-    public static Chain WaitToCycleCondition(this Chain chain, uint status, int timeout = 5000, int interval = 50)
+    public static Chain WaitToCycleStatus(this Chain chain, uint status, int timeout = 5000, int interval = 50)
     {
         return chain.WaitUntilNotStatus(status, timeout, interval).WaitUntilNotStatus(status, timeout, interval);
     }
