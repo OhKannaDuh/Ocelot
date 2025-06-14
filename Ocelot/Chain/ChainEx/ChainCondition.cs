@@ -11,7 +11,7 @@ public static class ChainCondition
     {
         return new(() =>
         {
-            if (EzThrottler.Throttle($"ChainAddon.WaitUntilCondition({flag})", interval))
+            if (EzThrottler.Throttle($"ChainCondition.WaitUntilCondition({flag})", interval))
             {
                 return Svc.Condition[flag];
             }
@@ -32,7 +32,7 @@ public static class ChainCondition
     {
         return new(() =>
         {
-            if (EzThrottler.Throttle($"ChainAddon.WaitUntilNotCondition({flag})", interval))
+            if (EzThrottler.Throttle($"ChainCondition.WaitUntilNotCondition({flag})", interval))
             {
                 return !Svc.Condition[flag];
             }
