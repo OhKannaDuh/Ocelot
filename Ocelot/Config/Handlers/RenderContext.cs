@@ -103,6 +103,26 @@ public class RenderContext
         return loaded.Count > 0;
     }
 
+    public void CustomIcons()
+    {
+        var iconAttr = prop.GetCustomAttribute<IconAttribute>();
+        if (iconAttr == null)
+            return;
+
+        ImGui.PushStyleColor(ImGuiCol.Text, iconAttr.color);
+        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.TextUnformatted(iconAttr.icon.ToIconString());
+        ImGui.PopFont();
+        ImGui.PopStyleColor();
+
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip(I18N.T(iconAttr.tooltip_translation_key));
+        }
+
+        ImGui.SameLine();
+    }
+
 
     public bool IsExperimental() => prop.GetCustomAttribute<ExperimentalAttribute>() != null;
 

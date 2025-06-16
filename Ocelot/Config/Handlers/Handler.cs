@@ -47,6 +47,8 @@ public abstract class Handler
         bool changed = false;
         OcelotUI.Indent(context.GetIndentation(), () =>
         {
+            context.CustomIcons();
+
             if (context.IsIllegal())
             {
                 context.Illegal();
