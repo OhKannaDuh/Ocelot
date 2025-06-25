@@ -6,7 +6,7 @@ namespace Ocelot.Chain;
 
 public abstract class RetryChainFactory : ChainFactory
 {
-    private int attempt = 0;
+    protected int attempt = 0;
 
     public override Func<Chain> Factory()
     {

@@ -26,7 +26,7 @@ public class VNavmesh : IPCProvider
     public Action RebuildNavmesh;
 
     [EzIPC("Nav.Pathfind")]
-    public Func<Vector3, Vector3, bool, List<Vector3>> Pathfind;
+    public Func<Vector3, Vector3, bool, Task<List<Vector3>>> Pathfind;
 
     [EzIPC("Nav.PathfindCancelable")]
     public Func<Vector3, Vector3, bool, CancellationToken, List<Vector3>> PathfindCancelable;
