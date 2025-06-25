@@ -144,4 +144,29 @@ public class VNavmesh : IPCProvider
         }
     }
 
+    public class Path
+    {
+        public List<Vector3> Waypoints { get; init; } = [];
+
+        public float Length => Distance();
+
+        public float Distance()
+        {
+            if (Waypoints.Count < 2)
+                return 0f;
+
+            float totalDistance = 0f;
+            for (int i = 0; i < Waypoints.Count - 1; i++)
+            {
+                totalDistance += Vector3.Distance(Waypoints[i], Waypoints[i + 1]);
+            }
+
+            return totalDistance;
+        }
+    }
+
+    public async Task<Path> CreatePathAsync(Vector3 from, Vector3 to, bool fly)
+    {
+        return new Path { Waypoints = await Pathfind(from, to, fly) };
+    }
 }
