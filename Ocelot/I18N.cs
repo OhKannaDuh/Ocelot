@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Nodes;
-using FFXIVClientStructs;
-using Lumina.Data;
 
 namespace Ocelot;
 
@@ -19,9 +17,14 @@ public static class I18N
 
     private static string directory = "";
 
+    public static event Action<string, string>? OnLanguageChanged;
+
     public static void SetLanguage(string language)
     {
+        var previousLanguage = currentLanguage;
         currentLanguage = language;
+
+        OnLanguageChanged?.Invoke(previousLanguage, currentLanguage);
     }
 
     public static void SetFallbackLanguage(string language)

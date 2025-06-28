@@ -3,11 +3,8 @@ using ImGuiNET;
 
 namespace Ocelot.Windows;
 
-public abstract class OcelotMainWindow : OcelotWindow
+public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config) : OcelotWindow(plugin, config)
 {
-    public OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config)
-        : base(plugin, config, $"{I18N.T("windows.main.title")}##Main") { }
-
     public override void PostInitialize()
     {
         if (!plugin.windows.TryGetWindow<OcelotConfigWindow>(out var _))
@@ -30,5 +27,10 @@ public abstract class OcelotMainWindow : OcelotWindow
             IconOffset = new(2, 2),
             ShowTooltip = () => ImGui.SetTooltip("Toggle config window"),
         });
+    }
+
+    protected override string GetWindowName()
+    {
+        return $"{I18N.T("windows.main.title")}##Main";
     }
 }

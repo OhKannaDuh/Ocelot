@@ -10,7 +10,7 @@ public abstract class IPCProvider
     public IPCProvider(string identifier)
     {
         this.identifier = identifier;
-        EzIPC.Init(this, identifier, SafeWrapper.AnyException);
+        EzIPC.Init(this, identifier);
     }
 
     public bool IsReady() => DalamudReflector.TryGetDalamudPlugin(identifier, out _, false, true);

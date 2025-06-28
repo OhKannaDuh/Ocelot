@@ -9,11 +9,17 @@ public abstract class OcelotWindow : Window, IDisposable
 
     protected readonly IOcelotConfig config;
 
-    public OcelotWindow(OcelotPlugin plugin, IOcelotConfig config, string name)
-        : base(name)
+    public OcelotWindow(OcelotPlugin plugin, IOcelotConfig config)
+        : base("")
     {
         this.plugin = plugin;
         this.config = config;
+
+        WindowName = GetWindowName();
+        I18N.OnLanguageChanged += (oldLang, newLang) =>
+        {
+            WindowName = GetWindowName();
+        };
     }
 
     public virtual void PreInitialize() { }
@@ -23,4 +29,6 @@ public abstract class OcelotWindow : Window, IDisposable
     public virtual void PostInitialize() { }
 
     public virtual void Dispose() { }
+
+    protected abstract string GetWindowName();
 }

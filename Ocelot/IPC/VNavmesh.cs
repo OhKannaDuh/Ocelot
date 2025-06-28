@@ -165,7 +165,7 @@ public class VNavmesh : IPCProvider
         }
     }
 
-    public async Task<Path> CreatePathAsync(Vector3 from, Vector3 to, bool fly)
+    public async Task<Path> CreatePath(Vector3 from, Vector3 to, bool fly)
     {
         return new Path { Waypoints = await Pathfind(from, to, fly) };
     }

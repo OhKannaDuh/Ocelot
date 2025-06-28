@@ -1,9 +1,11 @@
 namespace Ocelot.Windows;
 
-public abstract class OcelotConfigWindow : OcelotWindow
+public abstract class OcelotConfigWindow(OcelotPlugin plugin, IOcelotConfig config) : OcelotWindow(plugin, config)
 {
-    public OcelotConfigWindow(OcelotPlugin plugin, IOcelotConfig config)
-        : base(plugin, config, $"{I18N.T("windows.config.title")}##Config") { }
-
     public override void Draw() => plugin.modules.DrawConfigUi();
+
+    protected override string GetWindowName()
+    {
+        return $"{I18N.T("windows.config.title")}##Config";
+    }
 }

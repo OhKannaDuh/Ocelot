@@ -36,10 +36,10 @@ public class ModuleManager
         }
     }
 
-    private IEnumerable<IModule> GetModulesByMainOrder() =>
+    public IEnumerable<IModule> GetModulesByMainOrder() =>
         enabled.OrderBy(m => mainOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
 
-    private IEnumerable<IModule> GetModulesByConfigOrder() =>
+    public IEnumerable<IModule> GetModulesByConfigOrder() =>
         modules.OrderBy(m => configOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
 
     public void PreInitialize() => enabled.ForEach(m => m.PreInitialize());
