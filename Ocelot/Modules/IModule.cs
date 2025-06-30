@@ -8,6 +8,8 @@ namespace Ocelot.Modules;
 public interface IModule : IDisposable
 {
     bool enabled { get; }
+    bool tick { get; }
+    bool render { get; }
 
     void PreInitialize();
     void Initialize();

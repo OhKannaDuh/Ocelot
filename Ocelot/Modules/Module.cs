@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -18,6 +17,10 @@ public abstract class Module<P, C> : IModule
     public readonly C _config;
 
     public virtual bool enabled => true;
+
+    public virtual bool tick => enabled;
+
+    public virtual bool render => enabled;
 
     public virtual ModuleConfig? config
     {

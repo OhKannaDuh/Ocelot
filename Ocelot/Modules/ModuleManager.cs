@@ -16,7 +16,9 @@ public class ModuleManager
 
     private readonly Dictionary<IModule, int> mainOrders = new();
 
-    private List<IModule> enabled => modules.Where(m => m.enabled).ToList();
+    private List<IModule> tick => modules.Where(m => m.tick).ToList();
+
+    private List<IModule> render => modules.Where(m => m.render).ToList();
 
     public void Add(Module<OcelotPlugin, IOcelotConfig> module) => modules.Add(module);
 
@@ -37,20 +39,20 @@ public class ModuleManager
     }
 
     public IEnumerable<IModule> GetModulesByMainOrder() =>
-        enabled.OrderBy(m => mainOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
+        render.OrderBy(m => mainOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
 
     public IEnumerable<IModule> GetModulesByConfigOrder() =>
         modules.OrderBy(m => configOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
 
-    public void PreInitialize() => enabled.ForEach(m => m.PreInitialize());
+    public void PreInitialize() => tick.ForEach(m => m.PreInitialize());
 
-    public void Initialize() => enabled.ForEach(m => m.Initialize());
+    public void Initialize() => tick.ForEach(m => m.Initialize());
 
-    public void PostInitialize() => enabled.ForEach(m => m.PostInitialize());
+    public void PostInitialize() => tick.ForEach(m => m.PostInitialize());
 
-    public void Tick(IFramework framework) => enabled.ForEach(m => m.Tick(framework));
+    public void Tick(IFramework framework) => tick.ForEach(m => m.Tick(framework));
 
-    public void Draw() => enabled.ForEach(m => m.Draw());
+    public void Draw() => render.ForEach(m => m.Draw());
 
     public void DrawMainUi()
     {
@@ -86,9 +88,9 @@ public class ModuleManager
 
 
     public void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled)
-        => enabled.ForEach(m => m.OnChatMessage(type, timestamp, sender, message, isHandled));
+        => tick.ForEach(m => m.OnChatMessage(type, timestamp, sender, message, isHandled));
 
-    public void OnTerritoryChanged(ushort id) => enabled.ForEach(m => m.OnTerritoryChanged(id));
+    public void OnTerritoryChanged(ushort id) => tick.ForEach(m => m.OnTerritoryChanged(id));
 
     public T GetModule<T>() where T : class, IModule
     {
