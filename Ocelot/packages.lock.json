@@ -2,6 +2,12 @@
   "version": 1,
   "dependencies": {
     "net9.0-windows7.0": {
+      "ECommons": {
+        "type": "Direct",
+        "requested": "[3.0.0, )",
+        "resolved": "3.0.0",
+        "contentHash": "Frb4tiuV5ESubnpq4nG6g3QnJ/Il0I3ohzLh/XHyMCN5bnf9Gedrpleo5gr3A3LWHgGLTJT5H5W/CTDPRsmdJg=="
+      },
       "Microsoft.Extensions.Configuration": {
         "type": "Direct",
         "requested": "[7.0.0, )",
@@ -25,9 +31,6 @@
         "type": "Transitive",
         "resolved": "7.0.0",
         "contentHash": "um1KU5kxcRp3CNuI8o/GrZtD4AIOXDk+RLsytjZ9QPok3ttLUelLKpilVPuaFT3TFjOhSibUAso0odbOaCDj3Q=="
-      },
-      "ecommons": {
-        "type": "Project"
       }
     }
   }
