@@ -25,7 +25,7 @@ public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config
             },
             Icon = FontAwesomeIcon.Cog,
             IconOffset = new(2, 2),
-            ShowTooltip = () => ImGui.SetTooltip("Toggle config window"),
+            ShowTooltip = () => ImGui.SetTooltip(I18N.T("windows.main.buttons.toggle_config")),
         });
     }
 
