@@ -11,7 +11,7 @@ public class Chain
 
     private ChainContext context = new();
 
-    public readonly string name = "Unnamed";
+    public readonly string name;
 
     public float progress
     {
@@ -24,7 +24,6 @@ public class Chain
 
         if (defaultConfiguration == null)
         {
-            Logger.Info("UIsing desfault chain config");
             defaultConfiguration = new TaskManagerConfiguration
             {
                 TimeLimitMS = int.MaxValue,
@@ -35,7 +34,7 @@ public class Chain
 
         Svc.Framework.Update += Tick;
 
-        Log($"Starting Chain [{name}]");
+        Debug($"Starting Chain [{name}]");
     }
 
     public static Chain Create(string name, TaskManagerConfiguration? defaultConfiguration = null)
@@ -53,7 +52,6 @@ public class Chain
         if (context.token.IsCancellationRequested && !IsComplete())
         {
             tasks.Abort();
-            return;
         }
     }
 
