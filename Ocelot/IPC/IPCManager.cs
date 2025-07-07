@@ -8,7 +8,10 @@ public class IPCManager
 {
     private readonly List<IPCProvider> providers = new();
 
-    public IReadOnlyList<IPCProvider> Providers => providers.AsReadOnly();
+    public IReadOnlyList<IPCProvider> Providers
+    {
+        get => providers.AsReadOnly();
+    }
 
     public void Initialize()
     {

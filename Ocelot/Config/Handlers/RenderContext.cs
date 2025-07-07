@@ -26,16 +26,19 @@ public class RenderContext
     }
 
 
-    public bool IsValid() => prop.PropertyType == type;
+    public bool IsValid()
+    {
+        return prop.PropertyType == type;
+    }
 
     public bool ShouldRender()
     {
-        if (HasUnloadedRequiredPlugins(out var _))
+        if (HasUnloadedRequiredPlugins(out _))
         {
             return false;
         }
 
-        if (HasLoadedConflictingPlugins(out var _))
+        if (HasLoadedConflictingPlugins(out _))
         {
             return false;
         }
@@ -69,7 +72,9 @@ public class RenderContext
 
         var attr = prop.GetCustomAttribute<RequiredPluginAttribute>();
         if (attr == null)
+        {
             return false;
+        }
 
         foreach (var plugin in attr.dependencies)
         {
@@ -83,14 +88,15 @@ public class RenderContext
     }
 
 
-
     public bool HasLoadedConflictingPlugins(out List<string> loaded)
     {
         loaded = [];
 
         var attr = prop.GetCustomAttribute<ConflictingPluginAttribute>();
         if (attr == null)
+        {
             return false;
+        }
 
         foreach (var plugin in attr.conflicts)
         {
@@ -107,7 +113,9 @@ public class RenderContext
     {
         var iconAttr = prop.GetCustomAttribute<IconAttribute>();
         if (iconAttr == null)
+        {
             return;
+        }
 
         ImGui.PushStyleColor(ImGuiCol.Text, iconAttr.color);
         ImGui.PushFont(UiBuilder.IconFont);
@@ -124,9 +132,15 @@ public class RenderContext
     }
 
 
-    public bool IsExperimental() => prop.GetCustomAttribute<ExperimentalAttribute>() != null;
+    public bool IsExperimental()
+    {
+        return prop.GetCustomAttribute<ExperimentalAttribute>() != null;
+    }
 
-    public uint GetIndentation() => prop.GetCustomAttribute<IndentAttribute>()?.depth ?? 0;
+    public uint GetIndentation()
+    {
+        return prop.GetCustomAttribute<IndentAttribute>()?.depth ?? 0;
+    }
 
     public void Experimental()
     {
@@ -144,7 +158,10 @@ public class RenderContext
         ImGui.SameLine();
     }
 
-    public bool IsIllegal() => prop.GetCustomAttribute<IllegalAttribute>() != null;
+    public bool IsIllegal()
+    {
+        return prop.GetCustomAttribute<IllegalAttribute>() != null;
+    }
 
     public void Illegal()
     {
@@ -182,9 +199,18 @@ public class RenderContext
         return I18N.T(key);
     }
 
-    public string GetLabelWithId() => $"{GetLabel()}##{prop.GetHashCode()}";
+    public string GetLabelWithId()
+    {
+        return $"{GetLabel()}##{prop.GetHashCode()}";
+    }
 
-    public object? GetValue() => prop.GetValue(self);
+    public object? GetValue()
+    {
+        return prop.GetValue(self);
+    }
 
-    public void SetValue(object? value) => prop.SetValue(self, value);
+    public void SetValue(object? value)
+    {
+        prop.SetValue(self, value);
+    }
 }

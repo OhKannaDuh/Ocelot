@@ -12,7 +12,10 @@ namespace Ocelot.Config.Handlers;
 public class EnumHandler<T> : Handler
     where T : Enum
 {
-    protected override Type type => typeof(T);
+    protected override Type type
+    {
+        get => typeof(T);
+    }
 
     private readonly IEnumProvider<T> provider;
 
@@ -43,7 +46,7 @@ public class EnumHandler<T> : Handler
                 .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumProvider<>))
                 .ToList();
 
-            string debugInfo = string.Join("\n", matchingInterfaces.Select(i => $"- {i.FullName}"));
+            var debugInfo = string.Join("\n", matchingInterfaces.Select(i => $"- {i.FullName}"));
             throw new InvalidOperationException(
                 $"Provider type '{providerType.FullName}' does not implement IEnumProvider<{typeof(T).Name}>.\n" +
                 $"Found generic interfaces:\n{debugInfo}"
@@ -65,12 +68,12 @@ public class EnumHandler<T> : Handler
     {
         var currentValue = (T)context.GetValue();
 
-        bool dirty = false;
+        var dirty = false;
         if (ImGui.BeginCombo(context.GetLabelWithId(), provider.GetLabel(currentValue)))
         {
             foreach (T value in Enum.GetValues(typeof(T)))
             {
-                bool isSelected = EqualityComparer<T>.Default.Equals(value, currentValue);
+                var isSelected = EqualityComparer<T>.Default.Equals(value, currentValue);
                 if (ImGui.Selectable(provider.GetLabel(value), isSelected))
                 {
                     context.SetValue(value);

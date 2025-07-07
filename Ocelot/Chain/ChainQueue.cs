@@ -7,6 +7,7 @@ namespace Ocelot.Chain;
 public class ChainQueue : IDisposable
 {
     private readonly LinkedList<Func<Chain>> chains = new();
+
     private Chain? chain = null;
 
     public bool hasRun { get; private set; } = false;
@@ -31,7 +32,15 @@ public class ChainQueue : IDisposable
         }
     }
 
-    public void Submit(ChainFactory factory) => Submit(factory.Factory());
+    public void Submit(ChainFactory factory)
+    {
+        Submit(factory.Factory());
+    }
+
+    public void SubmitFront(ChainFactory factory)
+    {
+        SubmitFront(factory.Factory());
+    }
 
     public void Abort()
     {
@@ -57,14 +66,19 @@ public class ChainQueue : IDisposable
         }
     }
 
-    public Chain? CurrentChain => chain;
+    public Chain? CurrentChain
+    {
+        get => chain;
+    }
 
     public void Tick(IFramework framework)
     {
         aliveTime += framework.UpdateDelta.Milliseconds;
 
         if (chain != null && !chain.IsComplete())
+        {
             return;
+        }
 
         lock (chains)
         {
@@ -80,7 +94,10 @@ public class ChainQueue : IDisposable
         }
     }
 
-    public bool IsRunning => chain != null && !chain.IsComplete();
+    public bool IsRunning
+    {
+        get => chain != null && !chain.IsComplete();
+    }
 
     public int QueueCount
     {

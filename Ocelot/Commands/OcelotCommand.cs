@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,11 +27,15 @@ public abstract class OcelotCommand
     private bool ValidateArguments(string arguments)
     {
         if (string.IsNullOrEmpty(arguments))
+        {
             return true;
+        }
 
         // If ValidArguments is empty, accept any argument by default
         if (validArguments.Count == 0)
+        {
             return true;
+        }
 
         // Check if the argument exactly matches any valid argument (case-insensitive)
         return validArguments.Any(arg => string.Equals(arg, arguments, StringComparison.OrdinalIgnoreCase));

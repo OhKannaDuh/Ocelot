@@ -8,5 +8,8 @@ namespace Ocelot.Config.Attributes;
 [AttributeUsage(AttributeTargets.Property)]
 public class CheckboxAttribute : ConfigAttribute
 {
-    public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop) => new Checkbox(self, attr, prop);
+    public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop)
+    {
+        return new Checkbox(self, attr, prop);
+    }
 }

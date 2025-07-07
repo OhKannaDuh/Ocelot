@@ -7,9 +7,9 @@ namespace Ocelot;
 
 public static class I18N
 {
-    private static readonly Dictionary<string, Dictionary<string, string>> translations = new();
+    private readonly static Dictionary<string, Dictionary<string, string>> translations = new();
 
-    private static readonly HashSet<string> reportedMissingKeys = new();
+    private readonly static HashSet<string> reportedMissingKeys = new();
 
     private static string currentLanguage = "en";
 
@@ -126,9 +126,10 @@ public static class I18N
 
         return $"Unknown translation key: [[{key}]]";
     }
+
     public static string T(string key, Dictionary<string, string> replacements)
     {
-        string template = T(key);
+        var template = T(key);
 
         foreach (var pair in replacements)
         {

@@ -36,7 +36,6 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
         Registry.RegisterAssemblies(typeof(OcelotPlugin).Assembly);
         Registry.RegisterAssemblies(GetType().Assembly);
-
     }
 
     protected void OcelotInitialize(params OcelotFeature[] features)
@@ -85,7 +84,10 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
     }
 
-    public virtual bool ShouldTick() => true;
+    public virtual bool ShouldTick()
+    {
+        return true;
+    }
 
     public virtual void Tick(IFramework framework)
     {
@@ -97,9 +99,15 @@ public abstract class OcelotPlugin : IDalamudPlugin
         modules?.Tick(framework);
     }
 
-    public virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled) => modules?.OnChatMessage(type, timestamp, sender, message, isHandled);
+    public virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    {
+        modules?.OnChatMessage(type, timestamp, sender, message, isHandled);
+    }
 
-    public virtual void OnTerritoryChanged(ushort id) => modules?.OnTerritoryChanged(id);
+    public virtual void OnTerritoryChanged(ushort id)
+    {
+        modules?.OnTerritoryChanged(id);
+    }
 
     public virtual void Dispose()
     {

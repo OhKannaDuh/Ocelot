@@ -18,5 +18,8 @@ public class FloatRangeAttribute : ConfigAttribute
         this.max = max;
     }
 
-    public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop) => new FloatRange(self, attr, prop);
+    public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop)
+    {
+        return new FloatRange(self, attr, prop);
+    }
 }

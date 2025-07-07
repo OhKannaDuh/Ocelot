@@ -5,5 +5,9 @@ namespace Ocelot.Chain;
 public class ChainContext
 {
     public CancellationTokenSource source { get; } = new();
-    public CancellationToken token => source.Token;
+
+    public CancellationToken token
+    {
+        get => source.Token;
+    }
 }

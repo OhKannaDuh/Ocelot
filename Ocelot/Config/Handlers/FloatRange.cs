@@ -8,14 +8,19 @@ namespace Ocelot.Config.Handlers;
 
 public class FloatRange : Handler
 {
-    protected override Type type => typeof(float);
+    protected override Type type
+    {
+        get => typeof(float);
+    }
 
     public FloatRange(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop)
-        : base(self, attribute, prop) { }
+        : base(self, attribute, prop)
+    {
+    }
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext payload)
     {
-        float value = (float)(payload.GetValue() ?? 1f);
+        var value = (float)(payload.GetValue() ?? 1f);
 
         var attribute = this.attribute as FloatRangeAttribute;
         if (ImGui.SliderFloat(payload.GetLabelWithId(), ref value, attribute!.min, attribute!.max))

@@ -7,9 +7,9 @@ namespace Ocelot.Chain.ChainEx;
 
 public static class ChainCondition
 {
-    private unsafe static TaskManagerTask WaitUntilCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
+    private static unsafe TaskManagerTask WaitUntilCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainCondition.WaitUntilCondition({flag})", interval))
             {
@@ -17,7 +17,7 @@ public static class ChainCondition
             }
 
             return false;
-        }, new() { TimeLimitMS = timeout });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout });
     }
 
     public static Chain WaitUntilCondition(this Chain chain, ConditionFlag flag, int timeout = 5000, int interval = 250)
@@ -28,9 +28,9 @@ public static class ChainCondition
     }
 
 
-    private unsafe static TaskManagerTask WaitUntilNotCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
+    private static unsafe TaskManagerTask WaitUntilNotCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainCondition.WaitUntilNotCondition({flag})", interval))
             {
@@ -38,7 +38,7 @@ public static class ChainCondition
             }
 
             return false;
-        }, new() { TimeLimitMS = timeout });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout });
     }
 
     public static Chain WaitUntilNotCondition(this Chain chain, ConditionFlag flag, int timeout = 5000, int interval = 250)
@@ -47,7 +47,6 @@ public static class ChainCondition
             .Debug($"Waiting until player does not have condition {flag}")
             .Then(WaitUntilNotCondition(flag, timeout, interval));
     }
-
 
 
     public static Chain WaitToCycleCondition(this Chain chain, ConditionFlag flag, int timeout = 5000, int interval = 250)

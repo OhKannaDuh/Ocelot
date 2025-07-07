@@ -7,7 +7,7 @@ namespace Ocelot.Chain;
 
 public static class ChainManager
 {
-    private static readonly Dictionary<string, ChainQueue> queues = new();
+    private readonly static Dictionary<string, ChainQueue> queues = new();
 
     private static bool initialized = false;
 
@@ -20,15 +20,23 @@ public static class ChainManager
                 queue = new ChainQueue();
                 queues[id] = queue;
             }
+
             return queue;
         }
     }
 
-    public static Dictionary<string, ChainQueue> Active() => queues;
+    public static Dictionary<string, ChainQueue> Active()
+    {
+        return queues;
+    }
 
     public static void Initialize()
     {
-        if (initialized) return;
+        if (initialized)
+        {
+            return;
+        }
+
         initialized = true;
 
         Svc.Framework.Update += Tick;
@@ -76,6 +84,7 @@ public static class ChainManager
             {
                 queue.Dispose();
             }
+
             queues.Clear();
             initialized = false;
         }

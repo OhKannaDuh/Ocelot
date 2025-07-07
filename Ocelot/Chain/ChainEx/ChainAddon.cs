@@ -9,9 +9,9 @@ namespace Ocelot.Chain.ChainEx;
 
 public static class ChainAddon
 {
-    private unsafe static TaskManagerTask AddonCallback(string addonName, bool updateState = true, params object[] callbackValues)
+    private static unsafe TaskManagerTask AddonCallback(string addonName, bool updateState = true, params object[] callbackValues)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainAddon.AddonCallback({addonName}, {updateState}, {string.Join(", ", callbackValues)})"))
             {
@@ -28,7 +28,7 @@ public static class ChainAddon
             }
 
             return false;
-        }, new() { TimeLimitMS = 3000 });
+        }, new TaskManagerConfiguration { TimeLimitMS = 3000 });
     }
 
     public static Chain AddonCallback(this Chain chain, string addonName, bool updateState = true, params object[] callbackValues)

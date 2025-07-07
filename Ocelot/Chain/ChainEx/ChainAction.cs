@@ -6,9 +6,9 @@ namespace Ocelot.Chain.ChainEx;
 
 public static class ChainAction
 {
-    private unsafe static TaskManagerTask WaitGcd(int timeout = 3000, int interval = 50)
+    private static unsafe TaskManagerTask WaitGcd(int timeout = 3000, int interval = 50)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle("ChainAction.WaitGcd", interval))
             {
@@ -17,7 +17,7 @@ public static class ChainAction
             }
 
             return false;
-        }, new() { TimeLimitMS = timeout });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout });
     }
 
     public static Chain WaitGcd(this Chain chain, int timeout = 3000, int interval = 50)
@@ -27,9 +27,9 @@ public static class ChainAction
             .Then(WaitGcd(timeout, interval));
     }
 
-    private unsafe static TaskManagerTask UseAction(ActionType actionType, uint actionId, int timeout = 3000, int interval = 500)
+    private static unsafe TaskManagerTask UseAction(ActionType actionType, uint actionId, int timeout = 3000, int interval = 500)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainAction.UseAction({actionType}, {actionId})", interval))
             {
@@ -37,7 +37,7 @@ public static class ChainAction
             }
 
             return false;
-        }, new() { TimeLimitMS = timeout });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout });
     }
 
     public static Chain UseAction(this Chain chain, ActionType actionType, uint actionId, int timeout = 3000, int interval = 500)

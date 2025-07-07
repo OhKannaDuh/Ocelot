@@ -13,7 +13,10 @@ public class Chain
 
     public readonly string name = "Unnamed";
 
-    public float progress => tasks.Progress;
+    public float progress
+    {
+        get => tasks.Progress;
+    }
 
     private Chain(string name, TaskManagerConfiguration? defaultConfiguration = null)
     {
@@ -21,22 +24,29 @@ public class Chain
 
         if (defaultConfiguration == null)
         {
-            defaultConfiguration = new()
+            Logger.Info("UIsing desfault chain config");
+            defaultConfiguration = new TaskManagerConfiguration
             {
                 TimeLimitMS = int.MaxValue,
             };
         }
 
-        tasks = new(defaultConfiguration);
+        tasks = new TaskManager(defaultConfiguration);
 
         Svc.Framework.Update += Tick;
 
         Log($"Starting Chain [{name}]");
     }
 
-    public static Chain Create(string name, TaskManagerConfiguration? defaultConfiguration = null) => new(name, defaultConfiguration);
+    public static Chain Create(string name, TaskManagerConfiguration? defaultConfiguration = null)
+    {
+        return new Chain(name, defaultConfiguration);
+    }
 
-    public static Chain Create(TaskManagerConfiguration? defaultConfiguration = null) => Create("Unnamed", defaultConfiguration);
+    public static Chain Create(TaskManagerConfiguration? defaultConfiguration = null)
+    {
+        return Create("Unnamed", defaultConfiguration);
+    }
 
     private void Tick(IFramework _)
     {
@@ -114,7 +124,10 @@ public class Chain
         return this;
     }
 
-    public Chain Then(ChainFactory chain) => Then(chain.Factory(), chain.Config());
+    public Chain Then(ChainFactory chain)
+    {
+        return Then(chain.Factory(), chain.Config());
+    }
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, ChainFactory chain)
     {
@@ -140,15 +153,33 @@ public class Chain
         return this;
     }
 
-    public Chain Info(string message) => Then(_ => Logger.Info(message));
+    public Chain Info(string message)
+    {
+        return Then(_ => Logger.Info(message));
+    }
 
-    public Chain Log(string message) => Info(message);
+    public Chain Log(string message)
+    {
+        return Info(message);
+    }
 
-    public Chain Error(string message) => Then(_ => Logger.Error(message));
+    public Chain Error(string message)
+    {
+        return Then(_ => Logger.Error(message));
+    }
 
-    public Chain Debug(string message) => Then(_ => Logger.Debug(message));
+    public Chain Debug(string message)
+    {
+        return Then(_ => Logger.Debug(message));
+    }
 
-    public void Abort() => tasks.Abort();
+    public void Abort()
+    {
+        tasks.Abort();
+    }
 
-    public bool IsComplete() => tasks.IsBusy == false && tasks.NumQueuedTasks == 0;
+    public bool IsComplete()
+    {
+        return tasks.IsBusy == false && tasks.NumQueuedTasks == 0;
+    }
 }

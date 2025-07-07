@@ -16,19 +16,24 @@ public abstract class OcelotWindow : Window, IDisposable
         this.config = config;
 
         WindowName = GetWindowName();
-        I18N.OnLanguageChanged += (oldLang, newLang) =>
-        {
-            WindowName = GetWindowName();
-        };
+        I18N.OnLanguageChanged += (oldLang, newLang) => { WindowName = GetWindowName(); };
     }
 
-    public virtual void PreInitialize() { }
+    public virtual void PreInitialize()
+    {
+    }
 
-    public virtual void Initialize() { }
+    public virtual void Initialize()
+    {
+    }
 
-    public virtual void PostInitialize() { }
+    public virtual void PostInitialize()
+    {
+    }
 
-    public virtual void Dispose() { }
+    public virtual void Dispose()
+    {
+    }
 
     protected abstract string GetWindowName();
 }

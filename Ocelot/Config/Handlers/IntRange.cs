@@ -8,14 +8,19 @@ namespace Ocelot.Config.Handlers;
 
 public class IntRange : Handler
 {
-    protected override Type type => typeof(int);
+    protected override Type type
+    {
+        get => typeof(int);
+    }
 
     public IntRange(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop)
-        : base(self, attribute, prop) { }
+        : base(self, attribute, prop)
+    {
+    }
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext payload)
     {
-        int value = (int)(payload.GetValue() ?? 1f);
+        var value = (int)(payload.GetValue() ?? 1f);
 
         var attribute = this.attribute as IntRangeAttribute;
         if (ImGui.SliderInt(payload.GetLabelWithId(), ref value, attribute!.min, attribute!.max))

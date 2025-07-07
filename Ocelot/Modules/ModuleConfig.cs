@@ -15,7 +15,10 @@ namespace Ocelot.Modules;
 public abstract class ModuleConfig
 {
     [IgnoreDataMember]
-    public virtual string ProviderNamespace => "";
+    public virtual string ProviderNamespace
+    {
+        get => "";
+    }
 
     private List<Handler>? handlers;
 
@@ -31,7 +34,7 @@ public abstract class ModuleConfig
 
         foreach (var prop in props)
         {
-            var configAttrs = prop.GetCustomAttributes<ConfigAttribute>(inherit: true);
+            var configAttrs = prop.GetCustomAttributes<ConfigAttribute>(true);
 
             foreach (var attr in configAttrs)
             {
@@ -51,7 +54,7 @@ public abstract class ModuleConfig
 
     public bool Draw()
     {
-        bool dirty = false;
+        var dirty = false;
         OcelotUI.Region($"OcelotConfig##{GetType().FullName}", () =>
         {
             var title = GetType().GetCustomAttribute<TitleAttribute>();
@@ -174,7 +177,7 @@ public abstract class ModuleConfig
             {
                 foreach (var handler in GetHandlers())
                 {
-                    (bool handled, bool changed) = handler.Render();
+                    var (handled, changed) = handler.Render();
                     if (handled && changed)
                     {
                         dirty = true;

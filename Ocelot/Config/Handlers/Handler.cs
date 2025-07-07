@@ -26,25 +26,32 @@ public abstract class Handler
         this.property = property;
     }
 
-    protected RenderContext GetContext() => new RenderContext(property, type, self);
+    protected RenderContext GetContext()
+    {
+        return new RenderContext(property, type, self);
+    }
 
-    public bool HasUnloadedRequiredPlugins(out List<string> unloaded) => GetContext().HasUnloadedRequiredPlugins(out unloaded);
+    public bool HasUnloadedRequiredPlugins(out List<string> unloaded)
+    {
+        return GetContext().HasUnloadedRequiredPlugins(out unloaded);
+    }
 
-    public bool HasLoadedConflictingPlugins(out List<string> loaded) => GetContext().HasLoadedConflictingPlugins(out loaded);
+    public bool HasLoadedConflictingPlugins(out List<string> loaded)
+    {
+        return GetContext().HasLoadedConflictingPlugins(out loaded);
+    }
 
     public (bool handled, bool changed) Render()
     {
-
-
-        RenderContext context = GetContext();
+        var context = GetContext();
 
         if (!context.IsValid() || !context.ShouldRender())
         {
             return (false, false);
         }
 
-        bool handled = false;
-        bool changed = false;
+        var handled = false;
+        var changed = false;
         OcelotUI.Indent(context.GetIndentation(), () =>
         {
             context.CustomIcons();

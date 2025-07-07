@@ -13,7 +13,10 @@ namespace Ocelot.Config.Handlers;
 public class ExcelSheet<T> : Handler
     where T : struct, IExcelRow<T>
 {
-    protected override Type type => typeof(uint);
+    protected override Type type
+    {
+        get => typeof(uint);
+    }
 
     private readonly IExcelSheetItemProvider<T> provider;
 
@@ -44,7 +47,7 @@ public class ExcelSheet<T> : Handler
                 .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IExcelSheetItemProvider<>))
                 .ToList();
 
-            string debugInfo = string.Join("\n", matchingInterfaces.Select(i => $"- {i.FullName}"));
+            var debugInfo = string.Join("\n", matchingInterfaces.Select(i => $"- {i.FullName}"));
             throw new InvalidOperationException(
                 $"Provider type '{providerType.FullName}' does not implement IExcelSheetItemProvider<{typeof(T).Name}>.\n" +
                 $"Found generic interfaces:\n{debugInfo}"
@@ -62,15 +65,18 @@ public class ExcelSheet<T> : Handler
     }
 
 
-    private List<T> GetData() => Svc.Data.GetExcelSheet<T>().Where(provider.Filter).ToList();
+    private List<T> GetData()
+    {
+        return Svc.Data.GetExcelSheet<T>().Where(provider.Filter).ToList();
+    }
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext context)
     {
         var data = GetData();
-        uint value = (uint)(context.GetValue() ?? 1);
+        var value = (uint)(context.GetValue() ?? 1);
         var selected = Svc.Data.GetExcelSheet<T>().First(d => d.RowId == value);
 
-        bool dirty = false;
+        var dirty = false;
         if (ImGui.BeginCombo(context.GetLabelWithId(), provider.GetLabel(selected)))
         {
             foreach (var datum in data)
@@ -80,7 +86,7 @@ public class ExcelSheet<T> : Handler
                     continue;
                 }
 
-                bool isSelected = datum.RowId == value;
+                var isSelected = datum.RowId == value;
                 if (ImGui.Selectable(provider.GetLabel(datum), isSelected))
                 {
                     context.SetValue(datum.RowId);

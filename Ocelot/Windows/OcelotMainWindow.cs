@@ -1,3 +1,4 @@
+using System.Numerics;
 using Dalamud.Interface;
 using ImGuiNET;
 
@@ -7,12 +8,12 @@ public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config
 {
     public override void PostInitialize()
     {
-        if (!plugin.windows.TryGetWindow<OcelotConfigWindow>(out var _))
+        if (!plugin.windows.TryGetWindow<OcelotConfigWindow>(out _))
         {
             return;
         }
 
-        TitleBarButtons.Add(new()
+        TitleBarButtons.Add(new TitleBarButton
         {
             Click = (m) =>
             {
@@ -24,7 +25,7 @@ public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config
                 plugin.windows.ToggleConfigUI();
             },
             Icon = FontAwesomeIcon.Cog,
-            IconOffset = new(2, 2),
+            IconOffset = new Vector2(2, 2),
             ShowTooltip = () => ImGui.SetTooltip(I18N.T("windows.main.buttons.toggle_config")),
         });
     }

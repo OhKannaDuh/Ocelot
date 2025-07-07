@@ -17,7 +17,6 @@ public class IconAttribute : Attribute
     {
         this.icon = icon;
         this.tooltip_translation_key = tooltip_translation_key;
-        this.color = new Vector4(r, g, b, a);
+        color = new Vector4(r, g, b, a);
     }
-
 }

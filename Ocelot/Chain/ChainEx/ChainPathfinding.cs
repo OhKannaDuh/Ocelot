@@ -11,7 +11,7 @@ public static class ChainPathfinding
 {
     private static TaskManagerTask WaitToStartPathfinding(VNavmesh vnav)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainPathfinding.WaitToStartPathfinding", 50))
             {
@@ -19,7 +19,7 @@ public static class ChainPathfinding
             }
 
             return false;
-        }, new() { TimeLimitMS = 2000 });
+        }, new TaskManagerConfiguration { TimeLimitMS = 2000 });
     }
 
     public static Chain WaitToStartPathfinding(this Chain chain, VNavmesh vnav)
@@ -31,7 +31,7 @@ public static class ChainPathfinding
 
     private static TaskManagerTask WaitToStopPathfinding(VNavmesh vnav)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainPathfinding.WaitToStopPathfinding", 50))
             {
@@ -39,7 +39,7 @@ public static class ChainPathfinding
             }
 
             return false;
-        }, new() { TimeLimitMS = 30000 });
+        }, new TaskManagerConfiguration { TimeLimitMS = 30000 });
     }
 
     public static Chain WaitToStopPathfinding(this Chain chain, VNavmesh vnav)
@@ -63,7 +63,7 @@ public static class ChainPathfinding
 
     private static TaskManagerTask WaitUntilNear(VNavmesh vnav, Vector3 destination, float distance = 5f)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             var player = Svc.ClientState.LocalPlayer;
             if (player == null)
@@ -74,7 +74,7 @@ public static class ChainPathfinding
             Svc.Log.Info($"Distance: {Player.DistanceTo(destination)}/{distance}");
 
             return !vnav.IsRunning() || Vector3.Distance(player.Position, destination) <= distance;
-        }, new() { TimeLimitMS = 30000 });
+        }, new TaskManagerConfiguration { TimeLimitMS = 30000 });
     }
 
     public static Chain WaitUntilNear(this Chain chain, VNavmesh vnav, Vector3 destination, float distance = 5f)

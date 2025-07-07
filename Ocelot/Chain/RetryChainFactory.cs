@@ -38,19 +38,31 @@ public abstract class RetryChainFactory : ChainFactory
                 }
 
                 return false;
-            }, new() { TimeLimitMS = GetTimeout() }));
+            }, new TaskManagerConfiguration { TimeLimitMS = GetTimeout() }));
     }
 
     public abstract bool IsComplete();
 
-    public virtual int GetThrottle() => 500;
-
-    public virtual int GetTimeout() => 10000;
-
-    public virtual int GetMaxAttempts() => int.MaxValue;
-
-    public override TaskManagerConfiguration? Config() => new()
+    public virtual int GetThrottle()
     {
-        TimeLimitMS = int.MaxValue
-    };
+        return 500;
+    }
+
+    public virtual int GetTimeout()
+    {
+        return 10000;
+    }
+
+    public virtual int GetMaxAttempts()
+    {
+        return int.MaxValue;
+    }
+
+    public override TaskManagerConfiguration? Config()
+    {
+        return new TaskManagerConfiguration
+        {
+            TimeLimitMS = int.MaxValue,
+        };
+    }
 }

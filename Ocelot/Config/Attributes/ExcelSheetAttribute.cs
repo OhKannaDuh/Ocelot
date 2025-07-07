@@ -18,6 +18,8 @@ public class ExcelSheetAttribute : ConfigAttribute
         this.provider = provider;
     }
 
-    public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop) =>
-        (Handler)Activator.CreateInstance(typeof(ExcelSheet<>).MakeGenericType(type), self, attr, prop, provider)!;
+    public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop)
+    {
+        return (Handler)Activator.CreateInstance(typeof(ExcelSheet<>).MakeGenericType(type), self, attr, prop, provider)!;
+    }
 }

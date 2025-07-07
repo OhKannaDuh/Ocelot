@@ -13,6 +13,8 @@ public abstract class IPCProvider
         EzIPC.Init(this, identifier);
     }
 
-    public bool IsReady() => DalamudReflector.TryGetDalamudPlugin(identifier, out _, false, true);
-
+    public bool IsReady()
+    {
+        return DalamudReflector.TryGetDalamudPlugin(identifier, out _, false, true);
+    }
 }

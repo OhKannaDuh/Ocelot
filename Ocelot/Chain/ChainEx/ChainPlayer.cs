@@ -9,9 +9,9 @@ namespace Ocelot.Chain.ChainEx;
 
 public static class ChainPlayer
 {
-    private unsafe static TaskManagerTask WaitUntilCasting(int timeout = 5000, int interval = 50)
+    private static unsafe TaskManagerTask WaitUntilCasting(int timeout = 5000, int interval = 50)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainAddon.WaitUntilCasting", interval))
             {
@@ -19,7 +19,7 @@ public static class ChainPlayer
             }
 
             return false;
-        }, new() { TimeLimitMS = timeout });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout });
     }
 
     public static Chain WaitUntilCasting(this Chain chain, int timeout = 5000, int interval = 50)
@@ -29,9 +29,9 @@ public static class ChainPlayer
             .Then(WaitUntilCasting(timeout, interval));
     }
 
-    private unsafe static TaskManagerTask WaitUntilNotCasting(int timeout = 5000, int interval = 50)
+    private static unsafe TaskManagerTask WaitUntilNotCasting(int timeout = 5000, int interval = 50)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainAddon.WaitUntilNotCasting", interval))
             {
@@ -39,7 +39,7 @@ public static class ChainPlayer
             }
 
             return false;
-        }, new() { TimeLimitMS = timeout });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout });
     }
 
     public static Chain WaitUntilNotCasting(this Chain chain, int timeout = 5000, int interval = 50)

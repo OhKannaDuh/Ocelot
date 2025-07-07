@@ -8,14 +8,19 @@ namespace Ocelot.Config.Handlers;
 
 public class Checkbox : Handler
 {
-    protected override Type type => typeof(bool);
+    protected override Type type
+    {
+        get => typeof(bool);
+    }
 
     public Checkbox(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop)
-        : base(self, attribute, prop) { }
+        : base(self, attribute, prop)
+    {
+    }
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext payload)
     {
-        bool value = (bool)(payload.GetValue() ?? false);
+        var value = (bool)(payload.GetValue() ?? false);
 
         if (ImGui.Checkbox(payload.GetLabelWithId(), ref value))
         {

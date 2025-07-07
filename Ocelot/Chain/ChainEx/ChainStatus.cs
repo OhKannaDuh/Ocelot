@@ -8,9 +8,9 @@ namespace Ocelot.Chain.ChainEx;
 
 public static class ChainStatus
 {
-    private unsafe static TaskManagerTask WaitUntilStatus(uint status, int timeout = 5000, int interval = 50)
+    private static unsafe TaskManagerTask WaitUntilStatus(uint status, int timeout = 5000, int interval = 50)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainStatus.WaitUntilStatus({status})", interval))
             {
@@ -18,7 +18,7 @@ public static class ChainStatus
             }
 
             return false;
-        }, new() { TimeLimitMS = timeout });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout });
     }
 
     public static Chain WaitUntilStatus(this Chain chain, uint status, int timeout = 5000, int interval = 50)
@@ -28,9 +28,9 @@ public static class ChainStatus
             .Then(WaitUntilStatus(status, timeout, interval));
     }
 
-    private unsafe static TaskManagerTask WaitUntilNotStatus(uint status, int timeout = 5000, int interval = 50)
+    private static unsafe TaskManagerTask WaitUntilNotStatus(uint status, int timeout = 5000, int interval = 50)
     {
-        return new(() =>
+        return new TaskManagerTask(() =>
         {
             if (EzThrottler.Throttle($"ChainStatus.WaitUntilNotStatus({status})", interval))
             {
@@ -38,7 +38,7 @@ public static class ChainStatus
             }
 
             return false;
-        }, new() { TimeLimitMS = timeout });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout });
     }
 
     public static Chain WaitUntilNotStatus(this Chain chain, uint status, int timeout = 5000, int interval = 50)

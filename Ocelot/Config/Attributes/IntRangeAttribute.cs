@@ -18,5 +18,8 @@ public class IntRangeAttribute : ConfigAttribute
         this.max = max;
     }
 
-    public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop) => new IntRange(self, attr, prop);
+    public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop)
+    {
+        return new IntRange(self, attr, prop);
+    }
 }

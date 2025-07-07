@@ -7,16 +7,35 @@ namespace Ocelot;
 
 public class OcelotUI
 {
-    public static void Title(string title) => ImGui.TextColored(new Vector4(1f, 0.75f, 0.25f, 1f), title);
-
-    public static void Error(string error) => ImGui.TextColored(new Vector4(0.89f, 0.29f, 0.29f, 1f), error);
-
-    public static void LabelledValue(string title, string value)
+    public static void Title(string title)
     {
-        Title($"{title}:");
-        ImGui.SameLine();
-        ImGui.TextUnformatted(value);
+        ImGui.TextColored(new Vector4(1f, 0.75f, 0.25f, 1f), title);
     }
+
+    public static void Error(string error)
+    {
+        ImGui.TextColored(new Vector4(0.89f, 0.29f, 0.29f, 1f), error);
+    }
+
+    public static UIState LabelledValue(string title, object value)
+    {
+        return LabelledValue(title, value.ToString() ?? "");
+    }
+
+    public static UIState LabelledValue(string title, string value)
+    {
+        var hovered = false;
+
+        Title($"{title}:");
+        hovered |= ImGui.IsItemHovered();
+        ImGui.SameLine();
+        hovered |= ImGui.IsItemHovered();
+        ImGui.TextUnformatted(value);
+        hovered |= ImGui.IsItemHovered();
+
+        return hovered ? UIState.Hovered : UIState.None;
+    }
+
     public static void Region(string id, Action contents)
     {
         ImGui.PushID(id);
@@ -39,12 +58,15 @@ public class OcelotUI
         }
     }
 
-    public static void Indent(Action contents) => Indent(16, contents);
+    public static void Indent(Action contents)
+    {
+        Indent(16, contents);
+    }
 
     public static void DrawLine(Vector3 start, Vector3 end, float thickness, Vector4 color)
     {
-        bool startValid = Svc.GameGui.WorldToScreen(start, out Vector2 startScreen);
-        bool endValid = Svc.GameGui.WorldToScreen(end, out Vector2 endScreen);
+        var startValid = Svc.GameGui.WorldToScreen(start, out var startScreen);
+        var endValid = Svc.GameGui.WorldToScreen(end, out var endScreen);
 
         if (startValid && endValid)
         {

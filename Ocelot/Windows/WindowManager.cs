@@ -64,15 +64,20 @@ public class WindowManager : IDisposable
         }
 
 
-
         Svc.PluginInterface.UiBuilder.Draw += manager.Draw;
         Svc.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
         Svc.PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
     }
 
-    public void ToggleConfigUI() => configWindow?.Toggle();
+    public void ToggleConfigUI()
+    {
+        configWindow?.Toggle();
+    }
 
-    public bool IsConfigUIOpen() => configWindow?.IsOpen ?? false;
+    public bool IsConfigUIOpen()
+    {
+        return configWindow?.IsOpen ?? false;
+    }
 
     public void OpenConfigUI()
     {
@@ -90,13 +95,18 @@ public class WindowManager : IDisposable
         }
     }
 
-    public void ToggleMainUI() => mainWindow?.Toggle();
+    public void ToggleMainUI()
+    {
+        mainWindow?.Toggle();
+    }
 
-    public bool IsMainUIOpen() => mainWindow?.IsOpen ?? false;
+    public bool IsMainUIOpen()
+    {
+        return mainWindow?.IsOpen ?? false;
+    }
 
     public void OpenMainUI()
     {
-
         if (!IsMainUIOpen())
         {
             ToggleMainUI();
@@ -120,7 +130,10 @@ public class WindowManager : IDisposable
         }
     }
 
-    public bool HasWindow<T>() where T : OcelotWindow => windows.OfType<T>().Any();
+    public bool HasWindow<T>() where T : OcelotWindow
+    {
+        return windows.OfType<T>().Any();
+    }
 
     public T GetWindow<T>() where T : OcelotWindow
     {
@@ -129,6 +142,7 @@ public class WindowManager : IDisposable
         {
             throw new UnableToLoadWindowException($"Window of type {typeof(T).Name} was not found.");
         }
+
         return window;
     }
 
