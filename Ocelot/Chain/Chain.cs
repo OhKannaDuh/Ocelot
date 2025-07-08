@@ -11,7 +11,7 @@ public class Chain
 
     private readonly ChainContext context = new();
 
-    private readonly string name;
+    public readonly string name;
 
     public float progress
     {
