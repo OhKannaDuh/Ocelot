@@ -37,9 +37,19 @@ public static class I18N
         I18N.directory = directory;
     }
 
-    public static void AddTranslations(string language, Dictionary<string, string> translations)
+    public static void AddTranslations(string language, Dictionary<string, string> newTranslations)
     {
-        I18N.translations[language] = translations;
+        if (!translations.TryGetValue(language, out var existing))
+        {
+            translations[language] = newTranslations;
+        }
+        else
+        {
+            foreach (var kvp in newTranslations)
+            {
+                existing[kvp.Key] = kvp.Value;
+            }
+        }
     }
 
     public static void LoadFromFile(string language, string path)
@@ -72,13 +82,54 @@ public static class I18N
             {
                 var flat = new Dictionary<string, string>();
                 FlattenJson(root, flat);
-                translations[language] = flat;
+
+                if (!translations.TryGetValue(language, out var existing))
+                {
+                    translations[language] = flat;
+                }
+                else
+                {
+                    foreach (var kvp in flat)
+                    {
+                        existing[kvp.Key] = kvp.Value;
+                    }
+                }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[I18n] Failed to load JSON for '{language}': {ex.Message}");
+            Logger.Warning($"[I18n] Failed to load JSON for '{language}': {ex.Message}");
         }
+    }
+
+    public static void LoadAllFromDirectory(string language, string relativeDirectory)
+    {
+        var fullPath = Path.Combine(directory, relativeDirectory);
+
+        if (!Directory.Exists(fullPath))
+        {
+            Logger.Warning($"[I18n] Directory not found: {fullPath}");
+            return;
+        }
+
+        var files = Directory.GetFiles(fullPath, "*.json", SearchOption.TopDirectoryOnly);
+        foreach (var file in files)
+        {
+            try
+            {
+                var json = File.ReadAllText(file);
+                LoadFromJson(language, json);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[I18n] Failed to load file '{file}' for '{language}': {ex.Message}");
+            }
+        }
+    }
+
+    public static void LoadAllFromDirectory(string language)
+    {
+        LoadAllFromDirectory(language, language);
     }
 
     private static void FlattenJson(JsonObject obj, Dictionary<string, string> result, string prefix = "")

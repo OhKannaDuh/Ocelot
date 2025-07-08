@@ -42,23 +42,27 @@ public class ModuleManager
             Logger.Info($"Registering module: {type.FullName}");
             var moduleInstance = (IModule)Activator.CreateInstance(type, plugin, config)!;
             modules.Add(moduleInstance);
-            configOrders[moduleInstance] = attr.configOrder;
-            mainOrders[moduleInstance] = attr.mainOrder;
+            if (attr != null)
+            {
+                configOrders[moduleInstance] = attr.configOrder;
+                mainOrders[moduleInstance] = attr.mainOrder;
+            }
         }
     }
 
     public IEnumerable<IModule> GetModulesByMainOrder()
     {
-        return render.OrderBy(m => mainOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
+        return render.OrderBy(m => mainOrders.GetValueOrDefault(m, int.MaxValue));
     }
 
     public IEnumerable<IModule> GetModulesByConfigOrder()
     {
-        return modules.OrderBy(m => configOrders.TryGetValue(m, out var order) ? order : int.MaxValue);
+        return modules.OrderBy(m => configOrders.GetValueOrDefault(m, int.MaxValue));
     }
 
     public void PreInitialize()
     {
+        modules.ForEach(m => m.config?.SetOwner(m));
         tick.ForEach(m => m.PreInitialize());
     }
 
@@ -84,7 +88,7 @@ public class ModuleManager
 
     public void DrawMainUi()
     {
-        var modules = GetModulesByMainOrder();
+        var modules = GetModulesByMainOrder().ToList();
         foreach (var module in modules)
         {
             OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () =>
@@ -103,7 +107,7 @@ public class ModuleManager
 
     public void DrawConfigUi()
     {
-        var modules = GetModulesByConfigOrder();
+        var modules = GetModulesByConfigOrder().ToList();
         foreach (var module in modules)
         {
             module.DrawConfigUi();

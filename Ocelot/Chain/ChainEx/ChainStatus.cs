@@ -8,7 +8,7 @@ namespace Ocelot.Chain.ChainEx;
 
 public static class ChainStatus
 {
-    private static unsafe TaskManagerTask WaitUntilStatus(uint status, int timeout = 5000, int interval = 50)
+    private static TaskManagerTask WaitUntilStatus(uint status, int timeout = 5000, int interval = 50)
     {
         return new TaskManagerTask(() =>
         {
@@ -28,7 +28,7 @@ public static class ChainStatus
             .Then(WaitUntilStatus(status, timeout, interval));
     }
 
-    private static unsafe TaskManagerTask WaitUntilNotStatus(uint status, int timeout = 5000, int interval = 50)
+    private static TaskManagerTask WaitUntilNotStatus(uint status, int timeout = 5000, int interval = 50)
     {
         return new TaskManagerTask(() =>
         {

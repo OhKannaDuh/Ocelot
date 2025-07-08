@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Dalamud.Plugin.Services;
+using ECommons.Automation.NeoTaskManager;
 
 namespace Ocelot.Chain;
 
 public class ChainQueue : IDisposable
 {
-    private readonly LinkedList<Func<Chain>> chains = new();
+    private readonly LinkedList<Func<Chain>> chains = [];
 
     private Chain? chain = null;
 
@@ -40,6 +41,16 @@ public class ChainQueue : IDisposable
     public void SubmitFront(ChainFactory factory)
     {
         SubmitFront(factory.Factory());
+    }
+
+    public void Submit(TaskManagerTask task)
+    {
+        Submit(() => Chain.Create().Then(task));
+    }
+
+    public void SubmitFront(TaskManagerTask task)
+    {
+        SubmitFront(() => Chain.Create().Then(task));
     }
 
     public void Abort()

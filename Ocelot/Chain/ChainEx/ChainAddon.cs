@@ -15,7 +15,7 @@ public static class ChainAddon
         {
             if (EzThrottler.Throttle($"ChainAddon.AddonCallback({addonName}, {updateState}, {string.Join(", ", callbackValues)})"))
             {
-                var addonPtr = Svc.GameGui.GetAddonByName(addonName, 1);
+                var addonPtr = Svc.GameGui.GetAddonByName(addonName);
                 if (addonPtr != IntPtr.Zero)
                 {
                     var addon = (AtkUnitBase*)addonPtr;

@@ -20,6 +20,14 @@ public abstract class ModuleConfig
         get => "";
     }
 
+    [IgnoreDataMember] public IModule Owner { get; private set; } = null!;
+
+    internal void SetOwner(IModule module)
+    {
+        Logger.Info($"Set owner to type of {module.GetType().Name}");
+        Owner = module;
+    }
+
     private List<Handler>? handlers;
 
     private IEnumerable<Handler> GetHandlers()
@@ -52,21 +60,49 @@ public abstract class ModuleConfig
         return handlers;
     }
 
+    public string? GetTitle()
+    {
+        var key = GetType().GetCustomAttribute<TitleAttribute>()?.translation_key;
+        if (key == null || Owner == null)
+        {
+            return null;
+        }
+
+        return Owner.T(key);
+    }
+
+    public List<string> GetText()
+    {
+        if (Owner == null)
+        {
+            return [];
+        }
+
+        List<string> output = [];
+        var texts = GetType().GetCustomAttributes<TextAttribute>().ToList();
+        foreach (var text in texts)
+        {
+            output.Add(Owner.T(text.translation_key));
+        }
+
+
+        return output;
+    }
+
     public bool Draw()
     {
         var dirty = false;
         OcelotUI.Region($"OcelotConfig##{GetType().FullName}", () =>
         {
-            var title = GetType().GetCustomAttribute<TitleAttribute>();
+            var title = GetTitle();
             if (title != null)
             {
-                ImGui.TextColored(new Vector4(1f, 0.75f, 0.25f, 1f), $"{I18N.T(title.translation_key)}:");
+                OcelotUI.Title(title);
             }
 
-            var texts = GetType().GetCustomAttributes<TextAttribute>().ToList();
-            foreach (var text in texts)
+            foreach (var text in GetText())
             {
-                ImGui.TextUnformatted(I18N.T(text.translation_key));
+                ImGui.TextUnformatted(text);
             }
 
             var error = false;

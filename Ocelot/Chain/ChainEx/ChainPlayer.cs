@@ -9,7 +9,7 @@ namespace Ocelot.Chain.ChainEx;
 
 public static class ChainPlayer
 {
-    private static unsafe TaskManagerTask WaitUntilCasting(int timeout = 5000, int interval = 50)
+    private static TaskManagerTask WaitUntilCasting(int timeout = 5000, int interval = 50)
     {
         return new TaskManagerTask(() =>
         {
@@ -29,7 +29,7 @@ public static class ChainPlayer
             .Then(WaitUntilCasting(timeout, interval));
     }
 
-    private static unsafe TaskManagerTask WaitUntilNotCasting(int timeout = 5000, int interval = 50)
+    private static TaskManagerTask WaitUntilNotCasting(int timeout = 5000, int interval = 50)
     {
         return new TaskManagerTask(() =>
         {

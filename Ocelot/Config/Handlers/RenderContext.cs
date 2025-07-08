@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using Dalamud.Interface;
@@ -181,22 +182,43 @@ public class RenderContext
 
     public void Tooltip()
     {
-        var tooltip = prop.GetCustomAttribute<TooltipAttribute>();
-        if (tooltip != null && ImGui.IsItemHovered())
+        string? translation_key = null;
+        translation_key ??= prop.GetCustomAttribute<TooltipAttribute>()?.translation_key;
+        translation_key ??= prop.GetCustomAttribute<LabelAndTooltipAttribute>()?.translation_key;
+
+        var hasLabel = prop.GetCustomAttribute<LabelAttribute>() != null;
+
+        if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip(I18N.T(tooltip.translation_key));
+            if (translation_key == null && !hasLabel)
+            {
+                ImGui.SetTooltip(self.Owner.T($"config.{ToSnakeCase(prop.Name)}.tooltip"));
+                return;
+            }
+
+            if (translation_key != null && !hasLabel)
+            {
+                ImGui.SetTooltip(I18N.T(translation_key));
+            }
         }
     }
 
     public string GetLabel()
     {
-        var key = prop.GetCustomAttribute<LabelAttribute>()?.translation_key;
-        if (key == null)
+        string? translation_key = null;
+        translation_key ??= prop.GetCustomAttribute<LabelAttribute>()?.translation_key;
+        translation_key ??= prop.GetCustomAttribute<LabelAndTooltipAttribute>()?.translation_key;
+        if (translation_key != null)
         {
-            return prop.Name;
+            return I18N.T(translation_key);
         }
 
-        return I18N.T(key);
+        if (self.Owner == null)
+        {
+            return "Unknown label";
+        }
+
+        return self.Owner.T($"config.{ToSnakeCase(prop.Name)}.label");
     }
 
     public string GetLabelWithId()
@@ -212,5 +234,36 @@ public class RenderContext
     public void SetValue(object? value)
     {
         prop.SetValue(self, value);
+    }
+
+    private static string ToSnakeCase(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
+        var result = new System.Text.StringBuilder();
+        for (var i = 0; i < input.Length; i++)
+        {
+            var c = input[i];
+            if (char.IsUpper(c))
+            {
+                // Add underscore if it's not the first character AND
+                // (the previous character is lowercase OR the next character is lowercase)
+                if (i > 0 && (char.IsLower(input[i - 1]) || i + 1 < input.Length && char.IsLower(input[i + 1])))
+                {
+                    result.Append('_');
+                }
+
+                result.Append(char.ToLower(c));
+            }
+            else
+            {
+                result.Append(c);
+            }
+        }
+
+        return result.ToString();
     }
 }

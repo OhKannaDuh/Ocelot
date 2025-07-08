@@ -66,7 +66,7 @@ public class EnumHandler<T> : Handler
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext context)
     {
-        var currentValue = (T)context.GetValue();
+        var currentValue = (T)context.GetValue()!;
 
         var dirty = false;
         if (ImGui.BeginCombo(context.GetLabelWithId(), provider.GetLabel(currentValue)))

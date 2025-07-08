@@ -53,7 +53,7 @@ public static class Registry
         return GetAllLoadableTypes().Where(t => t.GetCustomAttribute<TAttr>() != null);
     }
 
-    public static IEnumerable<(Type type, TAttr attr)> GetTypesWithAttributeData<TAttr>() where TAttr : Attribute
+    public static IEnumerable<(Type type, TAttr? attr)> GetTypesWithAttributeData<TAttr>() where TAttr : Attribute
     {
         return GetAllLoadableTypes()
             .Select(t => (type: t, attr: t.GetCustomAttribute<TAttr>()))

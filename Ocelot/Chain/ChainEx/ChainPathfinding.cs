@@ -71,8 +71,6 @@ public static class ChainPathfinding
                 return false;
             }
 
-            Svc.Log.Info($"Distance: {Player.DistanceTo(destination)}/{distance}");
-
             return !vnav.IsRunning() || Vector3.Distance(player.Position, destination) <= distance;
         }, new TaskManagerConfiguration { TimeLimitMS = 30000 });
     }

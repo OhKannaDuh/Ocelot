@@ -7,11 +7,11 @@ namespace Ocelot.Chain;
 
 public class Chain
 {
-    private TaskManager tasks;
+    private readonly TaskManager tasks;
 
-    private ChainContext context = new();
+    private readonly ChainContext context = new();
 
-    public readonly string name;
+    private readonly string name;
 
     public float progress
     {
@@ -77,6 +77,12 @@ public class Chain
     public Chain Then(TaskManagerTask task)
     {
         tasks.EnqueueMulti(task);
+        return this;
+    }
+
+    public Chain Then(Func<ChainContext, bool?> factory)
+    {
+        tasks.EnqueueMulti(new TaskManagerTask(() => factory(context)));
         return this;
     }
 

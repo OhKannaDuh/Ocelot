@@ -7,9 +7,9 @@ namespace Ocelot.Chain;
 
 public static class ChainManager
 {
-    private readonly static Dictionary<string, ChainQueue> queues = new();
+    private readonly static Dictionary<string, ChainQueue> queues = [];
 
-    private static bool initialized = false;
+    private static bool initialized;
 
     public static ChainQueue Get(string id)
     {

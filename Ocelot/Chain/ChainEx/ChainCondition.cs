@@ -7,7 +7,7 @@ namespace Ocelot.Chain.ChainEx;
 
 public static class ChainCondition
 {
-    private static unsafe TaskManagerTask WaitUntilCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
+    private static TaskManagerTask WaitUntilCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
     {
         return new TaskManagerTask(() =>
         {
@@ -28,7 +28,7 @@ public static class ChainCondition
     }
 
 
-    private static unsafe TaskManagerTask WaitUntilNotCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
+    private static TaskManagerTask WaitUntilNotCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
     {
         return new TaskManagerTask(() =>
         {
