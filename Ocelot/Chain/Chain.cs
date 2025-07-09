@@ -157,6 +157,16 @@ public class Chain
         return this;
     }
 
+    public Chain SubChain(string name, Func<Chain, Chain> subChainFactory, TaskManagerConfiguration? config = null)
+    {
+        return Then(() => subChainFactory(Create(name)), config);
+    }
+
+    public Chain SubChain(Func<Chain, Chain> subChainFactory, TaskManagerConfiguration? config = null)
+    {
+        return Then(() => subChainFactory(Create()), config);
+    }
+
     public Chain Info(string message)
     {
         return Then(_ => Logger.Info(message));
