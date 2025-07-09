@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.Text;
@@ -11,6 +10,7 @@ using Ocelot.Commands;
 using Ocelot.IPC;
 using Ocelot.Modules;
 using Ocelot.Windows;
+using Pictomancy;
 
 namespace Ocelot;
 
@@ -33,6 +33,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
     public OcelotPlugin(IDalamudPluginInterface plugin, params Module[] eModules)
     {
         ECommonsMain.Init(plugin, this, eModules);
+        PictoService.Initialize(plugin);
 
         Registry.RegisterAssemblies(typeof(OcelotPlugin).Assembly);
         Registry.RegisterAssemblies(GetType().Assembly);
@@ -124,6 +125,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.Chat.ChatMessage -= OnChatMessage;
         Svc.ClientState.TerritoryChanged -= OnTerritoryChanged;
 
+        PictoService.Dispose();
         ECommonsMain.Dispose();
     }
 }

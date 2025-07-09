@@ -1,8 +1,10 @@
 using System;
 using System.Reflection;
+using ECommons.GameHelpers;
 using ImGuiNET;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
+using Pictomancy;
 
 namespace Ocelot.Config.Handlers;
 
@@ -27,6 +29,12 @@ public class IntRange : Handler
         {
             payload.SetValue(value);
             return (true, true);
+        }
+
+        var range = property.GetCustomAttribute<RangeIndicatorAttribute>();
+        if (ImGui.IsItemHovered() && range != null)
+        {
+            PictoService.VfxRenderer.AddCircle($"{property.Name}", Player.Position, value, range.color);
         }
 
         return (true, false);

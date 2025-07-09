@@ -53,6 +53,9 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="../ffxiv_pictomancy/Pictomancy/Pictomancy.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
         <PackageReference Include="Ecommons" Version="3.0.0"/>
     </ItemGroup>
     <ItemGroup>

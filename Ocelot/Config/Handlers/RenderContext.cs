@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Text;
 using Dalamud.Interface;
 using ECommons.Reflection;
 using ImGuiNET;
@@ -243,7 +243,7 @@ public class RenderContext
             return input;
         }
 
-        var result = new System.Text.StringBuilder();
+        var result = new StringBuilder();
         for (var i = 0; i < input.Length; i++)
         {
             var c = input[i];

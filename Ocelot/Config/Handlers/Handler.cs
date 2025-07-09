@@ -1,30 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using ImGuiNET;
-using Microsoft.VisualBasic;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
 
 namespace Ocelot.Config.Handlers;
 
-public abstract class Handler
+public abstract class Handler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo property)
 {
     protected abstract Type type { get; }
 
-    protected ModuleConfig self;
+    protected ModuleConfig self = self;
 
-    protected ConfigAttribute attribute;
+    protected ConfigAttribute attribute = attribute;
 
-    protected readonly PropertyInfo property;
-
-    public Handler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo property)
-    {
-        this.self = self;
-        this.attribute = attribute;
-        this.property = property;
-    }
+    protected readonly PropertyInfo property = property;
 
     protected RenderContext GetContext()
     {

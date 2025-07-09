@@ -1,21 +1,18 @@
 using System;
 using System.Reflection;
+using ECommons.GameHelpers;
 using ImGuiNET;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
+using Pictomancy;
 
 namespace Ocelot.Config.Handlers;
 
-public class FloatRange : Handler
+public class FloatRange(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop) : Handler(self, attribute, prop)
 {
     protected override Type type
     {
         get => typeof(float);
-    }
-
-    public FloatRange(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop)
-        : base(self, attribute, prop)
-    {
     }
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext payload)
@@ -27,6 +24,12 @@ public class FloatRange : Handler
         {
             payload.SetValue(value);
             return (true, true);
+        }
+
+        var range = property.GetCustomAttribute<RangeIndicatorAttribute>();
+        if (ImGui.IsItemHovered() && range != null)
+        {
+            PictoService.VfxRenderer.AddCircle($"{property.Name}", Player.Position, value, range.color);
         }
 
         return (true, false);
