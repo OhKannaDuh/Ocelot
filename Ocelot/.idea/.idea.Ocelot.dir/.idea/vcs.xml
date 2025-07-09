@@ -5,6 +5,5 @@
     <mapping directory="$PROJECT_DIR$/../.." vcs="Git" />
     <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../ffxiv_pictomancy" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../ffxiv_pictomancy" vcs="Git" />
   </component>
 </project>
