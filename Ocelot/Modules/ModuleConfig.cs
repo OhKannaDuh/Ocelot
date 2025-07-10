@@ -61,22 +61,14 @@ public abstract class ModuleConfig
 
     public string? GetTitle()
     {
-        var key = GetType().GetCustomAttribute<TitleAttribute>()?.translation_key;
-        if (key == null || Owner == null)
-        {
-            return null;
-        }
+        var title = GetType().GetCustomAttribute<TitleAttribute>() ?? new TitleAttribute();
+        var key = title.TranslationKey;
 
         return Owner.T(key);
     }
 
     public List<string> GetText()
     {
-        if (Owner == null)
-        {
-            return [];
-        }
-
         List<string> output = [];
         var texts = GetType().GetCustomAttributes<TextAttribute>().ToList();
         foreach (var text in texts)
