@@ -16,7 +16,7 @@ public abstract class ModuleConfig
     [IgnoreDataMember]
     public virtual string ProviderNamespace
     {
-        get => "";
+        get => GetType().Namespace ?? string.Empty;
     }
 
     [IgnoreDataMember] public IModule Owner { get; private set; } = null!;
