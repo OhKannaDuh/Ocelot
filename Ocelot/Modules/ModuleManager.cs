@@ -75,9 +75,19 @@ public class ModuleManager
         tick.ForEach(m => m.PostInitialize());
     }
 
+    public void PreTick(IFramework framework)
+    {
+        tick.ForEach(m => m.PreTick(framework));
+    }
+
     public void Tick(IFramework framework)
     {
         tick.ForEach(m => m.Tick(framework));
+    }
+
+    public void PostTick(IFramework framework)
+    {
+        tick.ForEach(m => m.PostTick(framework));
     }
 
     public void Draw()

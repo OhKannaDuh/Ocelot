@@ -54,7 +54,15 @@ public abstract class Module<P, C> : IModule
     {
     }
 
+    public virtual void PreTick(IFramework _)
+    {
+    }
+
     public virtual void Tick(IFramework _)
+    {
+    }
+
+    public virtual void PostTick(IFramework _)
     {
     }
 

@@ -24,7 +24,11 @@ public interface IModule : IDisposable
     void PostInitialize();
 
     // Functions
+    void PreTick(IFramework framework);
+
     void Tick(IFramework framework);
+
+    void PostTick(IFramework framework);
 
     void Draw();
 

@@ -97,7 +97,9 @@ public abstract class OcelotPlugin : IDalamudPlugin
             return;
         }
 
-        modules?.Tick(framework);
+        modules.PreTick(framework);
+        modules.Tick(framework);
+        modules.PostTick(framework);
     }
 
     public virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
