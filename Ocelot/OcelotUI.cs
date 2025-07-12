@@ -1,5 +1,8 @@
 using System;
 using System.Numerics;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
 using ImGuiNET;
 
@@ -34,6 +37,40 @@ public class OcelotUI
         hovered |= ImGui.IsItemHovered();
 
         return hovered ? UIState.Hovered : UIState.None;
+    }
+
+    public static UIState LeftRightText(string left, string right)
+    {
+        var state = UIState.None;
+
+        ImGui.TextUnformatted(left);
+        if (ImGui.IsItemHovered())
+        {
+            state = UIState.LeftHovered;
+        }
+
+        var start = ImGui.GetCursorPosX();
+        ImGui.SameLine();
+        var width = ImGui.GetCursorPosX() - start;
+
+        var rightSize = ImGui.CalcTextSize(right);
+        var avail = ImGui.GetContentRegionAvail();
+
+        var offset = avail.X - rightSize.X;
+
+        if (offset > 0)
+        {
+            offset += width;
+        }
+
+        ImGui.SameLine(Math.Max(0f, offset));
+        ImGui.TextUnformatted(right);
+        if (ImGui.IsItemHovered())
+        {
+            state = UIState.RightHovered;
+        }
+
+        return state;
     }
 
     public static void Region(string id, Action contents)
