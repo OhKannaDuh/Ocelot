@@ -10,7 +10,7 @@ using Ocelot.Modules;
 
 namespace Ocelot.Config.Handlers;
 
-public class ExcelSheetHandler<T> : Handler
+public class ExcelSheetHandler<T> : SelectHandler<T>
     where T : struct, IExcelRow<T>
 {
     protected override Type type
@@ -64,44 +64,30 @@ public class ExcelSheetHandler<T> : Handler
         }
     }
 
-
-    private List<T> GetData()
+    protected override T GetValue(RenderContext context)
     {
-        return Svc.Data.GetExcelSheet<T>().Where(provider.Filter).ToList();
+        var value = (uint)(context.GetValue() ?? 1);
+        return Svc.Data.GetExcelSheet<T>().First(d => d.RowId == value);
     }
 
-    protected override (bool handled, bool changed) RenderComponent(RenderContext context)
+    protected override void SetValue(RenderContext context, T value)
     {
-        var data = GetData();
-        var value = (uint)(context.GetValue() ?? 1);
-        var selected = Svc.Data.GetExcelSheet<T>().First(d => d.RowId == value);
+        context.SetValue(value.RowId);
+    }
 
-        var dirty = false;
-        if (ImGui.BeginCombo(context.GetLabelWithId(), provider.GetLabel(selected)))
-        {
-            foreach (var datum in data)
-            {
-                if (datum.RowId <= 0)
-                {
-                    continue;
-                }
+    protected override IEnumerable<T> GetData()
+    {
+        return Svc.Data.GetExcelSheet<T>().Where(provider.Filter);
+    }
 
-                var isSelected = datum.RowId == value;
-                if (ImGui.Selectable(provider.GetLabel(datum), isSelected))
-                {
-                    context.SetValue(datum.RowId);
-                    dirty = true;
-                }
 
-                if (isSelected)
-                {
-                    ImGui.SetItemDefaultFocus();
-                }
-            }
+    protected override bool Filter(T item)
+    {
+        return provider.Filter(item);
+    }
 
-            ImGui.EndCombo();
-        }
-
-        return (true, dirty);
+    protected override string GetLabel(T item)
+    {
+        return provider.GetLabel(item);
     }
 }
