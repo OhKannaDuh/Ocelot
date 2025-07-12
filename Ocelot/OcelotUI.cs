@@ -114,7 +114,7 @@ public class OcelotUI
 
     public static void Separator()
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
+        // ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
         var pos = ImGui.GetCursorScreenPos();
         var width = ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
         var drawList = ImGui.GetWindowDrawList();
@@ -123,11 +123,85 @@ public class OcelotUI
 
         ImGui.Dummy(new Vector2(width, 1));
 
-        ImGui.PopStyleVar();
+        // ImGui.PopStyleVar();
     }
 
     public static void VSpace(int px = 8)
     {
         ImGui.Dummy(new Vector2(0, px));
+    }
+
+    public static bool IconButtonWithLeftText(
+        FontAwesomeIcon icon,
+        string text,
+        Vector4? defaultColor = null,
+        Vector4? activeColor = null,
+        Vector4? hoveredColor = null,
+        Vector2? size = null)
+    {
+        using var col = new ImRaii.Color();
+
+        if (defaultColor.HasValue)
+        {
+            col.Push(ImGuiCol.Button, defaultColor.Value);
+        }
+
+        if (activeColor.HasValue)
+        {
+            col.Push(ImGuiCol.ButtonActive, activeColor.Value);
+        }
+
+        if (hoveredColor.HasValue)
+        {
+            col.Push(ImGuiCol.ButtonHovered, hoveredColor.Value);
+        }
+
+        if (size.HasValue)
+        {
+            size *= ImGuiHelpers.GlobalScale;
+        }
+
+        bool button;
+
+        Vector2 iconSize;
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            iconSize = ImGui.CalcTextSize(icon.ToIconString());
+        }
+
+        var textStr = text;
+        if (textStr.Contains('#'))
+        {
+            textStr = textStr[..textStr.IndexOf('#', StringComparison.Ordinal)];
+        }
+
+        var framePadding = ImGui.GetStyle().FramePadding;
+        var iconPadding = 3 * ImGuiHelpers.GlobalScale;
+
+        var cursor = ImGui.GetCursorScreenPos();
+
+        var textSize = ImGui.CalcTextSize(textStr);
+
+        using (ImRaii.PushId(text))
+        {
+            var width = size is { X: not 0 } ? size.Value.X : iconSize.X + textSize.X + framePadding.X * 2 + iconPadding;
+            var height = size is { Y: not 0 } ? size.Value.Y : ImGui.GetFrameHeight();
+
+            button = ImGui.Button(string.Empty, new Vector2(width, height));
+        }
+
+        var textPos = cursor + framePadding;
+        var iconPos = new Vector2(textPos.X + textSize.X + iconPadding, cursor.Y + framePadding.Y);
+
+        var dl = ImGui.GetWindowDrawList();
+
+        dl.AddText(textPos, ImGui.GetColorU32(ImGuiCol.Text), textStr);
+
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            dl.AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon.ToIconString());
+        }
+
+        return button;
     }
 }

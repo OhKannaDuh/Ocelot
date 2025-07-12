@@ -10,13 +10,11 @@ public abstract class Handler(ModuleConfig self, ConfigAttribute attribute, Prop
 {
     protected abstract Type type { get; }
 
-    protected ModuleConfig self = self;
-
-    protected ConfigAttribute attribute = attribute;
+    protected readonly ConfigAttribute attribute = attribute;
 
     protected readonly PropertyInfo property = property;
 
-    protected RenderContext GetContext()
+    private RenderContext GetContext()
     {
         return new RenderContext(property, type, self);
     }

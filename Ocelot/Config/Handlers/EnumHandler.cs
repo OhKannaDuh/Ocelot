@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
@@ -18,9 +20,15 @@ public class EnumHandler<T> : Handler
 
     private readonly IEnumProvider<T> provider;
 
+    private readonly bool isSearchable;
+
+    private string searchTerm = "";
+
     public EnumHandler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop, string provider)
         : base(self, attribute, prop)
     {
+        isSearchable = prop.IsDefined(typeof(SearchableAttribute), true);
+
         if (!string.IsNullOrEmpty(self.ProviderNamespace))
         {
             provider = $"{self.ProviderNamespace}.{provider}";
@@ -68,20 +76,32 @@ public class EnumHandler<T> : Handler
         var currentValue = (T)context.GetValue()!;
 
         var dirty = false;
-        if (ImGui.BeginCombo(context.GetLabelWithId(), provider.GetLabel(currentValue)))
+        if (ImGui.BeginCombo(context.GetLabelWithId(), provider.GetLabel(currentValue), ImGuiComboFlags.HeightLarge))
         {
-            foreach (T value in Enum.GetValues(typeof(T)))
+            if (isSearchable)
             {
-                var isSelected = EqualityComparer<T>.Default.Equals(value, currentValue);
-                if (ImGui.Selectable(provider.GetLabel(value), isSelected))
-                {
-                    context.SetValue(value);
-                    dirty = true;
-                }
+                ImGui.InputText("##search", ref searchTerm, 256);
+                ImGui.Separator();
+            }
 
-                if (isSelected)
+            var values = GetValuesToShow().ToList();
+            var height = Math.Min(512, values.Count * ImGui.GetTextLineHeightWithSpacing());
+
+            using (ImRaii.Child("##options", new Vector2(0, height)))
+            {
+                foreach (var value in values)
                 {
-                    ImGui.SetItemDefaultFocus();
+                    var isSelected = EqualityComparer<T>.Default.Equals(value, currentValue);
+                    if (ImGui.Selectable(provider.GetLabel(value), isSelected))
+                    {
+                        context.SetValue(value);
+                        dirty = true;
+                    }
+
+                    if (isSelected)
+                    {
+                        ImGui.SetItemDefaultFocus();
+                    }
                 }
             }
 
@@ -89,5 +109,28 @@ public class EnumHandler<T> : Handler
         }
 
         return (true, dirty);
+    }
+
+    private IEnumerable<T> GetValuesToShow()
+    {
+        foreach (T value in Enum.GetValues(typeof(T)))
+        {
+            if (!provider.Filter(value) || !SearchFilter(value))
+            {
+                continue;
+            }
+
+            yield return value;
+        }
+    }
+
+    private bool SearchFilter(T item)
+    {
+        if (!isSearchable || searchTerm.Trim() == string.Empty)
+        {
+            return true;
+        }
+
+        return provider.GetLabel(item).Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
     }
 }

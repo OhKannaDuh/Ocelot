@@ -23,7 +23,7 @@ public class Color4Handler(ModuleConfig self, ConfigAttribute attribute, Propert
             payload.SetValue(value);
             return (true, true);
         }
-        
+
         return (true, false);
     }
 }

@@ -23,7 +23,7 @@ public class Color3Handler(ModuleConfig self, ConfigAttribute attribute, Propert
             payload.SetValue(value);
             return (true, true);
         }
-        
+
         return (true, false);
     }
 }

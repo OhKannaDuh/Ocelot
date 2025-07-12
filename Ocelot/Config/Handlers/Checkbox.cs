@@ -6,16 +6,11 @@ using Ocelot.Modules;
 
 namespace Ocelot.Config.Handlers;
 
-public class Checkbox : Handler
+public class Checkbox(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop) : Handler(self, attribute, prop)
 {
     protected override Type type
     {
         get => typeof(bool);
-    }
-
-    public Checkbox(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop)
-        : base(self, attribute, prop)
-    {
     }
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext payload)
