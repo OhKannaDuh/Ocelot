@@ -20,6 +20,6 @@ public class ExcelSheetAttribute : ConfigAttribute
 
     public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop)
     {
-        return (Handler)Activator.CreateInstance(typeof(ExcelSheet<>).MakeGenericType(type), self, attr, prop, provider)!;
+        return (Handler)Activator.CreateInstance(typeof(ExcelSheetHandler<>).MakeGenericType(type), self, attr, prop, provider)!;
     }
 }

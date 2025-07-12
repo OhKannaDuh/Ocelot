@@ -8,24 +8,19 @@ using Pictomancy;
 
 namespace Ocelot.Config.Handlers;
 
-public class IntRange : Handler
+public class FloatRangeHandler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop) : Handler(self, attribute, prop)
 {
     protected override Type type
     {
-        get => typeof(int);
-    }
-
-    public IntRange(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop)
-        : base(self, attribute, prop)
-    {
+        get => typeof(float);
     }
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext payload)
     {
-        var value = (int)(payload.GetValue() ?? 1f);
+        var value = (float)(payload.GetValue() ?? 1f);
 
-        var attribute = this.attribute as IntRangeAttribute;
-        if (ImGui.SliderInt(payload.GetLabelWithId(), ref value, attribute!.min, attribute!.max))
+        var attribute = this.attribute as FloatRangeAttribute;
+        if (ImGui.SliderFloat(payload.GetLabelWithId(), ref value, attribute!.min, attribute!.max))
         {
             payload.SetValue(value);
             return (true, true);

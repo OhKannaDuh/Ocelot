@@ -20,6 +20,6 @@ public class IntRangeAttribute : ConfigAttribute
 
     public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop)
     {
-        return new IntRange(self, attr, prop);
+        return new IntRangeHandler(self, attr, prop);
     }
 }

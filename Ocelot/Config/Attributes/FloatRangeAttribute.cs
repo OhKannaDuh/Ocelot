@@ -20,6 +20,6 @@ public class FloatRangeAttribute : ConfigAttribute
 
     public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop)
     {
-        return new FloatRange(self, attr, prop);
+        return new FloatRangeHandler(self, attr, prop);
     }
 }

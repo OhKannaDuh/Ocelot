@@ -10,7 +10,7 @@ using Ocelot.Modules;
 
 namespace Ocelot.Config.Handlers;
 
-public class ExcelSheet<T> : Handler
+public class ExcelSheetHandler<T> : Handler
     where T : struct, IExcelRow<T>
 {
     protected override Type type
@@ -20,7 +20,7 @@ public class ExcelSheet<T> : Handler
 
     private readonly IExcelSheetItemProvider<T> provider;
 
-    public ExcelSheet(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop, string provider)
+    public ExcelSheetHandler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop, string provider)
         : base(self, attribute, prop)
     {
         if (!string.IsNullOrEmpty(self.ProviderNamespace))

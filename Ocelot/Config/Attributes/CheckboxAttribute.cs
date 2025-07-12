@@ -10,6 +10,6 @@ public class CheckboxAttribute : ConfigAttribute
 {
     public override Handler GetHandler(ModuleConfig self, ConfigAttribute attr, PropertyInfo prop)
     {
-        return new Checkbox(self, attr, prop);
+        return new CheckboxHandler(self, attr, prop);
     }
 }

@@ -6,7 +6,7 @@ using Ocelot.Modules;
 
 namespace Ocelot.Config.Handlers;
 
-public class Checkbox(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop) : Handler(self, attribute, prop)
+public class CheckboxHandler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop) : Handler(self, attribute, prop)
 {
     protected override Type type
     {
