@@ -158,7 +158,7 @@ public abstract class Module<P, C> : IModule
     // Modules
     public ModuleManager modules
     {
-        get => Plugin.modules;
+        get => Plugin.Modules;
     }
 
     public T GetModule<T>() where T : class, IModule
@@ -175,7 +175,7 @@ public abstract class Module<P, C> : IModule
     // IPC
     public IPCManager ipc
     {
-        get => Plugin.ipc;
+        get => Plugin.IPC;
     }
 
     public T GetIPCProvider<T>() where T : IPCProvider
@@ -191,7 +191,7 @@ public abstract class Module<P, C> : IModule
     // Windows
     public WindowManager windows
     {
-        get => Plugin.windows;
+        get => Plugin.Windows;
     }
 
     public T GetWindow<T>() where T : OcelotWindow

@@ -18,17 +18,17 @@ public abstract class OcelotPlugin : IDalamudPlugin
 {
     public abstract string Name { get; }
 
-    public abstract IOcelotConfig _config { get; }
+    public abstract IOcelotConfig OcelotConfig { get; }
 
-    public readonly ModuleManager modules = new();
+    public readonly ModuleManager Modules = new();
 
-    public readonly WindowManager windows = new();
+    public readonly WindowManager Windows = new();
 
-    public readonly CommandManager commands = new();
+    public readonly CommandManager Commands = new();
 
-    public readonly IPCManager ipc = new();
+    public readonly IPCManager IPC = new();
 
-    private List<OcelotFeature> features = [];
+    private List<OcelotFeature> enabledFeatures = [];
 
     public OcelotPlugin(IDalamudPluginInterface plugin, params Module[] eModules)
     {
@@ -43,87 +43,84 @@ public abstract class OcelotPlugin : IDalamudPlugin
     {
         if (features.Length <= 0)
         {
-            this.features.Add(OcelotFeature.All);
+            enabledFeatures.Add(OcelotFeature.All);
         }
         else
         {
-            this.features = features.ToList();
+            enabledFeatures = features.ToList();
         }
 
-        if (this.features.ContainsAny(OcelotFeature.ModuleManager, OcelotFeature.All))
+        if (enabledFeatures.ContainsAny(OcelotFeature.ModuleManager, OcelotFeature.All))
         {
             Logger.Info("Initializing Module Manager...");
-            modules.AutoRegister(this, _config);
-            modules.PreInitialize();
-            modules.Initialize();
-            Svc.PluginInterface.UiBuilder.Draw += modules.Render;
+            Modules.AutoRegister(this, OcelotConfig);
+            Modules.PreInitialize();
+            Modules.Initialize();
+            Svc.PluginInterface.UiBuilder.Draw += Modules.Render;
         }
 
-        if (this.features.ContainsAny(OcelotFeature.WindowManager, OcelotFeature.All))
+        if (enabledFeatures.ContainsAny(OcelotFeature.WindowManager, OcelotFeature.All))
         {
             Logger.Info("Initializing Window Manager...");
-            windows.Initialize(this, _config);
+            Windows.Initialize(this, OcelotConfig);
         }
 
-        if (this.features.ContainsAny(OcelotFeature.CommandManager, OcelotFeature.All))
+        if (enabledFeatures.ContainsAny(OcelotFeature.CommandManager, OcelotFeature.All))
         {
             Logger.Info("Initializing Command Manager...");
-            commands.Initialize(this);
+            Commands.Initialize(this);
         }
 
-        if (this.features.ContainsAny(OcelotFeature.IPC, OcelotFeature.All))
+        if (enabledFeatures.ContainsAny(OcelotFeature.IPC, OcelotFeature.All))
         {
             Logger.Info("Initializing IPC Manager...");
-            ipc.Initialize();
+            IPC.Initialize();
         }
 
 
-        modules?.PostInitialize();
+        Modules.PostInitialize();
 
-        Svc.Framework.Update += Tick;
+        Svc.Framework.Update += Update;
         Svc.Chat.ChatMessage += OnChatMessage;
         Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
     }
 
-    public virtual bool ShouldTick()
+    public virtual bool ShouldUpdate()
     {
         return true;
     }
 
-    public virtual void Tick(IFramework framework)
+    protected virtual void Update(IFramework framework)
     {
-        if (!ShouldTick())
+        if (!ShouldUpdate())
         {
             return;
         }
 
-        modules.PreUpdate(framework);
-        modules.Update(framework);
-        modules.PostUpdate(framework);
+        Modules.PreUpdate(framework);
+        Modules.Update(framework);
+        Modules.PostUpdate(framework);
     }
 
-    public virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    protected virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        modules?.OnChatMessage(type, timestamp, sender, message, isHandled);
+        Modules.OnChatMessage(type, timestamp, sender, message, isHandled);
     }
 
-    public virtual void OnTerritoryChanged(ushort id)
+    protected virtual void OnTerritoryChanged(ushort id)
     {
-        modules?.OnTerritoryChanged(id);
+        Modules.OnTerritoryChanged(id);
     }
 
     public virtual void Dispose()
     {
-        if (modules != null)
-        {
-            Svc.PluginInterface.UiBuilder.Draw -= modules.Render;
-            modules.Dispose();
-        }
+        Svc.PluginInterface.UiBuilder.Draw -= Modules.Render;
+        Modules.Dispose();
 
-        windows?.Dispose();
-        commands?.Dispose();
+        Windows.Dispose();
+        Commands.Dispose();
 
-        Svc.Framework.Update -= Tick;
+        Svc.Framework.Update -= Update;
         Svc.Chat.ChatMessage -= OnChatMessage;
         Svc.ClientState.TerritoryChanged -= OnTerritoryChanged;
 

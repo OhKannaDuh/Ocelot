@@ -8,7 +8,7 @@ public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config
 {
     public override void PostInitialize()
     {
-        if (!plugin.windows.TryGetWindow<OcelotConfigWindow>(out _))
+        if (!plugin.Windows.TryGetWindow<OcelotConfigWindow>(out _))
         {
             return;
         }
@@ -22,7 +22,7 @@ public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config
                     return;
                 }
 
-                plugin.windows.ToggleConfigUI();
+                plugin.Windows.ToggleConfigUI();
             },
             Icon = FontAwesomeIcon.Cog,
             IconOffset = new Vector2(2, 2),

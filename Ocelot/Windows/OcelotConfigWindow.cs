@@ -4,7 +4,7 @@ public abstract class OcelotConfigWindow(OcelotPlugin plugin, IOcelotConfig conf
 {
     public override void Draw()
     {
-        plugin.modules.RenderConfigUi();
+        plugin.Modules.RenderConfigUi();
     }
 
     protected override string GetWindowName()
