@@ -12,34 +12,39 @@ public abstract class Module<P, C> : IModule
     where P : OcelotPlugin
     where C : IOcelotConfig
 {
-    public readonly P plugin;
+    public readonly P Plugin;
 
-    public readonly C _config;
+    public readonly C PluginConfig;
 
-    public virtual bool enabled
+    public virtual bool IsEnabled
     {
         get => true;
     }
 
-    public virtual bool tick
+    public virtual bool ShouldUpdate
     {
-        get => enabled;
+        get => IsEnabled;
     }
 
-    public virtual bool render
+    public virtual bool ShouldRender
     {
-        get => enabled;
+        get => IsEnabled;
     }
 
-    public virtual ModuleConfig? config
+    public bool ShouldInitialize
+    {
+        get => IsEnabled;
+    }
+
+    public virtual ModuleConfig? Config
     {
         get => null;
     }
 
-    public Module(P plugin, C config)
+    public Module(P plugin, C pluginConfig)
     {
-        this.plugin = plugin;
-        _config = config;
+        this.Plugin = plugin;
+        PluginConfig = pluginConfig;
     }
 
     public virtual void PreInitialize()
@@ -54,32 +59,32 @@ public abstract class Module<P, C> : IModule
     {
     }
 
-    public virtual void PreTick(IFramework _)
+    public virtual void PreUpdate(IFramework _)
     {
     }
 
-    public virtual void Tick(IFramework _)
+    public virtual void Update(IFramework _)
     {
     }
 
-    public virtual void PostTick(IFramework _)
+    public virtual void PostUpdate(IFramework _)
     {
     }
 
-    public virtual void Draw()
+    public virtual void Render()
     {
     }
 
-    public virtual bool DrawMainUi()
+    public virtual bool RenderMainUi()
     {
         return false;
     }
 
-    public virtual void DrawConfigUi()
+    public virtual void RenderConfigUi()
     {
-        if (config != null && config.Draw())
+        if (Config != null && Config.Draw())
         {
-            _config.Save();
+            PluginConfig.Save();
         }
     }
 
@@ -153,7 +158,7 @@ public abstract class Module<P, C> : IModule
     // Modules
     public ModuleManager modules
     {
-        get => plugin.modules;
+        get => Plugin.modules;
     }
 
     public T GetModule<T>() where T : class, IModule
@@ -170,7 +175,7 @@ public abstract class Module<P, C> : IModule
     // IPC
     public IPCManager ipc
     {
-        get => plugin.ipc;
+        get => Plugin.ipc;
     }
 
     public T GetIPCProvider<T>() where T : IPCProvider
@@ -186,7 +191,7 @@ public abstract class Module<P, C> : IModule
     // Windows
     public WindowManager windows
     {
-        get => plugin.windows;
+        get => Plugin.windows;
     }
 
     public T GetWindow<T>() where T : OcelotWindow

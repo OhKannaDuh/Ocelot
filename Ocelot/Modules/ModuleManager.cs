@@ -15,14 +15,19 @@ public class ModuleManager
 
     private readonly Dictionary<IModule, int> mainOrders = new();
 
-    private List<IModule> tick
+    private List<IModule> ToUpdate
     {
-        get => modules.Where(m => m.tick).ToList();
+        get => modules.Where(m => m.ShouldUpdate).ToList();
     }
 
-    private List<IModule> render
+    private List<IModule> ToRender
     {
-        get => modules.Where(m => m.render).ToList();
+        get => modules.Where(m => m.ShouldRender).ToList();
+    }
+
+    private List<IModule> ToInitialize
+    {
+        get => modules.Where(m => m.ShouldInitialize).ToList();
     }
 
     public void Add(Module<OcelotPlugin, IOcelotConfig> module)
@@ -51,7 +56,7 @@ public class ModuleManager
 
     public IEnumerable<IModule> GetModulesByMainOrder()
     {
-        return render.OrderBy(m => mainOrders.GetValueOrDefault(m, int.MaxValue));
+        return ToRender.OrderBy(m => mainOrders.GetValueOrDefault(m, int.MaxValue));
     }
 
     public IEnumerable<IModule> GetModulesByConfigOrder()
@@ -61,51 +66,51 @@ public class ModuleManager
 
     public void PreInitialize()
     {
-        modules.ForEach(m => m.config?.SetOwner(m));
-        tick.ForEach(m => m.PreInitialize());
+        modules.ForEach(m => m.Config?.SetOwner(m));
+        ToInitialize.ForEach(m => m.PreInitialize());
     }
 
     public void Initialize()
     {
-        tick.ForEach(m => m.Initialize());
+        ToInitialize.ForEach(m => m.Initialize());
     }
 
     public void PostInitialize()
     {
-        tick.ForEach(m => m.PostInitialize());
+        ToInitialize.ForEach(m => m.PostInitialize());
     }
 
-    public void PreTick(IFramework framework)
+    public void PreUpdate(IFramework framework)
     {
-        tick.ForEach(m => m.PreTick(framework));
+        ToUpdate.ForEach(m => m.PreUpdate(framework));
     }
 
-    public void Tick(IFramework framework)
+    public void Update(IFramework framework)
     {
-        tick.ForEach(m => m.Tick(framework));
+        ToUpdate.ForEach(m => m.Update(framework));
     }
 
-    public void PostTick(IFramework framework)
+    public void PostUpdate(IFramework framework)
     {
-        tick.ForEach(m => m.PostTick(framework));
+        ToUpdate.ForEach(m => m.PostUpdate(framework));
     }
 
-    public void Draw()
+    public void Render()
     {
-        render.ForEach(m => m.Draw());
+        ToRender.ForEach(m => m.Render());
     }
 
-    public void DrawMainUi()
+    public void RenderMainUi()
     {
-        var modules = GetModulesByMainOrder().ToList();
-        foreach (var module in modules)
+        var orderedModules = GetModulesByMainOrder().ToList();
+        foreach (var module in orderedModules)
         {
             OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () =>
             {
-                if (module.DrawMainUi())
+                if (module.RenderMainUi())
                 {
                     OcelotUI.VSpace();
-                    if (module != modules.Last())
+                    if (module != orderedModules.Last())
                     {
                         OcelotUI.Separator();
                     }
@@ -114,14 +119,14 @@ public class ModuleManager
         }
     }
 
-    public void DrawConfigUi()
+    public void RenderConfigUi()
     {
-        var modules = GetModulesByConfigOrder().ToList();
-        foreach (var module in modules)
+        var orderedModules = GetModulesByConfigOrder().ToList();
+        foreach (var module in orderedModules)
         {
-            module.DrawConfigUi();
+            module.RenderConfigUi();
             OcelotUI.VSpace();
-            if (module != modules.Last())
+            if (module != orderedModules.Last())
             {
                 OcelotUI.Separator();
             }
@@ -131,12 +136,12 @@ public class ModuleManager
 
     public void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled)
     {
-        tick.ForEach(m => m.OnChatMessage(type, timestamp, sender, message, isHandled));
+        ToUpdate.ForEach(m => m.OnChatMessage(type, timestamp, sender, message, isHandled));
     }
 
     public void OnTerritoryChanged(ushort id)
     {
-        tick.ForEach(m => m.OnTerritoryChanged(id));
+        ToUpdate.ForEach(m => m.OnTerritoryChanged(id));
     }
 
     public T GetModule<T>() where T : class, IModule

@@ -56,7 +56,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
             modules.AutoRegister(this, _config);
             modules.PreInitialize();
             modules.Initialize();
-            Svc.PluginInterface.UiBuilder.Draw += modules.Draw;
+            Svc.PluginInterface.UiBuilder.Draw += modules.Render;
         }
 
         if (this.features.ContainsAny(OcelotFeature.WindowManager, OcelotFeature.All))
@@ -97,9 +97,9 @@ public abstract class OcelotPlugin : IDalamudPlugin
             return;
         }
 
-        modules.PreTick(framework);
-        modules.Tick(framework);
-        modules.PostTick(framework);
+        modules.PreUpdate(framework);
+        modules.Update(framework);
+        modules.PostUpdate(framework);
     }
 
     public virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
@@ -116,7 +116,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
     {
         if (modules != null)
         {
-            Svc.PluginInterface.UiBuilder.Draw -= modules.Draw;
+            Svc.PluginInterface.UiBuilder.Draw -= modules.Render;
             modules.Dispose();
         }
 

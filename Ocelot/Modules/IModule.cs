@@ -9,13 +9,15 @@ namespace Ocelot.Modules;
 
 public interface IModule : IDisposable
 {
-    bool enabled { get; }
+    bool IsEnabled { get; }
 
-    bool tick { get; }
+    bool ShouldUpdate { get; }
 
-    bool render { get; }
+    bool ShouldRender { get; }
 
-    ModuleConfig? config { get; }
+    bool ShouldInitialize { get; }
+
+    ModuleConfig? Config { get; }
 
     void PreInitialize();
 
@@ -24,17 +26,17 @@ public interface IModule : IDisposable
     void PostInitialize();
 
     // Functions
-    void PreTick(IFramework framework);
+    void PreUpdate(IFramework framework);
 
-    void Tick(IFramework framework);
+    void Update(IFramework framework);
 
-    void PostTick(IFramework framework);
+    void PostUpdate(IFramework framework);
 
-    void Draw();
+    void Render();
 
-    bool DrawMainUi();
+    bool RenderMainUi();
 
-    void DrawConfigUi();
+    void RenderConfigUi();
 
     // Events
     void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled);
