@@ -31,7 +31,7 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
         get => IsEnabled;
     }
 
-    public bool ShouldInitialize
+    public virtual bool ShouldInitialize
     {
         get => IsEnabled;
     }
