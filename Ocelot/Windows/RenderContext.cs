@@ -1,14 +1,11 @@
-﻿using Dalamud.Plugin.Services;
-using Ocelot.Commands;
+﻿using Ocelot.Commands;
 using Ocelot.IPC;
-using Ocelot.Windows;
+using Ocelot.Modules;
 
-namespace Ocelot.Modules;
+namespace Ocelot.Windows;
 
-public class UpdateContext(IFramework framework, OcelotPlugin plugin)
+public class RenderContext(OcelotPlugin plugin)
 {
-    public readonly IFramework Framework = framework;
-    
     public readonly OcelotPlugin Plugin = plugin;
 
     public IOcelotConfig Config 

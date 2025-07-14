@@ -56,7 +56,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
             Modules.AutoRegister(this, OcelotConfig);
             Modules.PreInitialize();
             Modules.Initialize();
-            Svc.PluginInterface.UiBuilder.Draw += Modules.Render;
+            Svc.PluginInterface.UiBuilder.Draw += Render;
         }
 
         if (enabledFeatures.ContainsAny(OcelotFeature.WindowManager, OcelotFeature.All))
@@ -85,7 +85,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
     }
 
-    public virtual bool ShouldUpdate()
+    protected virtual bool ShouldUpdate()
     {
         return true;
     }
@@ -96,10 +96,18 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             return;
         }
+        
+        var context = new UpdateContext(framework, this);
 
-        Modules.PreUpdate(framework);
-        Modules.Update(framework);
-        Modules.PostUpdate(framework);
+        Modules.PreUpdate(context);
+        Modules.Update(context);
+        Modules.PostUpdate(context);
+    }
+
+    protected virtual void Render()
+    {
+        var context = new RenderContext(this);
+        Modules.Render(context);
     }
 
     protected virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
@@ -114,7 +122,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public virtual void Dispose()
     {
-        Svc.PluginInterface.UiBuilder.Draw -= Modules.Render;
+        Svc.PluginInterface.UiBuilder.Draw -= Render;
         Modules.Dispose();
 
         Windows.Dispose();

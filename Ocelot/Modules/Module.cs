@@ -8,13 +8,13 @@ using Ocelot.Windows;
 
 namespace Ocelot.Modules;
 
-public abstract class Module<P, C> : IModule
+public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
     where P : OcelotPlugin
     where C : IOcelotConfig
 {
-    public readonly P Plugin;
+    public readonly P Plugin = plugin;
 
-    public readonly C PluginConfig;
+    public readonly C PluginConfig = pluginConfig;
 
     public virtual bool IsEnabled
     {
@@ -41,12 +41,6 @@ public abstract class Module<P, C> : IModule
         get => null;
     }
 
-    public Module(P plugin, C pluginConfig)
-    {
-        this.Plugin = plugin;
-        PluginConfig = pluginConfig;
-    }
-
     public virtual void PreInitialize()
     {
     }
@@ -59,28 +53,28 @@ public abstract class Module<P, C> : IModule
     {
     }
 
-    public virtual void PreUpdate(IFramework _)
+    public virtual void PreUpdate(UpdateContext context)
     {
     }
 
-    public virtual void Update(IFramework _)
+    public virtual void Update(UpdateContext context)
     {
     }
 
-    public virtual void PostUpdate(IFramework _)
+    public virtual void PostUpdate(UpdateContext context)
     {
     }
 
-    public virtual void Render()
+    public virtual void Render(RenderContext context)
     {
     }
 
-    public virtual bool RenderMainUi()
+    public virtual bool RenderMainUi(RenderContext context)
     {
         return false;
     }
 
-    public virtual void RenderConfigUi()
+    public virtual void RenderConfigUi(RenderContext context)
     {
         if (Config != null && Config.Draw())
         {
@@ -178,12 +172,12 @@ public abstract class Module<P, C> : IModule
         get => Plugin.IPC;
     }
 
-    public T GetIPCProvider<T>() where T : IPCProvider
+    public T GetIPCProvider<T>() where T : IPCSubscriber
     {
         return ipc.GetProvider<T>();
     }
 
-    public bool TryGetIPCProvider<T>(out T? provider) where T : IPCProvider
+    public bool TryGetIPCProvider<T>(out T? provider) where T : IPCSubscriber
     {
         return ipc.TryGetProvider(out provider);
     }

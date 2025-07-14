@@ -1,34 +1,49 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Ocelot.Modules;
 
 namespace Ocelot.IPC;
 
 public class IPCManager
 {
-    private readonly List<IPCProvider> providers = new();
+    private readonly List<IPCSubscriber> subscribers = new();
 
-    public IReadOnlyList<IPCProvider> Providers
+    public IReadOnlyList<IPCSubscriber> Subscribers
     {
-        get => providers.AsReadOnly();
+        get => subscribers;
     }
+
+    private readonly List<object> providers = new();
 
     public void Initialize()
     {
-        foreach (var type in Registry.GetTypesImplementing<IPCProvider>())
+        foreach (var type in Registry.GetTypesImplementing<IPCSubscriber>())
         {
             var ctor = type.GetConstructor(Type.EmptyTypes);
-            if (ctor != null && Activator.CreateInstance(type) is IPCProvider instance)
+            if (ctor != null && Activator.CreateInstance(type) is IPCSubscriber instance)
             {
                 Logger.Info($"Registered IPCProvider: {type.FullName}");
-                providers.Add(instance);
+                subscribers.Add(instance);
             }
+        }
+
+        foreach (var type in Registry.GetTypesWithAttribute<OcelotIPCAttribute>())
+        {
+            var ctor = type.GetConstructor(Type.EmptyTypes);
+            if (ctor == null || Activator.CreateInstance(type) is not { } instance)
+            {
+                continue;
+            }
+
+            Logger.Info($"Registered OcelotIPC: {type.FullName}");
+            providers.Add(instance);
         }
     }
 
-    public T GetProvider<T>() where T : IPCProvider
+    public T GetProvider<T>() where T : IPCSubscriber
     {
-        var provider = providers.OfType<T>().FirstOrDefault();
+        var provider = subscribers.OfType<T>().FirstOrDefault();
         if (provider == null)
         {
             throw new UnableToLoadIpcProviderException($"IPC provider of type {typeof(T).Name} was not found.");
@@ -37,7 +52,7 @@ public class IPCManager
         return provider;
     }
 
-    public bool TryGetProvider<T>(out T? provider) where T : IPCProvider
+    public bool TryGetProvider<T>(out T? provider) where T : IPCSubscriber
     {
         try
         {

@@ -4,6 +4,7 @@ using System.Linq;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
+using Ocelot.Windows;
 
 namespace Ocelot.Modules;
 
@@ -80,34 +81,34 @@ public class ModuleManager
         ToInitialize.ForEach(m => m.PostInitialize());
     }
 
-    public void PreUpdate(IFramework framework)
+    public void PreUpdate(UpdateContext context)
     {
-        ToUpdate.ForEach(m => m.PreUpdate(framework));
+        ToUpdate.ForEach(m => m.PreUpdate(context));
     }
 
-    public void Update(IFramework framework)
+    public void Update(UpdateContext context)
     {
-        ToUpdate.ForEach(m => m.Update(framework));
+        ToUpdate.ForEach(m => m.Update(context));
     }
 
-    public void PostUpdate(IFramework framework)
+    public void PostUpdate(UpdateContext context)
     {
-        ToUpdate.ForEach(m => m.PostUpdate(framework));
+        ToUpdate.ForEach(m => m.PostUpdate(context));
     }
 
-    public void Render()
+    public void Render(RenderContext context)
     {
-        ToRender.ForEach(m => m.Render());
+        ToRender.ForEach(m => m.Render(context));
     }
 
-    public void RenderMainUi()
+    public void RenderMainUi(RenderContext context)
     {
         var orderedModules = GetModulesByMainOrder().ToList();
         foreach (var module in orderedModules)
         {
             OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () =>
             {
-                if (module.RenderMainUi())
+                if (module.RenderMainUi(context))
                 {
                     OcelotUI.VSpace();
                     if (module != orderedModules.Last())
@@ -119,12 +120,12 @@ public class ModuleManager
         }
     }
 
-    public void RenderConfigUi()
+    public void RenderConfigUi(RenderContext context)
     {
         var orderedModules = GetModulesByConfigOrder().ToList();
         foreach (var module in orderedModules)
         {
-            module.RenderConfigUi();
+            module.RenderConfigUi(context);
             OcelotUI.VSpace();
             if (module != orderedModules.Last())
             {

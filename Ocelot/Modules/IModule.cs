@@ -26,17 +26,17 @@ public interface IModule : IDisposable
     void PostInitialize();
 
     // Functions
-    void PreUpdate(IFramework framework);
+    void PreUpdate(UpdateContext context);
 
-    void Update(IFramework framework);
+    void Update(UpdateContext context);
 
-    void PostUpdate(IFramework framework);
+    void PostUpdate(UpdateContext context);
 
-    void Render();
+    void Render(RenderContext context);
 
-    bool RenderMainUi();
+    bool RenderMainUi(RenderContext context);
 
-    void RenderConfigUi();
+    void RenderConfigUi(RenderContext context);
 
     // Events
     void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled);
@@ -65,9 +65,9 @@ public interface IModule : IDisposable
 
     bool TryGetModule<T>(out T? module) where T : class, IModule;
 
-    T GetIPCProvider<T>() where T : IPCProvider;
+    T GetIPCProvider<T>() where T : IPCSubscriber;
 
-    bool TryGetIPCProvider<T>(out T? provider) where T : IPCProvider;
+    bool TryGetIPCProvider<T>(out T? provider) where T : IPCSubscriber;
 
     T GetWindow<T>() where T : OcelotWindow;
 

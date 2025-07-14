@@ -3,11 +3,11 @@ using ECommons.Reflection;
 
 namespace Ocelot.IPC;
 
-public abstract class IPCProvider
+public abstract class IPCSubscriber
 {
     protected readonly string identifier;
 
-    public IPCProvider(string identifier)
+    public IPCSubscriber(string identifier)
     {
         this.identifier = identifier;
         EzIPC.Init(this, identifier);

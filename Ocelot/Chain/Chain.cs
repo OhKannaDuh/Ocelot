@@ -11,16 +11,16 @@ public class Chain
 
     private readonly ChainContext context = new();
 
-    public readonly string name;
+    public readonly string Name;
 
-    public float progress
+    public float Progress
     {
         get => tasks.Progress;
     }
 
     private Chain(string name, TaskManagerConfiguration? defaultConfiguration = null)
     {
-        this.name = name;
+        Name = name;
 
         if (defaultConfiguration == null)
         {
@@ -34,7 +34,7 @@ public class Chain
 
         Svc.Framework.Update += Tick;
 
-        Debug($"Starting Chain [{name}]");
+        Debug($"Starting Chain [{Name}]");
     }
 
     public static Chain Create(string name, TaskManagerConfiguration? defaultConfiguration = null)
@@ -107,7 +107,7 @@ public class Chain
             if (chain == null)
             {
                 chain = factory();
-                Logger.Debug($"Creating chain {chain.name} from factory");
+                Logger.Debug($"Creating chain {chain.Name} from factory");
             }
 
             return chain.IsComplete();
@@ -194,6 +194,6 @@ public class Chain
 
     public bool IsComplete()
     {
-        return tasks.IsBusy == false && tasks.NumQueuedTasks == 0;
+        return tasks is { IsBusy: false, NumQueuedTasks: 0 };
     }
 }

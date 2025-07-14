@@ -6,7 +6,7 @@ using ECommons.EzIpcManager;
 namespace Ocelot.IPC;
 
 #pragma warning disable CS8618
-public class Lifestream : IPCProvider
+public class Lifestream : IPCSubscriber
 {
     public Lifestream() : base("Lifestream")
     {
