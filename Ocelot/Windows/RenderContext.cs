@@ -67,4 +67,23 @@ public class RenderContext(OcelotPlugin plugin, IModule? module = null)
     {
         DrawLine(Player.Position, end, color, thickness);
     }
+
+    public enum CircleDrawMode
+    {
+        Outline,
+        Filled,
+    }
+
+    public void DrawCircle(Vector3 position, float radius, Vector4 color, CircleDrawMode mode = CircleDrawMode.Outline)
+    {
+        if (mode == CircleDrawMode.Outline)
+        {
+            Pictomancy.AddCircle(position, radius, ImGui.GetColorU32(color));
+        }
+
+        if (mode == CircleDrawMode.Filled)
+        {
+            Pictomancy.AddCircleFilled(position, radius, ImGui.GetColorU32(color));
+        }
+    }
 }

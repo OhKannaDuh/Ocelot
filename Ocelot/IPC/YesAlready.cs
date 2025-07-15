@@ -3,7 +3,6 @@ using ECommons.EzIpcManager;
 
 namespace Ocelot.IPC;
 
-#pragma warning disable CS8618
 public class YesAlready() : IPCSubscriber("YesAlready")
 {
     [EzIPC] public readonly Func<bool> IsPluginEnabled = null!;

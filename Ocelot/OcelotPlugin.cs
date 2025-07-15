@@ -55,6 +55,12 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             enabledFeatures = features.ToList();
         }
+        
+        if (enabledFeatures.ContainsAny(OcelotFeature.IPC, OcelotFeature.All))
+        {
+            Logger.Info("Initializing IPC Manager...");
+            IPC.Initialize();
+        }
 
         if (enabledFeatures.ContainsAny(OcelotFeature.ModuleManager, OcelotFeature.All))
         {
@@ -75,12 +81,6 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             Logger.Info("Initializing Command Manager...");
             Commands.Initialize(this);
-        }
-
-        if (enabledFeatures.ContainsAny(OcelotFeature.IPC, OcelotFeature.All))
-        {
-            Logger.Info("Initializing IPC Manager...");
-            IPC.Initialize();
         }
 
         Modules.PostInitialize();
