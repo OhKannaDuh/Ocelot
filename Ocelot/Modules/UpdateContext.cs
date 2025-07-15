@@ -8,14 +8,14 @@ namespace Ocelot.Modules;
 public class UpdateContext(IFramework framework, OcelotPlugin plugin)
 {
     public readonly IFramework Framework = framework;
-    
+
     public readonly OcelotPlugin Plugin = plugin;
 
-    public IOcelotConfig Config 
+    public IOcelotConfig Config
     {
         get => Plugin.OcelotConfig;
     }
-    
+
     public ModuleManager Modules
     {
         get => Plugin.Modules;

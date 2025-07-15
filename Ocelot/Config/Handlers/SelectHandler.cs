@@ -17,7 +17,7 @@ public abstract class SelectHandler<T>(ModuleConfig self, ConfigAttribute attrib
     {
         get => typeof(T);
     }
-    
+
     private readonly bool isSearchable = prop.IsDefined(typeof(SearchableAttribute), true);
 
     private string searchTerm = "";
@@ -94,9 +94,9 @@ public abstract class SelectHandler<T>(ModuleConfig self, ConfigAttribute attrib
     {
         context.SetValue(value);
     }
-    
+
     protected abstract IEnumerable<T> GetData();
-    
+
     protected abstract bool Filter(T item);
 
     protected abstract string GetLabel(T item);

@@ -19,11 +19,16 @@ public abstract class OcelotWindow : Window, IDisposable
         I18N.OnLanguageChanged += (oldLang, newLang) => { WindowName = GetWindowName(); };
     }
 
-    public abstract void Render(RenderContext context);
+    protected abstract void Render(RenderContext context);
 
     public override void Draw()
     {
-        Render(new RenderContext(plugin));
+        if (plugin.RenderContext == null)
+        {
+            return;
+        }
+
+        Render(plugin.RenderContext);
     }
 
     public virtual void PreInitialize()

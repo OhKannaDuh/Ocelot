@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ECommons.DalamudServices;
-using ImGuiNET;
 using Lumina.Excel;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.Text;
@@ -30,6 +31,9 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     private List<OcelotFeature> enabledFeatures = [];
 
+
+    public RenderContext? RenderContext { get; private set; } = null;
+
     public OcelotPlugin(IDalamudPluginInterface plugin, params Module[] eModules)
     {
         ECommonsMain.Init(plugin, this, eModules);
@@ -41,6 +45,8 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     protected void OcelotInitialize(params OcelotFeature[] features)
     {
+        Svc.PluginInterface.UiBuilder.Draw += PreRender;
+
         if (features.Length <= 0)
         {
             enabledFeatures.Add(OcelotFeature.All);
@@ -77,12 +83,13 @@ public abstract class OcelotPlugin : IDalamudPlugin
             IPC.Initialize();
         }
 
-
         Modules.PostInitialize();
 
         Svc.Framework.Update += Update;
         Svc.Chat.ChatMessage += OnChatMessage;
         Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
+
+        Svc.PluginInterface.UiBuilder.Draw += PostRender;
     }
 
     protected virtual bool ShouldUpdate()
@@ -96,7 +103,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             return;
         }
-        
+
         var context = new UpdateContext(framework, this);
 
         Modules.PreUpdate(context);
@@ -106,8 +113,12 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     protected virtual void Render()
     {
-        var context = new RenderContext(this);
-        Modules.Render(context);
+        if (RenderContext == null)
+        {
+            return;
+        }
+
+        Modules.Render(RenderContext);
     }
 
     protected virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
@@ -120,8 +131,37 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Modules.OnTerritoryChanged(id);
     }
 
+    private void PreRender()
+    {
+        var draw = PictoService.Draw(); // Start draw
+        if (draw == null)
+        {
+            RenderContext = null;
+            return;
+        }
+
+        RenderContext = new RenderContext(this);
+    }
+
+    private void PostRender()
+    {
+        if (RenderContext == null)
+        {
+            return;
+        }
+
+        try
+        {
+            PictoService.GetDrawList().Dispose();
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
+
     public virtual void Dispose()
     {
+        Svc.PluginInterface.UiBuilder.Draw += PostRender;
         Svc.PluginInterface.UiBuilder.Draw -= Render;
         Modules.Dispose();
 
@@ -131,6 +171,8 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.Framework.Update -= Update;
         Svc.Chat.ChatMessage -= OnChatMessage;
         Svc.ClientState.TerritoryChanged -= OnTerritoryChanged;
+
+        Svc.PluginInterface.UiBuilder.Draw += PreRender;
 
         PictoService.Dispose();
         ECommonsMain.Dispose();

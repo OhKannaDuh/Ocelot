@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Reflection;
-using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
 
@@ -29,7 +26,7 @@ public class EnumHandler<T> : SelectHandler<T>
             provider = $"{self.ProviderNamespace}.{provider}";
         }
 
-        var providerType = Registry.GetAllLoadableTypes() .FirstOrDefault(t => t.FullName == provider);
+        var providerType = Registry.GetAllLoadableTypes().FirstOrDefault(t => t.FullName == provider);
 
         if (providerType == null)
         {

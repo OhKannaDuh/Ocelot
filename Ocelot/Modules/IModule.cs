@@ -1,7 +1,6 @@
 using System;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Plugin.Services;
 using Ocelot.IPC;
 using Ocelot.Windows;
 
