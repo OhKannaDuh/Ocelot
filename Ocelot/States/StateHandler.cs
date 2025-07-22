@@ -7,13 +7,20 @@ public abstract class StateHandler<T, M>
     where T : struct, Enum
     where M : IModule
 {
+    public event Action<M>? OnEnter;
+
+    public event Action<M>? OnExit;
+    
+    
     public abstract T? Handle(M module);
 
-    public virtual void OnEnter(M module)
+    public virtual void Enter(M module)
     {
+        OnEnter?.Invoke(module);
     }
 
-    public virtual void OnExit(M module)
+    public virtual void Exit(M module)
     {
+        OnExit?.Invoke(module);
     }
 }

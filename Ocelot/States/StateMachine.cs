@@ -13,7 +13,7 @@ public class StateMachine<T, M>
 
     private readonly T Initial;
 
-    private readonly Dictionary<T, StateHandler<T, M>> Handlers = [];
+    public readonly Dictionary<T, StateHandler<T, M>> Handlers = [];
 
     private StateHandler<T, M> CurrentHandler
     {
@@ -56,25 +56,37 @@ public class StateMachine<T, M>
             Handlers[attr.State] = instance;
         }
 
-        CurrentHandler.OnEnter(module);
+        CurrentHandler.Enter(module);
     }
 
     public void Update(M module)
     {
+        if (!ShouldUpdate(module))
+        {
+            return;
+        }
+
         var transition = CurrentHandler.Handle(module);
         if (transition == null || State.Equals(transition.Value))
         {
             return;
         }
 
-        CurrentHandler.OnExit(module);
+        Logger.Debug($"Updating state from '{State.GetType().Name}.{State}' to '{State.GetType().Name}.{transition.Value}'");
+
+        CurrentHandler.Exit(module);
         State = transition.Value;
-        CurrentHandler.OnEnter(module);
+        CurrentHandler.Enter(module);
     }
 
     public void Reset(M module)
     {
         State = Initial;
-        CurrentHandler.OnEnter(module);
+        CurrentHandler.Enter(module);
+    }
+
+    protected virtual bool ShouldUpdate(M module)
+    {
+        return true;
     }
 }
