@@ -5,11 +5,13 @@ using Ocelot.Windows;
 
 namespace Ocelot.Modules;
 
-public class UpdateContext(IFramework framework, OcelotPlugin plugin)
+public class UpdateContext(IFramework framework, OcelotPlugin plugin, IModule? module = null)
 {
     public readonly IFramework Framework = framework;
 
     public readonly OcelotPlugin Plugin = plugin;
+
+    public IModule? Module { get; private set; } = module;
 
     public IOcelotConfig Config
     {
@@ -34,5 +36,22 @@ public class UpdateContext(IFramework framework, OcelotPlugin plugin)
     public IPCManager IPC
     {
         get => Plugin.IPC;
+    }
+
+    public UpdateContext ForModule(IModule module)
+    {
+        return new UpdateContext(Framework, Plugin, module);
+    }
+
+    public bool IsForModule<T>(out T module) where T : class, IModule
+    {
+        if (Module is T typed)
+        {
+            module = typed;
+            return true;
+        }
+
+        module = null!;
+        return false;
     }
 }

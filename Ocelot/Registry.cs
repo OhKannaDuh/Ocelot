@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Ocelot.Modules;
+using Ocelot.States;
 
 namespace Ocelot;
 
@@ -65,4 +67,16 @@ public static class Registry
         return GetAllLoadableTypes()
             .Where(t => !t.IsAbstract && typeof(TBase).IsAssignableFrom(t));
     }
+
+    public static IEnumerable<Type> GetTypesForStateMachine<T, M>()
+        where T : struct, Enum
+        where M : IModule
+    {
+        return GetAllLoadableTypes()
+            .Where(t =>
+                typeof(StateHandler<T, M>).IsAssignableFrom(t) &&
+                !t.IsAbstract &&
+                t.GetCustomAttribute<StateAttribute<T>>() is not null);
+    }
+    
 }
