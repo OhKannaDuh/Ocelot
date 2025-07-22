@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0-windows</TargetFramework>
         <PackageId>FFXIVOcelot</PackageId>
-        <Version>0.46.0</Version>
+        <Version>0.47.0</Version>
         <Platforms>x64</Platforms>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
