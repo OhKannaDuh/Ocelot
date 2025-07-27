@@ -1,0 +1,16 @@
+﻿using System;
+using Dalamud.Interface.Windowing;
+using ImGuiNET;
+
+namespace Ocelot.Windows;
+
+public class DynamicTitleBarButton : Window.TitleBarButton
+{
+    private Action<DynamicTitleBarButton, ImGuiMouseButton> OnClick;
+
+    public DynamicTitleBarButton(Action<DynamicTitleBarButton, ImGuiMouseButton> OnClick)
+    {
+        this.OnClick = OnClick;
+        Click = m => OnClick(this, m);
+    }
+}

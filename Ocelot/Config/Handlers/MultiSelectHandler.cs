@@ -11,10 +11,9 @@ using Ocelot.Modules;
 namespace Ocelot.Config.Handlers;
 
 public abstract class MultiSelectHandler<T>(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop) : Handler(self, attribute, prop)
-        where T : notnull
+    where T : notnull
 {
-    protected override Type type
-    {
+    protected override Type type {
         get => typeof(List<T>);
     }
 
@@ -42,7 +41,7 @@ public abstract class MultiSelectHandler<T>(ModuleConfig self, ConfigAttribute a
             var selected = values.Where(v => currentSelectedValues.Contains(v));
             var unselected = values.Where(v => !currentSelectedValues.Contains(v));
             values = selected.Concat(unselected).ToList();
-            
+
             var height = Math.Min(512, values.Count * ImGui.GetTextLineHeightWithSpacing());
 
             using (ImRaii.Child("##options", new Vector2(0, height)))
@@ -60,6 +59,7 @@ public abstract class MultiSelectHandler<T>(ModuleConfig self, ConfigAttribute a
                         {
                             currentSelectedValues.Add(value); // Select
                         }
+
                         // Update the property with the modified list
                         SetValue(context, currentSelectedValues);
                         dirty = true;

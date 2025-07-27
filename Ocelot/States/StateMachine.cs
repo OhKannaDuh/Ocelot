@@ -15,10 +15,8 @@ public class StateMachine<T, M>
 
     public readonly Dictionary<T, StateHandler<T, M>> Handlers = [];
 
-    private StateHandler<T, M> CurrentHandler
-    {
-        get
-        {
+    private StateHandler<T, M> CurrentHandler {
+        get {
             if (Handlers.TryGetValue(State, out var handler))
             {
                 return handler;

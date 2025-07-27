@@ -9,8 +9,7 @@ public class IPCManager
 {
     private readonly List<IPCSubscriber> subscribers = new();
 
-    public IReadOnlyList<IPCSubscriber> Subscribers
-    {
+    public IReadOnlyList<IPCSubscriber> Subscribers {
         get => subscribers;
     }
 
@@ -41,12 +40,33 @@ public class IPCManager
         }
     }
 
+    public IPCSubscriber GetProvider(Type type)
+    {
+        var provider = subscribers.FirstOrDefault(type.IsInstanceOfType);
+        if (provider == null)
+        {
+            throw new UnableToLoadIpcProviderException($"IPC provider of type {type.Name} was not found.");
+        }
+
+        if (!provider.IsReady())
+        {
+            throw new UnableToLoadIpcProviderException($"IPC provider of type {type.Name} was not ready.");
+        }
+
+        return provider;
+    }
+
     public T GetProvider<T>() where T : IPCSubscriber
     {
         var provider = subscribers.OfType<T>().FirstOrDefault();
         if (provider == null)
         {
             throw new UnableToLoadIpcProviderException($"IPC provider of type {typeof(T).Name} was not found.");
+        }
+
+        if (!provider.IsReady())
+        {
+            throw new UnableToLoadIpcProviderException($"IPC provider of type {typeof(T).Name} was not ready.");
         }
 
         return provider;

@@ -10,8 +10,7 @@ public static class ChainPathfinding
 {
     private static TaskManagerTask WaitToStartPathfinding(VNavmesh vnav)
     {
-        return new TaskManagerTask(() =>
-        {
+        return new TaskManagerTask(() => {
             if (EzThrottler.Throttle($"ChainPathfinding.WaitToStartPathfinding", 50))
             {
                 return vnav.IsRunning();
@@ -30,8 +29,7 @@ public static class ChainPathfinding
 
     private static TaskManagerTask WaitToStopPathfinding(VNavmesh vnav)
     {
-        return new TaskManagerTask(() =>
-        {
+        return new TaskManagerTask(() => {
             if (EzThrottler.Throttle($"ChainPathfinding.WaitToStopPathfinding", 50))
             {
                 return !vnav.IsRunning();
@@ -62,8 +60,7 @@ public static class ChainPathfinding
 
     private static TaskManagerTask WaitUntilNear(VNavmesh vnav, Vector3 destination, float distance = 5f)
     {
-        return new TaskManagerTask(() =>
-        {
+        return new TaskManagerTask(() => {
             var player = Svc.ClientState.LocalPlayer;
             if (player == null)
             {

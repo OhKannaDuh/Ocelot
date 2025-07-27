@@ -31,21 +31,13 @@ public abstract class OcelotWindow : Window, IDisposable
         Render(plugin.RenderContext);
     }
 
-    public virtual void PreInitialize()
-    {
-    }
+    public virtual void PreInitialize() { }
 
-    public virtual void Initialize()
-    {
-    }
+    public virtual void Initialize() { }
 
-    public virtual void PostInitialize()
-    {
-    }
+    public virtual void PostInitialize() { }
 
-    public virtual void Dispose()
-    {
-    }
+    public virtual void Dispose() { }
 
     protected abstract string GetWindowName();
 }

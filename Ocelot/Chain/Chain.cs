@@ -13,8 +13,7 @@ public class Chain
 
     public readonly string Name;
 
-    public float Progress
-    {
+    public float Progress {
         get => tasks.Progress;
     }
 
@@ -24,8 +23,7 @@ public class Chain
 
         if (defaultConfiguration == null)
         {
-            defaultConfiguration = new TaskManagerConfiguration
-            {
+            defaultConfiguration = new TaskManagerConfiguration {
                 TimeLimitMS = int.MaxValue,
             };
         }
@@ -63,8 +61,7 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, Action<ChainContext> action)
     {
-        tasks.Enqueue(() =>
-        {
+        tasks.Enqueue(() => {
             if (condition(context))
             {
                 tasks.Insert(() => action(context));
@@ -88,8 +85,7 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, TaskManagerTask task)
     {
-        tasks.Enqueue(() =>
-        {
+        tasks.Enqueue(() => {
             if (condition(context))
             {
                 tasks.InsertMulti(task);
@@ -102,8 +98,7 @@ public class Chain
     public Chain Then(Func<Chain> factory, TaskManagerConfiguration? config = null)
     {
         Chain? chain = null;
-        return Then(new TaskManagerTask(() =>
-        {
+        return Then(new TaskManagerTask(() => {
             if (chain == null)
             {
                 chain = factory();
@@ -116,8 +111,7 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, Func<Chain> factory, TaskManagerConfiguration? config = null)
     {
-        tasks.Enqueue(() =>
-        {
+        tasks.Enqueue(() => {
             if (condition(context))
             {
                 var chain = factory();
@@ -146,8 +140,7 @@ public class Chain
 
     public Chain ConditionalWait(Func<ChainContext, bool> condition, int delay)
     {
-        tasks.Enqueue(() =>
-        {
+        tasks.Enqueue(() => {
             if (condition(context))
             {
                 tasks.InsertDelay(delay);

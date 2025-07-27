@@ -10,8 +10,8 @@ public abstract class StateHandler<T, M>
     public event Action<M>? OnEnter;
 
     public event Action<M>? OnExit;
-    
-    
+
+
     public abstract T? Handle(M module);
 
     public virtual void Enter(M module)

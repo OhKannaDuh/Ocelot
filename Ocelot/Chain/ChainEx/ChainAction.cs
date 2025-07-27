@@ -8,8 +8,7 @@ public static class ChainAction
 {
     private static unsafe TaskManagerTask WaitGcd(int timeout = 3000, int interval = 50)
     {
-        return new TaskManagerTask(() =>
-        {
+        return new TaskManagerTask(() => {
             if (EzThrottler.Throttle("ChainAction.WaitGcd", interval))
             {
                 var gcd = ActionManager.Instance()->GetRecastGroupDetail(57);
@@ -29,8 +28,7 @@ public static class ChainAction
 
     private static unsafe TaskManagerTask UseAction(ActionType actionType, uint actionId, int timeout = 3000, int interval = 500)
     {
-        return new TaskManagerTask(() =>
-        {
+        return new TaskManagerTask(() => {
             if (EzThrottler.Throttle($"ChainAction.UseAction({actionType}, {actionId})", interval))
             {
                 return ActionManager.Instance()->UseAction(actionType, actionId);

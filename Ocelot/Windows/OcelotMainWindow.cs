@@ -13,10 +13,8 @@ public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config
             return;
         }
 
-        TitleBarButtons.Add(new TitleBarButton
-        {
-            Click = (m) =>
-            {
+        TitleBarButtons.Add(new TitleBarButton {
+            Click = (m) => {
                 if (m != ImGuiMouseButton.Left)
                 {
                     return;

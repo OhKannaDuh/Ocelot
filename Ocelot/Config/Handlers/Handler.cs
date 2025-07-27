@@ -40,8 +40,7 @@ public abstract class Handler(ModuleConfig self, ConfigAttribute attribute, Prop
 
         var handled = false;
         var changed = false;
-        OcelotUI.Indent(context.GetIndentation(), () =>
-        {
+        OcelotUI.Indent(context.GetIndentation(), () => {
             context.CustomIcons();
 
             if (context.IsIllegal())

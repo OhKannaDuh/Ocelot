@@ -1,23 +1,20 @@
 using System;
 using System.Numerics;
-using Dalamud.Interface;
-using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
 using ImGuiNET;
 
 namespace Ocelot;
 
-public class OcelotUI
+public static class OcelotUI
 {
     public static void Title(string title)
     {
-        ImGui.TextColored(new Vector4(1f, 0.75f, 0.25f, 1f), title);
+        ImGui.TextColored(OcelotColor.Yellow, title);
     }
 
     public static void Error(string error)
     {
-        ImGui.TextColored(new Vector4(0.89f, 0.29f, 0.29f, 1f), error);
+        ImGui.TextColored(OcelotColor.Error, error);
     }
 
     public static UIState LabelledValue(string title, object value)
@@ -39,33 +36,20 @@ public class OcelotUI
         return hovered ? UIState.Hovered : UIState.None;
     }
 
-    public static UIState LeftRightText(string left, string right)
+    public static UIState LeftRightText(UIString left, UIString right)
     {
         var state = UIState.None;
 
-        ImGui.TextUnformatted(left);
-        if (ImGui.IsItemHovered())
+        ;
+        if (left.Render() == UIState.Hovered)
         {
             state = UIState.LeftHovered;
         }
 
-        var start = ImGui.GetCursorPosX();
-        ImGui.SameLine();
-        var width = ImGui.GetCursorPosX() - start;
+        var regionWidth = ImGui.GetContentRegionAvail().X;
 
-        var rightSize = ImGui.CalcTextSize(right);
-        var avail = ImGui.GetContentRegionAvail();
-
-        var offset = avail.X - rightSize.X;
-
-        if (offset > 0)
-        {
-            offset += width;
-        }
-
-        ImGui.SameLine(Math.Max(0f, offset));
-        ImGui.TextUnformatted(right);
-        if (ImGui.IsItemHovered())
+        ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - right.Width);
+        if (right.Render() == UIState.Hovered)
         {
             state = UIState.RightHovered;
         }
@@ -131,77 +115,33 @@ public class OcelotUI
         ImGui.Dummy(new Vector2(0, px));
     }
 
-    public static bool IconButtonWithLeftText(
-        FontAwesomeIcon icon,
-        string text,
-        Vector4? defaultColor = null,
-        Vector4? activeColor = null,
-        Vector4? hoveredColor = null,
-        Vector2? size = null)
+    public static UIState ProgressBar(float fraction, float rounding = 4.0f)
     {
-        using var col = new ImRaii.Color();
+        return ProgressBar(fraction, new Vector2(ImGui.GetContentRegionAvail().X, 8f), rounding);
+    }
 
-        if (defaultColor.HasValue)
+    public static UIState ProgressBar(float fraction, Vector2 size, float rounding = 4.0f)
+    {
+        fraction = Math.Clamp(fraction, 0.0f, 1.0f);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var cursorPos = ImGui.GetCursorScreenPos();
+
+        var bgColor = ImGui.GetColorU32(ImGuiCol.FrameBg);
+        var fgColor = ImGui.GetColorU32(ImGuiCol.PlotHistogram);
+
+        var barEnd = new Vector2(cursorPos.X + size.X, cursorPos.Y + size.Y);
+        var filledEnd = new Vector2(cursorPos.X + size.X * fraction, barEnd.Y);
+
+        drawList.AddRectFilled(cursorPos, barEnd, bgColor, rounding);
+
+        if (fraction > 0.0f)
         {
-            col.Push(ImGuiCol.Button, defaultColor.Value);
+            drawList.AddRectFilled(cursorPos, filledEnd, fgColor, rounding, ImDrawFlags.RoundCornersLeft);
         }
 
-        if (activeColor.HasValue)
-        {
-            col.Push(ImGuiCol.ButtonActive, activeColor.Value);
-        }
+        ImGui.Dummy(size);
 
-        if (hoveredColor.HasValue)
-        {
-            col.Push(ImGuiCol.ButtonHovered, hoveredColor.Value);
-        }
-
-        if (size.HasValue)
-        {
-            size *= ImGuiHelpers.GlobalScale;
-        }
-
-        bool button;
-
-        Vector2 iconSize;
-        using (ImRaii.PushFont(UiBuilder.IconFont))
-        {
-            iconSize = ImGui.CalcTextSize(icon.ToIconString());
-        }
-
-        var textStr = text;
-        if (textStr.Contains('#'))
-        {
-            textStr = textStr[..textStr.IndexOf('#', StringComparison.Ordinal)];
-        }
-
-        var framePadding = ImGui.GetStyle().FramePadding;
-        var iconPadding = 3 * ImGuiHelpers.GlobalScale;
-
-        var cursor = ImGui.GetCursorScreenPos();
-
-        var textSize = ImGui.CalcTextSize(textStr);
-
-        using (ImRaii.PushId(text))
-        {
-            var width = size is { X: not 0 } ? size.Value.X : iconSize.X + textSize.X + framePadding.X * 2 + iconPadding;
-            var height = size is { Y: not 0 } ? size.Value.Y : ImGui.GetFrameHeight();
-
-            button = ImGui.Button(string.Empty, new Vector2(width, height));
-        }
-
-        var textPos = cursor + framePadding;
-        var iconPos = new Vector2(textPos.X + textSize.X + iconPadding, cursor.Y + framePadding.Y);
-
-        var dl = ImGui.GetWindowDrawList();
-
-        dl.AddText(textPos, ImGui.GetColorU32(ImGuiCol.Text), textStr);
-
-        using (ImRaii.PushFont(UiBuilder.IconFont))
-        {
-            dl.AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon.ToIconString());
-        }
-
-        return button;
+        return ImGui.IsItemHovered() ? UIState.Hovered : UIState.None;
     }
 }

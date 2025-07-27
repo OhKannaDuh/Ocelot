@@ -31,6 +31,8 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     private List<OcelotFeature> enabledFeatures = [];
 
+    private Dictionary<string, bool> PluginList = [];
+
 
     public RenderContext? RenderContext { get; private set; } = null;
 
@@ -41,6 +43,17 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
         Registry.RegisterAssemblies(typeof(OcelotPlugin).Assembly);
         Registry.RegisterAssemblies(GetType().Assembly);
+
+        foreach (var p in Svc.PluginInterface.InstalledPlugins)
+        {
+            var key = $"{p.InternalName}.{p.Version}";
+            if (p.IsDev)
+            {
+                key = $"{key}.Dev";
+            }
+
+            PluginList[key] = p.IsLoaded;
+        }
     }
 
     protected void OcelotInitialize(params OcelotFeature[] features)
@@ -55,7 +68,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             enabledFeatures = features.ToList();
         }
-        
+
         if (enabledFeatures.ContainsAny(OcelotFeature.IPC, OcelotFeature.All))
         {
             Logger.Info("Initializing IPC Manager...");
@@ -84,6 +97,8 @@ public abstract class OcelotPlugin : IDalamudPlugin
         }
 
         Modules.PostInitialize();
+        Modules.InjectModules();
+        Modules.InjectIPCs();
 
         Svc.Framework.Update += Update;
         Svc.Chat.ChatMessage += OnChatMessage;
@@ -99,6 +114,8 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     protected virtual void Update(IFramework framework)
     {
+        PluginCheckup();
+
         if (!ShouldUpdate())
         {
             return;
@@ -154,15 +171,56 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             PictoService.GetDrawList().Dispose();
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException) { }
+    }
+
+    private void PluginCheckup()
+    {
+        var isDirty = false;
+        Dictionary<string, bool> currentPluginList = [];
+        foreach (var p in Svc.PluginInterface.InstalledPlugins)
         {
+            var key = $"{p.InternalName}.{p.Version}";
+            if (p.IsDev)
+            {
+                key = $"{key}.Dev";
+            }
+
+
+            currentPluginList.Add(key, p.IsLoaded);
+
+            if (!PluginList.TryGetValue(key, out var value) || value != p.IsLoaded)
+            {
+                isDirty = true;
+            }
         }
+
+        if (currentPluginList.Count != PluginList.Count)
+        {
+            isDirty = true;
+        }
+
+        PluginList = currentPluginList;
+
+        if (!isDirty)
+        {
+            return;
+        }
+
+        if (enabledFeatures.ContainsAny(OcelotFeature.IPC, OcelotFeature.All))
+        {
+            IPC.Initialize();
+        }
+
+        Modules.InjectIPCs();
     }
 
     public virtual void Dispose()
     {
-        Svc.PluginInterface.UiBuilder.Draw += PostRender;
+        Svc.PluginInterface.UiBuilder.Draw -= PostRender;
         Svc.PluginInterface.UiBuilder.Draw -= Render;
+        Svc.PluginInterface.UiBuilder.Draw -= PreRender;
+
         Modules.Dispose();
 
         Windows.Dispose();
@@ -171,8 +229,6 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.Framework.Update -= Update;
         Svc.Chat.ChatMessage -= OnChatMessage;
         Svc.ClientState.TerritoryChanged -= OnTerritoryChanged;
-
-        Svc.PluginInterface.UiBuilder.Draw += PreRender;
 
         PictoService.Dispose();
         ECommonsMain.Dispose();

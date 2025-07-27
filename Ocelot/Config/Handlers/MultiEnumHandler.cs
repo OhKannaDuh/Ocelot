@@ -8,12 +8,12 @@ using Ocelot.Modules;
 namespace Ocelot.Config.Handlers;
 
 public class MultiEnumHandler<T> : MultiSelectHandler<T>
-    where T : Enum 
+    where T : Enum
 {
     private readonly IEnumProvider<T> provider;
 
     public MultiEnumHandler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop, string provider)
-        : base(self, attribute, prop) 
+        : base(self, attribute, prop)
     {
         if (!string.IsNullOrEmpty(self.ProviderNamespace))
         {

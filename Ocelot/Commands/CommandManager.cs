@@ -24,7 +24,5 @@ public class CommandManager : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-    }
+    public void Dispose() { }
 }

@@ -8,8 +8,7 @@ public static class ChainPlayer
 {
     private static TaskManagerTask WaitUntilCasting(int timeout = 5000, int interval = 50)
     {
-        return new TaskManagerTask(() =>
-        {
+        return new TaskManagerTask(() => {
             if (EzThrottler.Throttle($"ChainAddon.WaitUntilCasting", interval))
             {
                 return Svc.ClientState.LocalPlayer?.IsCasting == true;
@@ -28,8 +27,7 @@ public static class ChainPlayer
 
     private static TaskManagerTask WaitUntilNotCasting(int timeout = 5000, int interval = 50)
     {
-        return new TaskManagerTask(() =>
-        {
+        return new TaskManagerTask(() => {
             if (EzThrottler.Throttle($"ChainAddon.WaitUntilNotCasting", interval))
             {
                 return Svc.ClientState.LocalPlayer?.IsCasting == false;

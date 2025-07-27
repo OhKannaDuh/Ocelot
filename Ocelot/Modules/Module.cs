@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using ECommons.DalamudServices;
@@ -15,58 +18,170 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
 
     public readonly C PluginConfig = pluginConfig;
 
-    public virtual bool IsEnabled
-    {
+    public bool HasRequiredIPCs { get; private set; } = true;
+
+    private List<string> _missingIPCs = [];
+
+    public IReadOnlyList<string> MissingIPCs {
+        get => _missingIPCs.AsReadOnly();
+    }
+
+    public virtual bool IsEnabled {
         get => true;
     }
 
-    public virtual bool ShouldUpdate
-    {
+    public virtual bool ShouldUpdate {
         get => IsEnabled;
     }
 
-    public virtual bool ShouldRender
-    {
+    public virtual bool ShouldRender {
         get => IsEnabled;
     }
 
-    public virtual bool ShouldInitialize
-    {
+    public virtual bool ShouldInitialize {
         get => IsEnabled;
     }
 
-    public virtual ModuleConfig? Config
-    {
+    public virtual ModuleConfig? Config {
         get => null;
     }
 
-    public virtual void PreInitialize()
+    public virtual void PreInitialize() { }
+
+    public virtual void Initialize() { }
+
+    public virtual void PostInitialize() { }
+
+    public virtual void InjectModules()
     {
+        var type = GetType();
+
+        foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy))
+        {
+            if (!Attribute.IsDefined(field, typeof(InjectModuleAttribute)))
+            {
+                continue;
+            }
+
+            if (!typeof(IModule).IsAssignableFrom(field.FieldType))
+            {
+                continue;
+            }
+
+            var module = GetModule(field.FieldType);
+            if (module != null)
+            {
+                field.SetValue(this, module);
+            }
+        }
+
+        foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy))
+        {
+            if (!Attribute.IsDefined(prop, typeof(InjectModuleAttribute)))
+            {
+                continue;
+            }
+
+            if (!typeof(IModule).IsAssignableFrom(prop.PropertyType))
+            {
+                continue;
+            }
+
+            if (!prop.CanWrite)
+            {
+                continue;
+            }
+
+            var module = GetModule(prop.PropertyType);
+            if (module != null)
+            {
+                prop.SetValue(this, module);
+            }
+        }
     }
 
-    public virtual void Initialize()
+
+    public virtual void InjectIPCs()
     {
+        HasRequiredIPCs = true;
+        _missingIPCs = [];
+
+        var type = GetType();
+
+        foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy))
+        {
+            if (!Attribute.IsDefined(field, typeof(InjectIpcAttribute)))
+            {
+                continue;
+            }
+
+            if (!typeof(IPCSubscriber).IsAssignableFrom(field.FieldType))
+            {
+                continue;
+            }
+
+            try
+            {
+                var subscriber = Plugin.IPC.GetProvider(field.FieldType);
+                field.SetValue(this, subscriber);
+            }
+            catch (UnableToLoadIpcProviderException)
+            {
+                if (field.GetCustomAttribute<InjectIpcAttribute>()?.Required == false)
+                {
+                    continue;
+                }
+
+                Svc.Log.Warning($"Ipc {field.FieldType.Name} missing for {type.Name}");
+                _missingIPCs.Add(field.FieldType.Name);
+                HasRequiredIPCs = false;
+            }
+        }
+
+        foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy))
+        {
+            if (!Attribute.IsDefined(prop, typeof(InjectIpcAttribute)))
+            {
+                continue;
+            }
+
+            if (!typeof(IPCSubscriber).IsAssignableFrom(prop.PropertyType))
+            {
+                continue;
+            }
+
+            if (!prop.CanWrite)
+            {
+                continue;
+            }
+
+            try
+            {
+                var subscriber = Plugin.IPC.GetProvider(prop.PropertyType);
+                prop.SetValue(this, subscriber);
+            }
+            catch (UnableToLoadIpcProviderException)
+            {
+                if (prop.GetCustomAttribute<InjectIpcAttribute>()?.Required == false)
+                {
+                    continue;
+                }
+
+
+                Svc.Log.Warning($"Ipc {prop.PropertyType.Name} missing for {type.Name}");
+                _missingIPCs.Add(prop.PropertyType.Name);
+                HasRequiredIPCs = false;
+            }
+        }
     }
 
-    public virtual void PostInitialize()
-    {
-    }
+    public virtual void PreUpdate(UpdateContext context) { }
 
-    public virtual void PreUpdate(UpdateContext context)
-    {
-    }
+    public virtual void Update(UpdateContext context) { }
 
-    public virtual void Update(UpdateContext context)
-    {
-    }
+    public virtual void PostUpdate(UpdateContext context) { }
 
-    public virtual void PostUpdate(UpdateContext context)
-    {
-    }
-
-    public virtual void Render(RenderContext context)
-    {
-    }
+    public virtual void Render(RenderContext context) { }
 
     public virtual bool RenderMainUi(RenderContext context)
     {
@@ -81,17 +196,11 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
         }
     }
 
-    public virtual void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled)
-    {
-    }
+    public virtual void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled) { }
 
-    public virtual void OnTerritoryChanged(ushort id)
-    {
-    }
+    public virtual void OnTerritoryChanged(ushort id) { }
 
-    public virtual void Dispose()
-    {
-    }
+    public virtual void Dispose() { }
 
     public void Debug(string log)
     {
@@ -128,7 +237,7 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
         string ToSnakeCase(string input)
         {
             return string.Concat(input.Select((x, i) =>
-                i > 0 && char.IsUpper(x) ? "_" + x : x.ToString())).ToLower();
+                                                  i > 0 && char.IsUpper(x) ? "_" + x : x.ToString())).ToLower();
         }
 
         var module = ToSnakeCase(GetType().Name).Replace("_module", "");
@@ -149,8 +258,7 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
 
     // Accessors for OcelotPlugin managers
     // Modules
-    public ModuleManager modules
-    {
+    public ModuleManager modules {
         get => Plugin.Modules;
     }
 
@@ -165,25 +273,30 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
         return modules.TryGetModule(out module);
     }
 
-    // IPC
-    public IPCManager ipc
+    private IModule? GetModule(Type type)
     {
+        var method = typeof(Module<P, C>).GetMethod(nameof(GetModule), []);
+        var generic = method?.MakeGenericMethod(type);
+        return generic?.Invoke(this, null) as IModule;
+    }
+
+    // IPC
+    public IPCManager ipc {
         get => Plugin.IPC;
     }
 
-    public T GetIPCProvider<T>() where T : IPCSubscriber
+    public T GetIPCSubscriber<T>() where T : IPCSubscriber
     {
         return ipc.GetProvider<T>();
     }
 
-    public bool TryGetIPCProvider<T>(out T? provider) where T : IPCSubscriber
+    public bool TryGetIPCSubscriber<T>(out T? provider) where T : IPCSubscriber
     {
         return ipc.TryGetProvider(out provider);
     }
 
     // Windows
-    public WindowManager windows
-    {
+    public WindowManager windows {
         get => Plugin.Windows;
     }
 

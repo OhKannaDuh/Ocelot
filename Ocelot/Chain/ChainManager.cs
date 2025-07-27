@@ -6,7 +6,7 @@ namespace Ocelot.Chain;
 
 public static class ChainManager
 {
-    private readonly static Dictionary<string, ChainQueue> queues = [];
+    private static readonly Dictionary<string, ChainQueue> queues = [];
 
     private static bool initialized;
 

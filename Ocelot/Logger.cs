@@ -64,4 +64,9 @@ internal sealed class Logger
     {
         Svc.Log.Verbose(exception, $"[Ocelot] {messageTemplate}", values);
     }
+
+    public static void Warn(string p0)
+    {
+        throw new NotImplementedException();
+    }
 }

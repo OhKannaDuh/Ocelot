@@ -10,8 +10,7 @@ namespace Ocelot.Config.Handlers;
 public class EnumHandler<T> : SelectHandler<T>
     where T : Enum
 {
-    protected override Type type
-    {
+    protected override Type type {
         get => typeof(T);
     }
 

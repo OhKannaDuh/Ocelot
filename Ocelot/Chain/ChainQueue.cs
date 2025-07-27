@@ -77,8 +77,7 @@ public class ChainQueue : IDisposable
         }
     }
 
-    public Chain? CurrentChain
-    {
+    public Chain? CurrentChain {
         get => chain;
     }
 
@@ -105,15 +104,12 @@ public class ChainQueue : IDisposable
         }
     }
 
-    public bool IsRunning
-    {
+    public bool IsRunning {
         get => chain != null && !chain.IsComplete();
     }
 
-    public int QueueCount
-    {
-        get
-        {
+    public int QueueCount {
+        get {
             lock (chains)
             {
                 return chains.Count;

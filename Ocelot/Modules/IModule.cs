@@ -8,6 +8,8 @@ namespace Ocelot.Modules;
 
 public interface IModule : IDisposable
 {
+    bool HasRequiredIPCs { get; }
+
     bool IsEnabled { get; }
 
     bool ShouldUpdate { get; }
@@ -23,6 +25,10 @@ public interface IModule : IDisposable
     void Initialize();
 
     void PostInitialize();
+
+    void InjectModules();
+
+    void InjectIPCs();
 
     // Functions
     void PreUpdate(UpdateContext context);
@@ -64,9 +70,9 @@ public interface IModule : IDisposable
 
     bool TryGetModule<T>(out T? module) where T : class, IModule;
 
-    T GetIPCProvider<T>() where T : IPCSubscriber;
+    T GetIPCSubscriber<T>() where T : IPCSubscriber;
 
-    bool TryGetIPCProvider<T>(out T? provider) where T : IPCSubscriber;
+    bool TryGetIPCSubscriber<T>(out T? provider) where T : IPCSubscriber;
 
     T GetWindow<T>() where T : OcelotWindow;
 

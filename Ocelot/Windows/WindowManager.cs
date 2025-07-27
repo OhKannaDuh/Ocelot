@@ -11,7 +11,8 @@ public class WindowManager : IDisposable
 {
     private readonly WindowSystem manager = new($"Ocelot##{Svc.PluginInterface?.InternalName}");
 
-    private OcelotMainWindow? mainWindow;
+    private OcelotMainWindow?
+        mainWindow;
 
     private OcelotConfigWindow? configWindow;
 

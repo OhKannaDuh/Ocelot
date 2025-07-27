@@ -1,4 +1,5 @@
 using System;
+using ECommons;
 using ECommons.Automation;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.DalamudServices;
@@ -11,8 +12,7 @@ public static class ChainAddon
 {
     private static unsafe TaskManagerTask AddonCallback(string addonName, bool updateState = true, params object[] callbackValues)
     {
-        return new TaskManagerTask(() =>
-        {
+        return new TaskManagerTask(() => {
             if (EzThrottler.Throttle($"ChainAddon.AddonCallback({addonName}, {updateState}, {string.Join(", ", callbackValues)})"))
             {
                 var addonPtr = Svc.GameGui.GetAddonByName(addonName);
@@ -36,5 +36,49 @@ public static class ChainAddon
         return chain
             .Debug($"Waiting for addon callback to fire {addonName} {updateState} {string.Join(", ", callbackValues)}")
             .Then(AddonCallback(addonName, updateState, callbackValues));
+    }
+
+    private static unsafe TaskManagerTask WaitForAddonReady(string addonName)
+    {
+        return new TaskManagerTask(() => {
+            if (EzThrottler.Throttle($"ChainAddon.WaitForAddon({addonName})"))
+            {
+                var addonPtr = Svc.GameGui.GetAddonByName(addonName);
+                if (addonPtr != IntPtr.Zero)
+                {
+                    var addon = (AtkUnitBase*)addonPtr;
+                    return GenericHelpers.IsAddonReady(addon);
+                }
+            }
+
+            return false;
+        }, new TaskManagerConfiguration { TimeLimitMS = 3000 });
+    }
+
+    public static Chain WaitForAddonReady(this Chain chain, string addonName)
+    {
+        return chain.Debug($"Waiting for addon to be ready '{addonName}'").Then(WaitForAddonReady(addonName));
+    }
+
+    private static unsafe TaskManagerTask WaitForAddonNotReady(string addonName)
+    {
+        return new TaskManagerTask(() => {
+            if (EzThrottler.Throttle($"ChainAddon.WaitForAddon({addonName})"))
+            {
+                var addonPtr = Svc.GameGui.GetAddonByName(addonName);
+                if (addonPtr != IntPtr.Zero)
+                {
+                    var addon = (AtkUnitBase*)addonPtr;
+                    return !GenericHelpers.IsAddonReady(addon);
+                }
+            }
+
+            return false;
+        }, new TaskManagerConfiguration { TimeLimitMS = 3000 });
+    }
+
+    public static Chain WaitForAddonNotReady(this Chain chain, string addonName)
+    {
+        return chain.Debug($"Waiting for addon to be not ready '{addonName}'").Then(WaitForAddonNotReady(addonName));
     }
 }

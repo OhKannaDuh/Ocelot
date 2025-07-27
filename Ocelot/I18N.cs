@@ -7,9 +7,9 @@ namespace Ocelot;
 
 public static class I18N
 {
-    private readonly static Dictionary<string, Dictionary<string, string>> translations = new();
+    private static readonly Dictionary<string, Dictionary<string, string>> translations = new();
 
-    private readonly static HashSet<string> reportedMissingKeys = new();
+    private static readonly HashSet<string> reportedMissingKeys = new();
 
     private static string currentLanguage = "en";
 
