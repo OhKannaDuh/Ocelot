@@ -24,6 +24,15 @@ public class ChainQueue : IDisposable
         }
     }
 
+    public void Submit(Func<Chain, Chain> factory)
+    {
+        hasRun = true;
+        lock (chains)
+        {
+            chains.AddLast(() => factory(Chain.Create()));
+        }
+    }
+
     public void SubmitFront(Func<Chain> factory)
     {
         hasRun = true;

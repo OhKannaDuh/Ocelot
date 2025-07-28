@@ -1,7 +1,5 @@
-using System;
 using System.Numerics;
 using Dalamud.Interface.Colors;
-using ECommons.DalamudServices;
 using ImGuiNET;
 
 namespace Ocelot;

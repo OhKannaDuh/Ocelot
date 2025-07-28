@@ -30,4 +30,10 @@ public static class LgbHelper
 
         return GetLgbFileForTerritory(territory.Value, type);
     }
+
+
+    public static LgbFile? GetLgbFileForCurrentTerritory(LgbType type)
+    {
+        return GetLgbFileForTerritory(Svc.ClientState.TerritoryType, type);
+    }
 }

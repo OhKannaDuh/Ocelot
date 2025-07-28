@@ -38,7 +38,7 @@ public static class ChainAddon
             .Then(AddonCallback(addonName, updateState, callbackValues));
     }
 
-    private static unsafe TaskManagerTask WaitForAddonReady(string addonName)
+    private static unsafe TaskManagerTask WaitForAddonReady(string addonName, int timeout = 3000)
     {
         return new TaskManagerTask(() => {
             if (EzThrottler.Throttle($"ChainAddon.WaitForAddon({addonName})"))
@@ -52,15 +52,15 @@ public static class ChainAddon
             }
 
             return false;
-        }, new TaskManagerConfiguration { TimeLimitMS = 3000 });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout, TimeoutSilently = true});
     }
 
-    public static Chain WaitForAddonReady(this Chain chain, string addonName)
+    public static Chain WaitForAddonReady(this Chain chain, string addonName, int timeout = 3000)
     {
-        return chain.Debug($"Waiting for addon to be ready '{addonName}'").Then(WaitForAddonReady(addonName));
+        return chain.Debug($"Waiting for addon to be ready '{addonName}'").Then(WaitForAddonReady(addonName, timeout));
     }
 
-    private static unsafe TaskManagerTask WaitForAddonNotReady(string addonName)
+    private static unsafe TaskManagerTask WaitForAddonNotReady(string addonName, int timeout = 3000)
     {
         return new TaskManagerTask(() => {
             if (EzThrottler.Throttle($"ChainAddon.WaitForAddon({addonName})"))
@@ -74,11 +74,11 @@ public static class ChainAddon
             }
 
             return false;
-        }, new TaskManagerConfiguration { TimeLimitMS = 3000 });
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout, TimeoutSilently = true});
     }
 
-    public static Chain WaitForAddonNotReady(this Chain chain, string addonName)
+    public static Chain WaitForAddonNotReady(this Chain chain, string addonName, int timeout = 3000)
     {
-        return chain.Debug($"Waiting for addon to be not ready '{addonName}'").Then(WaitForAddonNotReady(addonName));
+        return chain.Debug($"Waiting for addon to be not ready '{addonName}'").Then(WaitForAddonNotReady(addonName, timeout));
     }
 }

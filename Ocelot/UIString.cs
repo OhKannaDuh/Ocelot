@@ -12,7 +12,7 @@ namespace Ocelot;
 
 public interface UIStringComponent
 {
-     float GetWidth();
+    float GetWidth();
 
     bool Render();
 }

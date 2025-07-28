@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
@@ -60,22 +59,15 @@ public abstract class OcelotPlugin : IDalamudPlugin
     {
         Svc.PluginInterface.UiBuilder.Draw += PreRender;
 
-        if (features.Length <= 0)
-        {
-            enabledFeatures.Add(OcelotFeature.All);
-        }
-        else
-        {
-            enabledFeatures = features.ToList();
-        }
+        OcelotFeatureEx.SetFeatures(features.Length <= 0 ? [OcelotFeature.All] : features);
 
-        if (enabledFeatures.ContainsAny(OcelotFeature.IPC, OcelotFeature.All))
+        if (OcelotFeature.IPC.IsEnabled())
         {
             Logger.Info("Initializing IPC Manager...");
             IPC.Initialize();
         }
 
-        if (enabledFeatures.ContainsAny(OcelotFeature.ModuleManager, OcelotFeature.All))
+        if (OcelotFeature.ModuleManager.IsEnabled())
         {
             Logger.Info("Initializing Module Manager...");
             Modules.AutoRegister(this, OcelotConfig);
@@ -84,16 +76,22 @@ public abstract class OcelotPlugin : IDalamudPlugin
             Svc.PluginInterface.UiBuilder.Draw += Render;
         }
 
-        if (enabledFeatures.ContainsAny(OcelotFeature.WindowManager, OcelotFeature.All))
+        if (OcelotFeature.WindowManager.IsEnabled())
         {
             Logger.Info("Initializing Window Manager...");
             Windows.Initialize(this, OcelotConfig);
         }
 
-        if (enabledFeatures.ContainsAny(OcelotFeature.CommandManager, OcelotFeature.All))
+        if (OcelotFeature.CommandManager.IsEnabled())
         {
             Logger.Info("Initializing Command Manager...");
             Commands.Initialize(this);
+        }
+
+        if (OcelotFeature.Prowler.IsEnabled() && OcelotFeature.IPC.IsEnabled())
+        {
+            Logger.Info("Initializing Prowler...");
+            Prowler.Prowler.Initialize(this);
         }
 
         Modules.PostInitialize();

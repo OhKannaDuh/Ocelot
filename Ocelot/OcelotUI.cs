@@ -39,14 +39,10 @@ public static class OcelotUI
     public static UIState LeftRightText(UIString left, UIString right)
     {
         var state = UIState.None;
-
-        ;
         if (left.Render() == UIState.Hovered)
         {
             state = UIState.LeftHovered;
         }
-
-        var regionWidth = ImGui.GetContentRegionAvail().X;
 
         ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - right.Width);
         if (right.Render() == UIState.Hovered)
