@@ -7,20 +7,20 @@ namespace Ocelot.Commands;
 
 public abstract class OcelotCommand
 {
-    public abstract string command { get; }
+    protected abstract string Command { get; }
 
-    public abstract string description { get; }
+    protected abstract string Description { get; }
 
-    public virtual IReadOnlyList<string> aliases { get; set; } = [];
+    protected virtual IReadOnlyList<string> Aliases { get; set; } = [];
 
-    public virtual IReadOnlyList<string> validArguments { get; set; } = [];
+    protected virtual IReadOnlyList<string> ValidArguments { get; set; } = [];
 
     public void Register()
     {
-        EzCmd.Add(command, Handle, description);
-        foreach (var alias in aliases)
+        EzCmd.Add(Command, Handle, Description);
+        foreach (var alias in Aliases)
         {
-            EzCmd.Add(alias, Handle, $"Alias: {command}", int.MaxValue);
+            EzCmd.Add(alias, Handle, $"Alias: {Command}", int.MaxValue);
         }
     }
 
@@ -31,14 +31,7 @@ public abstract class OcelotCommand
             return true;
         }
 
-        // If ValidArguments is empty, accept any argument by default
-        if (validArguments.Count == 0)
-        {
-            return true;
-        }
-
-        // Check if the argument exactly matches any valid argument (case-insensitive)
-        return validArguments.Any(arg => string.Equals(arg, arguments, StringComparison.OrdinalIgnoreCase));
+        return ValidArguments.Count == 0 || ValidArguments.Any(arg => string.Equals(arg, arguments, StringComparison.OrdinalIgnoreCase));
     }
 
     public void Handle(string command, string arguments)
@@ -48,8 +41,8 @@ public abstract class OcelotCommand
             Logger.Error($"Invalid argument ({arguments}) to command ({command})");
         }
 
-        Command(command, arguments);
+        Execute(command, arguments);
     }
 
-    public abstract void Command(string command, string arguments);
+    public abstract void Execute(string command, string arguments);
 }
