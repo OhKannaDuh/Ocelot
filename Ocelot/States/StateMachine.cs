@@ -9,13 +9,15 @@ public class StateMachine<T, M>
     where T : struct, Enum
     where M : IModule
 {
-    public T State { get; private set; }
+    public T State { get; protected set; }
 
-    private readonly T Initial;
+    private readonly T initial;
 
     public readonly Dictionary<T, StateHandler<T, M>> Handlers = [];
 
-    private StateHandler<T, M> CurrentHandler {
+    protected readonly M Module;
+
+    protected StateHandler<T, M> CurrentHandler {
         get {
             if (Handlers.TryGetValue(State, out var handler))
             {
@@ -29,7 +31,8 @@ public class StateMachine<T, M>
     public StateMachine(T state, M module)
     {
         State = state;
-        Initial = State;
+        initial = State;
+        Module = module;
 
         foreach (var type in Registry.GetTypesForStateMachine<T, M>())
         {
@@ -44,9 +47,9 @@ public class StateMachine<T, M>
                 throw new InvalidOperationException($"Duplicate state handler for state '{attr.State}' in type '{type.FullName}'.");
             }
 
-            if (Activator.CreateInstance(type) is not StateHandler<T, M> instance)
+            if (Activator.CreateInstance(type, module, this) is not StateHandler<T, M> instance)
             {
-                throw new InvalidOperationException($"Failed to create instance of {type.FullName}");
+                throw new InvalidOperationException($"Failed to create instance of {type.FullName} with module argument.");
             }
 
             Logger.Debug($"Registering handler for '{State.GetType().Name}.{attr.State}'");
@@ -54,17 +57,17 @@ public class StateMachine<T, M>
             Handlers[attr.State] = instance;
         }
 
-        CurrentHandler.Enter(module);
+        CurrentHandler.Enter();
     }
 
-    public void Update(M module)
+    public virtual void Update()
     {
-        if (!ShouldUpdate(module))
+        if (!ShouldUpdate())
         {
             return;
         }
 
-        var transition = CurrentHandler.Handle(module);
+        var transition = CurrentHandler.Handle();
         if (transition == null || State.Equals(transition.Value))
         {
             return;
@@ -72,19 +75,32 @@ public class StateMachine<T, M>
 
         Logger.Debug($"Updating state from '{State.GetType().Name}.{State}' to '{State.GetType().Name}.{transition.Value}'");
 
-        CurrentHandler.Exit(module);
+        CurrentHandler.Exit();
         State = transition.Value;
-        CurrentHandler.Enter(module);
+        CurrentHandler.Enter();
     }
 
-    public void Reset(M module)
+    public void Reset()
     {
-        State = Initial;
-        CurrentHandler.Enter(module);
+        State = initial;
+        CurrentHandler.Enter();
     }
 
-    protected virtual bool ShouldUpdate(M module)
+    protected virtual bool ShouldUpdate()
     {
         return true;
+    }
+
+    public bool TryGetCurrentHandler<THandler>(out THandler handler)
+        where THandler : StateHandler<T, M>
+    {
+        if (CurrentHandler is THandler typed)
+        {
+            handler = typed;
+            return true;
+        }
+
+        handler = null!;
+        return false;
     }
 }

@@ -17,6 +17,8 @@ public class Chain
         get => tasks.Progress;
     }
 
+    private Action<ChainContext> OnCancelCallback = _ => { };
+
     private Chain(string name, TaskManagerConfiguration? defaultConfiguration = null)
     {
         Name = name;
@@ -49,7 +51,9 @@ public class Chain
     {
         if (context.token.IsCancellationRequested && !IsComplete())
         {
+            Logger.Debug($"Chain [{Name}] was cancelled.");
             tasks.Abort();
+            tasks.Enqueue(() => OnCancelCallback(context));
         }
     }
 
@@ -188,5 +192,11 @@ public class Chain
     public bool IsComplete()
     {
         return tasks is { IsBusy: false, NumQueuedTasks: 0 };
+    }
+
+    public Chain OnCancel(Action<ChainContext> callback)
+    {
+        OnCancelCallback = callback;
+        return this;
     }
 }

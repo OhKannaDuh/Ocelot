@@ -30,7 +30,7 @@ public class Prowler
     }
 
     public static bool IsRunning {
-        get => Instance.Chain.IsRunning || Instance.Vnavmesh.IsRunning();
+        get => Instance.Chain.IsRunning || Instance.Vnavmesh.IsRunning() || Instance.Vnavmesh.IsPathfinding();
     }
 
     private Prowler(OcelotPlugin plugin)

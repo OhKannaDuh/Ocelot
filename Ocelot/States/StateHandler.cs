@@ -3,7 +3,7 @@ using Ocelot.Modules;
 
 namespace Ocelot.States;
 
-public abstract class StateHandler<T, M>
+public abstract class StateHandler<T, M>(M module, StateMachine<T, M> stateMachine)
     where T : struct, Enum
     where M : IModule
 {
@@ -11,16 +11,21 @@ public abstract class StateHandler<T, M>
 
     public event Action<M>? OnExit;
 
+    protected readonly M Module = module;
 
-    public abstract T? Handle(M module);
-
-    public virtual void Enter(M module)
-    {
-        OnEnter?.Invoke(module);
+    protected virtual StateMachine<T, M> StateMachine {
+        get => stateMachine;
     }
 
-    public virtual void Exit(M module)
+    public abstract T? Handle();
+
+    public virtual void Enter()
     {
-        OnExit?.Invoke(module);
+        OnEnter?.Invoke(Module);
+    }
+
+    public virtual void Exit()
+    {
+        OnExit?.Invoke(Module);
     }
 }

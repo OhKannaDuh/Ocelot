@@ -52,7 +52,7 @@ public static class ChainAddon
             }
 
             return false;
-        }, new TaskManagerConfiguration { TimeLimitMS = timeout, TimeoutSilently = true});
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout, TimeoutSilently = true });
     }
 
     public static Chain WaitForAddonReady(this Chain chain, string addonName, int timeout = 3000)
@@ -74,7 +74,7 @@ public static class ChainAddon
             }
 
             return false;
-        }, new TaskManagerConfiguration { TimeLimitMS = timeout, TimeoutSilently = true});
+        }, new TaskManagerConfiguration { TimeLimitMS = timeout, TimeoutSilently = true });
     }
 
     public static Chain WaitForAddonNotReady(this Chain chain, string addonName, int timeout = 3000)

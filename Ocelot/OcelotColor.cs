@@ -8,6 +8,8 @@ public static class OcelotColor
 {
     public static Vector4 Text { get; } = ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
 
+    public static Vector4 Disabled { get; } = ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
+
     public static Vector4 Yellow { get; } = new(1f, 0.75f, 0.25f, 1f);
 
     public static Vector4 Blue { get; } = ImGuiColors.ParsedBlue;
