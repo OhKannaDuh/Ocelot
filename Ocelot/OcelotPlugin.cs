@@ -6,6 +6,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.DalamudServices;
+using Ocelot.Chain;
 using Ocelot.Commands;
 using Ocelot.IPC;
 using Ocelot.Modules;
@@ -92,6 +93,11 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             Logger.Info("Initializing Prowler...");
             Prowler.Prowler.Initialize(this);
+        }
+
+        if (OcelotFeature.ChainManager.IsEnabled())
+        {
+            ChainManager.Initialize();
         }
 
         Modules.PostInitialize();
@@ -220,9 +226,9 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.PluginInterface.UiBuilder.Draw -= PreRender;
 
         Modules.Dispose();
-
         Windows.Dispose();
         Commands.Dispose();
+        ChainManager.Close();
 
         Svc.Framework.Update -= Update;
         Svc.Chat.ChatMessage -= OnChatMessage;

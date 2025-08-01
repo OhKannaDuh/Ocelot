@@ -1,0 +1,9 @@
+{
+    "generic": {
+        "start": "Démarrer",
+        "stop": "Arrêter",
+        "enabled": "Activé",
+        "disabled": "Désactivé",
+        "toggle_config_window": "Afficher/Masquer la fenêtre de configuration"
+    }
+}

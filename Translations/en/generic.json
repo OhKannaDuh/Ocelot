@@ -1,0 +1,9 @@
+{
+    "generic": {
+        "start": "Start",
+        "stop": "Stop",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "toggle_config_window": "Toggle Config Window"
+    }
+}
