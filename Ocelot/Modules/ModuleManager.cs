@@ -45,8 +45,8 @@ public class ModuleManager
             modules.Add(moduleInstance);
             if (attr != null)
             {
-                configOrders[moduleInstance] = attr.configOrder;
-                mainOrders[moduleInstance] = attr.mainOrder;
+                configOrders[moduleInstance] = attr.ConfigOrder;
+                mainOrders[moduleInstance] = attr.MainOrder;
             }
         }
     }

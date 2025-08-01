@@ -2,24 +2,32 @@
 
 namespace Ocelot.Gameplay;
 
-public class ItemTracker(Item item)
+public class ItemTracker
 {
+    public readonly Item Item;
+
     private DateTime start = DateTime.UtcNow;
 
-    private int last = item.Count();
+    private int last = 0;
 
     private int gained = 0;
+
+    public ItemTracker(Item item)
+    {
+        Item = item;
+        last = Item.Count();
+    }
 
     public void Reset()
     {
         start = DateTime.UtcNow;
-        last = item.Count();
+        last = Item.Count();
         gained = 0;
     }
 
     public void Update()
     {
-        var current = item.Count();
+        var current = Item.Count();
         var delta = current - last;
         last = current;
 

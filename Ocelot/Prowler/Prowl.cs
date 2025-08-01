@@ -15,7 +15,9 @@ namespace Ocelot.Prowler;
 
 public class Prowl(Vector3 destination)
 {
-    public readonly Vector3 OriginalDestination = destination;
+    public ProwlState State { get; private set; } = ProwlState.NotStarted;
+
+    public Vector3 OriginalDestination { get; private set; } = destination;
 
     public Vector3 FinalDestination { get; private set; } = destination;
 
@@ -24,7 +26,7 @@ public class Prowl(Vector3 destination)
         set => FinalDestination = value;
     }
 
-    public readonly IGameObject? GameObject;
+    public IGameObject? GameObject { get; private set; }
 
     public readonly Vector3 OriginalStart = Player.Position;
 
@@ -37,7 +39,9 @@ public class Prowl(Vector3 destination)
 
     public Func<Prowl, bool> ShouldFly { get; init; } = _ => true;
 
-    public Func<Prowl, bool> ShouldMount { get; init; } = _ => Svc.Condition[ConditionFlag.InCombat];
+    public Func<Prowl, bool> ShouldMount { get; init; } = _ => !Svc.Condition[ConditionFlag.InCombat];
+
+    public uint Mount { get; init; } = 0;
 
     public Func<Prowl, bool> ShouldSprint { get; init; } = _ => true;
 
@@ -87,23 +91,70 @@ public class Prowl(Vector3 destination)
             .Then(_ => !vnavmesh.IsRunning())
             .Then(_ => PreProcessor.Invoke(this))
             .Then(_ => pathfindingTask = vnavmesh.Pathfind(Start, Destination, ShouldFly(this)))
+            .Then(_ => State = ProwlState.Pathfinding)
             .BreakIf(() => pathfindingTask == null)
             .Then(_ => !vnavmesh.IsRunning() && pathfindingTask!.IsCompleted)
             .BreakIf(() => pathfindingTask!.IsCanceled || pathfindingTask!.IsFaulted)
-            .Then(_ => OriginalNodes = Nodes = pathfindingTask!.Result)
+            .Then(_ => {
+                OriginalNodes = new List<Vector3>(pathfindingTask!.Result);
+                Nodes = new List<Vector3>(pathfindingTask!.Result);
+            })
             .Then(_ => PostProcessor.Invoke(this))
-            .ConditionalThen(_ => ShouldMount(this) && !Player.Mounted, _ => Actions.MountRoulette.Cast())
+            .ConditionalThen(_ => ShouldMount(this) && !Player.Mounted, _ => {
+                State = ProwlState.Mounting;
+
+                if (Mount == 0)
+                {
+                    Actions.MountRoulette.Cast();
+                }
+                else
+                {
+                    Actions.Mount(Mount).Cast();
+                }
+            })
             .Then(_ => !ShouldMount(this) || Player.Mounted)
             .ConditionalThen(_ => !ShouldFly(this) && ShouldSprint(this) && !Player.Mounted, _ => Actions.Sprint.Cast())
             .Then(_ => vnavmesh.MoveTo(Nodes, ShouldFly(this)))
+            .Then(_ => State = ProwlState.Moving)
             .Then(_ => !vnavmesh.IsRunning() || Watcher.Invoke(this))
             .Then(_ => vnavmesh.Stop())
-            .Then(_ => OnComplete.Invoke(this, vnavmesh))
-            .OnCancel(_ => OnCancel(this, vnavmesh));
+            .Then(_ => {
+                OnComplete.Invoke(this, vnavmesh);
+                State = ProwlState.Complete;
+            })
+            .OnCancel(_ => {
+                OnCancel(this, vnavmesh);
+                State = ProwlState.Cancelled;
+            });
+    }
+
+    public void Redirect(Vector3 destination)
+    {
+        Redirect(destination, null);
+    }
+
+    public void Redirect(IGameObject obj)
+    {
+        Redirect(obj.Position, obj);
+    }
+
+    private void Redirect(Vector3 destination, IGameObject? obj)
+    {
+        Prowler.Abort();
+        Reset();
+
+        State = ProwlState.Redirecting;
+        OriginalDestination = destination;
+        Destination = destination;
+        Start = Player.Position;
+        GameObject = obj;
+
+        Prowler.Prowl(this);
     }
 
     public void Reset()
     {
+        State = ProwlState.NotStarted;
         Start = OriginalStart;
         Destination = OriginalDestination;
         OriginalNodes.Clear();

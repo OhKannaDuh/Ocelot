@@ -6,23 +6,23 @@ namespace Ocelot.Prowler;
 
 public class Prowler
 {
-    private static Prowler? _instance = null;
+    private static Prowler? CachedInstance = null;
 
     private static Prowler Instance {
         get {
-            if (_instance == null)
+            if (CachedInstance == null)
             {
                 throw new InvalidOperationException("Prowler has not been initialized. Call Initialize(plugin) first.");
             }
 
-            return _instance;
+            return CachedInstance;
         }
     }
 
-    private OcelotPlugin Plugin;
+    private readonly OcelotPlugin plugin;
 
     private VNavmesh Vnavmesh {
-        get => Instance.Plugin.IPC.GetProvider<VNavmesh>();
+        get => Instance.plugin.IPC.GetProvider<VNavmesh>();
     }
 
     private ChainQueue Chain {
@@ -35,12 +35,12 @@ public class Prowler
 
     private Prowler(OcelotPlugin plugin)
     {
-        Plugin = plugin;
+        this.plugin = plugin;
     }
 
     public static void Initialize(OcelotPlugin plugin)
     {
-        _instance ??= new Prowler(plugin);
+        CachedInstance ??= new Prowler(plugin);
     }
 
     public static void Prowl(Prowl prowl)

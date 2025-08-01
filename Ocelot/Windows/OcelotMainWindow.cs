@@ -4,11 +4,11 @@ using ImGuiNET;
 
 namespace Ocelot.Windows;
 
-public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config) : OcelotWindow(plugin, config)
+public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig pluginConfig) : OcelotWindow(plugin, pluginConfig)
 {
     public override void PostInitialize()
     {
-        if (!plugin.Windows.TryGetWindow<OcelotConfigWindow>(out _))
+        if (!Plugin.Windows.TryGetWindow<OcelotConfigWindow>(out _))
         {
             return;
         }
@@ -20,7 +20,7 @@ public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig config
                     return;
                 }
 
-                plugin.Windows.ToggleConfigUI();
+                Plugin.Windows.ToggleConfigUI();
             },
             Icon = FontAwesomeIcon.Cog,
             IconOffset = new Vector2(2, 2),

@@ -5,15 +5,15 @@ namespace Ocelot.Windows;
 
 public abstract class OcelotWindow : Window, IDisposable
 {
-    protected readonly OcelotPlugin plugin;
+    protected readonly OcelotPlugin Plugin;
 
-    protected readonly IOcelotConfig config;
+    protected readonly IOcelotConfig PluginConfig;
 
-    public OcelotWindow(OcelotPlugin plugin, IOcelotConfig config)
+    public OcelotWindow(OcelotPlugin plugin, IOcelotConfig pluginConfig)
         : base("")
     {
-        this.plugin = plugin;
-        this.config = config;
+        Plugin = plugin;
+        PluginConfig = pluginConfig;
 
         WindowName = GetWindowName();
         I18N.OnLanguageChanged += (oldLang, newLang) => { WindowName = GetWindowName(); };
@@ -23,12 +23,12 @@ public abstract class OcelotWindow : Window, IDisposable
 
     public override void Draw()
     {
-        if (plugin.RenderContext == null)
+        if (Plugin.RenderContext == null)
         {
             return;
         }
 
-        Render(plugin.RenderContext);
+        Render(Plugin.RenderContext);
     }
 
     public virtual void PreInitialize() { }
@@ -36,6 +36,18 @@ public abstract class OcelotWindow : Window, IDisposable
     public virtual void Initialize() { }
 
     public virtual void PostInitialize() { }
+
+    public void ToggleOrExpand()
+    {
+        // if (IsCollapsed)
+        // {
+        //     Collapsed = false;
+        //     return;
+        // }
+
+        IsOpen = !IsOpen;
+    }
+
 
     public virtual void Dispose() { }
 

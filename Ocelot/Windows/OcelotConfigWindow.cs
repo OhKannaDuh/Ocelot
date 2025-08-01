@@ -1,10 +1,10 @@
 namespace Ocelot.Windows;
 
-public abstract class OcelotConfigWindow(OcelotPlugin plugin, IOcelotConfig config) : OcelotWindow(plugin, config)
+public abstract class OcelotConfigWindow(OcelotPlugin plugin, IOcelotConfig pluginConfig) : OcelotWindow(plugin, pluginConfig)
 {
     protected override void Render(RenderContext context)
     {
-        plugin.Modules.RenderConfigUi(context);
+        Plugin.Modules.RenderConfigUi(context);
     }
 
     protected override string GetWindowName()

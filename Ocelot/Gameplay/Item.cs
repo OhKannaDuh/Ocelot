@@ -1,10 +1,16 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game;
+﻿using ECommons.DalamudServices;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using Ocelot.Extensions;
+using Ocelot.Windows;
+using ItemData = Lumina.Excel.Sheets.Item;
 
 namespace Ocelot.Gameplay;
 
-public unsafe class Item(uint id)
+public unsafe class Item(uint id, uint max = 0)
 {
+    public readonly ItemData Data = Svc.Data.GetExcelSheet<ItemData>().GetRow(id);
+
     public int Count()
     {
         try
@@ -27,5 +33,17 @@ public unsafe class Item(uint id)
         {
             // ignored
         }
+    }
+
+
+    public void Render(RenderContext context)
+    {
+        var value = $"{Count()}";
+        if (Data.StackSize > 0 && Data.StackSize % 1000 != 999)
+        {
+            value += $"/{Data.StackSize}";
+        }
+
+        OcelotUI.LabelledValue(Data.Plural.ExtractText().ToTitleCase(), value);
     }
 }
