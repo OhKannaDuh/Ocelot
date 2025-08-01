@@ -1,9 +1,9 @@
 ﻿using System;
 using Ocelot.Modules;
 
-namespace Ocelot.States;
+namespace Ocelot.ScoreBased;
 
-public abstract class StateHandler<T, M>(M module)
+public abstract class ScoreStateHandler<T, M>(M module)
     where T : struct, Enum
     where M : IModule
 {
@@ -13,7 +13,9 @@ public abstract class StateHandler<T, M>(M module)
 
     protected readonly M Module = module;
 
-    public abstract T? Handle();
+    public abstract bool Handle();
+
+    public abstract float GetScore();
 
     public virtual void Enter()
     {

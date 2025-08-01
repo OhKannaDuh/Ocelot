@@ -46,6 +46,12 @@ public class WrathCombo() : IPCSubscriber("WrathCombo")
         AutoCleanse = 11,
 
         IncludeNPCs = 12,
+
+        OnlyAttackInCombat = 13,
+
+        OrbwalkerIntegration = 14,
+
+        AutoRezOutOfParty = 15,
     }
 
     public enum SetResult

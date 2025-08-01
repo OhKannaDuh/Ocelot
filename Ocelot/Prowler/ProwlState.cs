@@ -13,5 +13,6 @@ public enum ProwlState
     Complete,
 
     Cancelled,
+
     Redirecting,
 }

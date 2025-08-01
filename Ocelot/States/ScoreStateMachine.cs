@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Ocelot.Modules;
+using Ocelot.States;
 
-namespace Ocelot.States;
+namespace Ocelot.ScoreBased;
 
-public class StateMachine<T, M>
+public class ScoreStateMachine<T, M>
     where T : struct, Enum
     where M : IModule
 {
@@ -13,11 +15,11 @@ public class StateMachine<T, M>
 
     private readonly T initial;
 
-    public readonly Dictionary<T, StateHandler<T, M>> Handlers = [];
+    public readonly Dictionary<T, ScoreStateHandler<T, M>> Handlers = [];
 
     protected readonly M Module;
 
-    protected StateHandler<T, M> CurrentHandler {
+    protected ScoreStateHandler<T, M> CurrentHandler {
         get {
             if (Handlers.TryGetValue(State, out var handler))
             {
@@ -28,7 +30,7 @@ public class StateMachine<T, M>
         }
     }
 
-    public StateMachine(T state, M module)
+    public ScoreStateMachine(T state, M module)
     {
         State = state;
         initial = State;
@@ -47,7 +49,7 @@ public class StateMachine<T, M>
                 throw new InvalidOperationException($"Duplicate state handler for state '{attr.State}' in type '{type.FullName}'.");
             }
 
-            if (Activator.CreateInstance(type, module) is not StateHandler<T, M> instance)
+            if (Activator.CreateInstance(type, module) is not ScoreStateHandler<T, M> instance)
             {
                 throw new InvalidOperationException($"Failed to create instance of {type.FullName} with module argument.");
             }
@@ -60,23 +62,24 @@ public class StateMachine<T, M>
         CurrentHandler.Enter();
     }
 
-    public virtual void Update()
+
+    public void Update()
     {
         if (!ShouldUpdate())
         {
             return;
         }
 
-        var transition = CurrentHandler.Handle();
-        if (transition == null || State.Equals(transition.Value))
+        if (!CurrentHandler.Handle())
         {
             return;
         }
 
-        Logger.Debug($"Updating state from '{State.GetType().Name}.{State}' to '{State.GetType().Name}.{transition.Value}'");
-
         CurrentHandler.Exit();
-        State = transition.Value;
+        State = Handlers
+            .OrderByDescending(handler => handler.Value.GetScore())
+            .Select(handler => handler.Key)
+            .First();
         CurrentHandler.Enter();
     }
 
@@ -92,7 +95,7 @@ public class StateMachine<T, M>
     }
 
     public bool TryGetCurrentHandler<THandler>(out THandler handler)
-        where THandler : StateHandler<T, M>
+        where THandler : ScoreStateHandler<T, M>
     {
         if (CurrentHandler is THandler typed)
         {
