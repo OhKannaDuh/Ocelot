@@ -88,17 +88,34 @@ public class Prowl(Vector3 destination)
     public Func<Chain.Chain> GetChain(VNavmesh vnavmesh)
     {
         return () => Chain.Chain.Create($"Prowl({Start:f2}, {Destination:f2})")
+            .Debug("Waiting for vnavmesh not to be running")
             .Then(_ => !vnavmesh.IsRunning())
+            .Debug("Running preprocessor")
             .Then(_ => PreProcessor.Invoke(this))
+            .Debug("Starting pathfinding task")
             .Then(_ => pathfindingTask = vnavmesh.Pathfind(Start, Destination, ShouldFly(this)))
             .Then(_ => State = ProwlState.Pathfinding)
             .BreakIf(() => pathfindingTask == null)
+            .Debug("Waiting for pathfinding to be done")
             .Then(_ => !vnavmesh.IsRunning() && pathfindingTask!.IsCompleted)
+            .Then(_ => {
+                if (pathfindingTask!.IsCanceled)
+                {
+                    Logger.Debug("Pathfinding task cancelled");
+                }
+
+                if (pathfindingTask.IsFaulted)
+                {
+                    Logger.Debug("Pathfinding task faulted");
+                }
+            })
             .BreakIf(() => pathfindingTask!.IsCanceled || pathfindingTask!.IsFaulted)
+            .Debug("Getting pathfinding result")
             .Then(_ => {
                 OriginalNodes = new List<Vector3>(pathfindingTask!.Result);
                 Nodes = new List<Vector3>(pathfindingTask!.Result);
             })
+            .Debug("Running postprocessor")
             .Then(_ => PostProcessor.Invoke(this))
             .ConditionalThen(_ => ShouldMount(this) && !Player.Mounted, _ => {
                 State = ProwlState.Mounting;
@@ -114,6 +131,7 @@ public class Prowl(Vector3 destination)
             })
             .Then(_ => !ShouldMount(this) || Player.Mounted)
             .ConditionalThen(_ => !ShouldFly(this) && ShouldSprint(this) && !Player.Mounted, _ => Actions.Sprint.Cast())
+            .Debug("Following Path")
             .Then(_ => vnavmesh.MoveTo(Nodes, ShouldFly(this)))
             .Then(_ => State = ProwlState.Moving)
             .Then(_ => !vnavmesh.IsRunning() || Watcher.Invoke(this))

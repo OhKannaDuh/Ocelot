@@ -1,6 +1,6 @@
 ﻿namespace Ocelot.Gameplay;
 
-public class Currency(uint id, uint max = 0) : Item(id, max)
+public class Currency(uint id) : Item(id)
 {
     public override void Use() { }
 }

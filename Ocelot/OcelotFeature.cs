@@ -16,6 +16,7 @@ public enum OcelotFeature
     IPC,
 
     Prowler,
+
     ChainManager,
 }
 

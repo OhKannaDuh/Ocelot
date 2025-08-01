@@ -7,7 +7,7 @@ using ItemData = Lumina.Excel.Sheets.Item;
 
 namespace Ocelot.Gameplay;
 
-public unsafe class Item(uint id, uint max = 0)
+public unsafe class Item(uint id)
 {
     public readonly ItemData Data = Svc.Data.GetExcelSheet<ItemData>().GetRow(id);
 
