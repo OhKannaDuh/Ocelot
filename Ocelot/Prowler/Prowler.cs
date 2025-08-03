@@ -8,8 +8,12 @@ public class Prowler
 {
     private static Prowler? CachedInstance = null;
 
-    private static Prowler Instance {
-        get {
+    public static Prowl? Current;
+
+    private static Prowler Instance
+    {
+        get
+        {
             if (CachedInstance == null)
             {
                 throw new InvalidOperationException("Prowler has not been initialized. Call Initialize(plugin) first.");
@@ -21,15 +25,18 @@ public class Prowler
 
     private readonly OcelotPlugin plugin;
 
-    private VNavmesh Vnavmesh {
+    private VNavmesh Vnavmesh
+    {
         get => Instance.plugin.IPC.GetProvider<VNavmesh>();
     }
 
-    private ChainQueue Chain {
+    private ChainQueue Chain
+    {
         get => ChainManager.Get("Ocelot.Prowler.Prowler.ChainQueue");
     }
 
-    public static bool IsRunning {
+    public static bool IsRunning
+    {
         get => Instance.Chain.IsRunning || Instance.Vnavmesh.IsRunning() || Instance.Vnavmesh.IsPathfinding();
     }
 
@@ -45,7 +52,11 @@ public class Prowler
 
     public static void Prowl(Prowl prowl)
     {
-        Instance.Chain.Submit(prowl.GetChain(Instance.Vnavmesh));
+        Instance.Chain.Submit(chain => chain
+            .Then(_ => Current = prowl)
+            .Then(prowl.GetChain(Instance.Vnavmesh))
+            .OnFinally(() => Current = null)
+        );
     }
 
     public static void Abort()

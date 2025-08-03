@@ -19,8 +19,10 @@ public class ScoreStateMachine<T, M>
 
     protected readonly M Module;
 
-    protected ScoreStateHandler<T, M> CurrentHandler {
-        get {
+    protected ScoreStateHandler<T, M> CurrentHandler
+    {
+        get
+        {
             if (Handlers.TryGetValue(State, out var handler))
             {
                 return handler;

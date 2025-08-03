@@ -2,5 +2,7 @@
 
 public class Items
 {
-    protected Items() { }
+    protected Items()
+    {
+    }
 }

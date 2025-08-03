@@ -9,7 +9,8 @@ public class IPCManager
 {
     private readonly List<IPCSubscriber> subscribers = new();
 
-    public IReadOnlyList<IPCSubscriber> Subscribers {
+    public IReadOnlyList<IPCSubscriber> Subscribers
+    {
         get => subscribers;
     }
 

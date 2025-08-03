@@ -12,7 +12,8 @@ public static class ChainAddon
 {
     private static unsafe TaskManagerTask AddonCallback(string addonName, bool updateState = true, params object[] callbackValues)
     {
-        return new TaskManagerTask(() => {
+        return new TaskManagerTask(() =>
+        {
             if (EzThrottler.Throttle($"ChainAddon.AddonCallback({addonName}, {updateState}, {string.Join(", ", callbackValues)})"))
             {
                 var addonPtr = Svc.GameGui.GetAddonByName(addonName);
@@ -40,7 +41,8 @@ public static class ChainAddon
 
     private static unsafe TaskManagerTask WaitForAddonReady(string addonName, int timeout = 3000)
     {
-        return new TaskManagerTask(() => {
+        return new TaskManagerTask(() =>
+        {
             if (EzThrottler.Throttle($"ChainAddon.WaitForAddon({addonName})"))
             {
                 var addonPtr = Svc.GameGui.GetAddonByName(addonName);
@@ -62,7 +64,8 @@ public static class ChainAddon
 
     private static unsafe TaskManagerTask WaitForAddonNotReady(string addonName, int timeout = 3000)
     {
-        return new TaskManagerTask(() => {
+        return new TaskManagerTask(() =>
+        {
             if (EzThrottler.Throttle($"ChainAddon.WaitForAddon({addonName})"))
             {
                 var addonPtr = Svc.GameGui.GetAddonByName(addonName);

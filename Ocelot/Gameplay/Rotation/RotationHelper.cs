@@ -7,7 +7,8 @@ namespace Ocelot.Gameplay.Rotation;
 
 public static class RotationHelper
 {
-    private static readonly Dictionary<string, Func<IModule, IRotationPlugin>> RotationPlugins = new() {
+    private readonly static Dictionary<string, Func<IModule, IRotationPlugin>> RotationPlugins = new()
+    {
         { "WrathCombo", m => new Wrath(m) },
     };
 

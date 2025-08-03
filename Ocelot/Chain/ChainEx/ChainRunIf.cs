@@ -6,7 +6,8 @@ public static class ChainRunIf
 {
     public static Chain RunIf(this Chain chain, Func<bool> predicate)
     {
-        return chain.Then(context => {
+        return chain.Then(context =>
+        {
             if (!predicate())
             {
                 Logger.Debug("Cancelling Chain");
@@ -17,7 +18,8 @@ public static class ChainRunIf
 
     public static Chain BreakIf(this Chain chain, Func<bool> predicate)
     {
-        return chain.Then(context => {
+        return chain.Then(context =>
+        {
             if (predicate())
             {
                 Logger.Debug("Cancelling Chain");

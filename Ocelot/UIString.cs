@@ -32,7 +32,9 @@ public class UITextComponent(string text, Vector4 color, ImFontPtr font) : UIStr
     }
 
     public UITextComponent(string text, Vector4 color)
-        : this(text, color, UiBuilder.DefaultFont) { }
+        : this(text, color, UiBuilder.DefaultFont)
+    {
+    }
 
     public UITextComponent(string text, ImFontPtr font)
         : this(text, Vector4.Zero, font)
@@ -109,7 +111,9 @@ public class UIString
 {
     public readonly List<UIStringComponent> Components = [];
 
-    public UIString() { }
+    public UIString()
+    {
+    }
 
     public UIString(IEnumerable<UIStringComponent> components)
     {
@@ -119,8 +123,16 @@ public class UIString
     public static UIString Text(string text, Vector4? color = null, ImFontPtr? font = null)
     {
         var comp = new UITextComponent(text);
-        if (color is { } c) comp.WithColor(c);
-        if (font is { } f) comp.WithFont(f);
+        if (color is { } c)
+        {
+            comp.WithColor(c);
+        }
+
+        if (font is { } f)
+        {
+            comp.WithFont(f);
+        }
+
         return new UIString().Add(comp);
     }
 
@@ -165,7 +177,8 @@ public class UIString
         return Add(new UIImageComponent(iconId));
     }
 
-    public float Width {
+    public float Width
+    {
         get => Components.Count == 0 ? 0 : Components.Sum(c => c.GetWidth()) + ImGui.GetStyle().ItemSpacing.X * (Components.Count - 1);
     }
 
@@ -175,10 +188,14 @@ public class UIString
         for (var i = 0; i < Components.Count; i++)
         {
             if (Components[i].Render())
+            {
                 hovered = true;
+            }
 
             if (i < Components.Count - 1)
+            {
                 ImGui.SameLine();
+            }
         }
 
         return hovered ? UIState.Hovered : UIState.None;

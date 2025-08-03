@@ -9,7 +9,8 @@ public static class ChainStatus
 {
     private static TaskManagerTask WaitUntilStatus(uint status, int timeout = 5000, int interval = 50)
     {
-        return new TaskManagerTask(() => {
+        return new TaskManagerTask(() =>
+        {
             if (EzThrottler.Throttle($"ChainStatus.WaitUntilStatus({status})", interval))
             {
                 return Svc.ClientState.LocalPlayer?.StatusList.Any(s => s.StatusId == status) == true;
@@ -28,7 +29,8 @@ public static class ChainStatus
 
     private static TaskManagerTask WaitUntilNotStatus(uint status, int timeout = 5000, int interval = 50)
     {
-        return new TaskManagerTask(() => {
+        return new TaskManagerTask(() =>
+        {
             if (EzThrottler.Throttle($"ChainStatus.WaitUntilNotStatus({status})", interval))
             {
                 return Svc.ClientState.LocalPlayer?.StatusList.Any(s => s.StatusId == status) == false;

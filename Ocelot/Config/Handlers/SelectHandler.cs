@@ -13,7 +13,8 @@ namespace Ocelot.Config.Handlers;
 public abstract class SelectHandler<T>(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop) : Handler(self, attribute, prop)
     where T : notnull
 {
-    protected override Type type {
+    protected override Type type
+    {
         get => typeof(T);
     }
 

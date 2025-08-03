@@ -29,10 +29,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public readonly IPCManager IPC = new();
 
-    private List<OcelotFeature> enabledFeatures = [];
-
-    private Dictionary<string, bool> PluginList = [];
-
+    private Dictionary<string, bool> pluginList = [];
 
     public RenderContext? RenderContext { get; private set; } = null;
 
@@ -52,7 +49,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
                 key = $"{key}.Dev";
             }
 
-            PluginList[key] = p.IsLoaded;
+            pluginList[key] = p.IsLoaded;
         }
     }
 
@@ -175,7 +172,9 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             PictoService.GetDrawList().Dispose();
         }
-        catch (InvalidOperationException) { }
+        catch (InvalidOperationException)
+        {
+        }
     }
 
     private void PluginCheckup()
@@ -193,25 +192,25 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
             currentPluginList.Add(key, p.IsLoaded);
 
-            if (!PluginList.TryGetValue(key, out var value) || value != p.IsLoaded)
+            if (!pluginList.TryGetValue(key, out var value) || value != p.IsLoaded)
             {
                 isDirty = true;
             }
         }
 
-        if (currentPluginList.Count != PluginList.Count)
+        if (currentPluginList.Count != pluginList.Count)
         {
             isDirty = true;
         }
 
-        PluginList = currentPluginList;
+        pluginList = currentPluginList;
 
         if (!isDirty)
         {
             return;
         }
 
-        if (enabledFeatures.ContainsAny(OcelotFeature.IPC, OcelotFeature.All))
+        if (OcelotFeature.IPC.IsEnabled())
         {
             IPC.Initialize();
         }

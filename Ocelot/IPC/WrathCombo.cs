@@ -5,17 +5,13 @@ namespace Ocelot.IPC;
 
 public class WrathCombo() : IPCSubscriber("WrathCombo")
 {
-    [EzIPC]
-    public readonly Func<string, string, Guid?> RegisterForLease = null!;
+    [EzIPC] public readonly Func<string, string, Guid?> RegisterForLease = null!;
 
-    [EzIPC]
-    public readonly Action<Guid> ReleaseControl = null!;
+    [EzIPC] public readonly Action<Guid> ReleaseControl = null!;
 
-    [EzIPC]
-    public readonly Func<Guid, AutoRotationConfigOption, object, SetResult> SetAutoRotationConfigState = null!;
+    [EzIPC] public readonly Func<Guid, AutoRotationConfigOption, object, SetResult> SetAutoRotationConfigState = null!;
 
-    [EzIPC]
-    public readonly Func<Guid, string, bool, SetResult> SetComboOptionState = null!;
+    [EzIPC] public readonly Func<Guid, string, bool, SetResult> SetComboOptionState = null!;
 
 
     // These enums have been copied from Wrath

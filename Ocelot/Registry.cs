@@ -10,9 +10,9 @@ namespace Ocelot;
 
 public static class Registry
 {
-    private static readonly HashSet<Assembly> RegisteredAssemblies = new();
+    private readonly static HashSet<Assembly> RegisteredAssemblies = new();
 
-    private static readonly List<Type> CachedTypes = new();
+    private readonly static List<Type> CachedTypes = new();
 
     public static void RegisterAssemblies(params Assembly[] assemblies)
     {
@@ -39,7 +39,9 @@ public static class Registry
 
                     CachedTypes.AddRange(types.Where(t => t != null));
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
     }
@@ -73,8 +75,8 @@ public static class Registry
     {
         return GetAllLoadableTypes()
             .Where(t =>
-                       (typeof(StateHandler<T, M>).IsAssignableFrom(t) || typeof(ScoreStateHandler<T, M>).IsAssignableFrom(t)) &&
-                       !t.IsAbstract &&
-                       t.GetCustomAttribute<StateAttribute<T>>() is not null);
+                (typeof(StateHandler<T, M>).IsAssignableFrom(t) || typeof(ScoreStateHandler<T, M>).IsAssignableFrom(t)) &&
+                !t.IsAbstract &&
+                t.GetCustomAttribute<StateAttribute<T>>() is not null);
     }
 }

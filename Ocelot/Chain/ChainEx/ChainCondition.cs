@@ -9,7 +9,8 @@ public static class ChainCondition
 {
     private static TaskManagerTask WaitUntilCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
     {
-        return new TaskManagerTask(() => {
+        return new TaskManagerTask(() =>
+        {
             if (EzThrottler.Throttle($"ChainCondition.WaitUntilCondition({flag})", interval))
             {
                 return Svc.Condition[flag];
@@ -29,7 +30,8 @@ public static class ChainCondition
 
     private static TaskManagerTask WaitUntilNotCondition(ConditionFlag flag, int timeout = 5000, int interval = 250)
     {
-        return new TaskManagerTask(() => {
+        return new TaskManagerTask(() =>
+        {
             if (EzThrottler.Throttle($"ChainCondition.WaitUntilNotCondition({flag})", interval))
             {
                 return !Svc.Condition[flag];

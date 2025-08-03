@@ -6,7 +6,8 @@ public class ChainContext
 {
     public CancellationTokenSource source { get; } = new();
 
-    public CancellationToken token {
+    public CancellationToken token
+    {
         get => source.Token;
     }
 }

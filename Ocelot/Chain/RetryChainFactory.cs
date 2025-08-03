@@ -13,7 +13,8 @@ public abstract class RetryChainFactory : ChainFactory
         var name = GetType().Name;
 
         return () => Chain.Create(name)
-            .Then(new TaskManagerTask(() => {
+            .Then(new TaskManagerTask(() =>
+            {
                 if (IsComplete())
                 {
                     return true;
@@ -59,7 +60,8 @@ public abstract class RetryChainFactory : ChainFactory
 
     public override TaskManagerConfiguration? Config()
     {
-        return new TaskManagerConfiguration {
+        return new TaskManagerConfiguration
+        {
             TimeLimitMS = int.MaxValue,
         };
     }

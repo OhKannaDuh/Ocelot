@@ -1,4 +1,6 @@
 ﻿using System;
+using ImGuiNET;
+using Ocelot.Windows;
 
 namespace Ocelot.Gameplay;
 
@@ -51,5 +53,19 @@ public class ItemTracker
         }
 
         return MathF.Round(gained / elapsed, 2);
+    }
+
+    public void Render(RenderContext context)
+    {
+        Item.Render(context);
+
+        var delta = GetGainPerHour();
+        if (delta <= 0f)
+        {
+            return;
+        }
+
+        ImGui.SameLine();
+        ImGui.TextUnformatted($"({delta:f2} p/h)");
     }
 }

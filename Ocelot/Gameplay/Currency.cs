@@ -2,5 +2,7 @@
 
 public class Currency(uint id) : Item(id)
 {
-    public override void Use() { }
+    public override void Use()
+    {
+    }
 }

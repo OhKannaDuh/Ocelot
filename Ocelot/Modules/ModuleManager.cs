@@ -15,15 +15,18 @@ public class ModuleManager
 
     private readonly Dictionary<IModule, int> mainOrders = new();
 
-    private List<IModule> ToUpdate {
+    private List<IModule> ToUpdate
+    {
         get => modules.Where(m => m is { ShouldUpdate: true, HasRequiredIPCs: true }).ToList();
     }
 
-    private List<IModule> ToRender {
+    private List<IModule> ToRender
+    {
         get => modules.Where(m => m is { ShouldRender: true, HasRequiredIPCs: true }).ToList();
     }
 
-    private List<IModule> ToInitialize {
+    private List<IModule> ToInitialize
+    {
         get => modules.Where(m => m.ShouldInitialize).ToList();
     }
 
@@ -112,7 +115,8 @@ public class ModuleManager
         var orderedModules = GetModulesByMainOrder().ToList();
         foreach (var module in orderedModules)
         {
-            OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () => {
+            OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () =>
+            {
                 if (module.RenderMainUi(context))
                 {
                     OcelotUI.VSpace();

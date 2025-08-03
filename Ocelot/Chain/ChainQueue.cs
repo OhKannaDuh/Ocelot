@@ -86,7 +86,8 @@ public class ChainQueue : IDisposable
         }
     }
 
-    public Chain? CurrentChain {
+    public Chain? CurrentChain
+    {
         get => chain;
     }
 
@@ -97,6 +98,12 @@ public class ChainQueue : IDisposable
         if (chain != null && !chain.IsComplete())
         {
             return;
+        }
+
+        if (chain?.IsComplete() == true)
+        {
+            chain.Dispose();
+            chain = null;
         }
 
         lock (chains)
@@ -113,12 +120,15 @@ public class ChainQueue : IDisposable
         }
     }
 
-    public bool IsRunning {
+    public bool IsRunning
+    {
         get => chain != null && !chain.IsComplete();
     }
 
-    public int QueueCount {
-        get {
+    public int QueueCount
+    {
+        get
+        {
             lock (chains)
             {
                 return chains.Count;
@@ -131,6 +141,8 @@ public class ChainQueue : IDisposable
         if (chain != null)
         {
             chain.Abort();
+            chain.Dispose();
+            chain = null;
         }
 
         Clear();

@@ -7,20 +7,23 @@ namespace Ocelot.Gameplay;
 
 public static class TankHelper
 {
-    public static readonly Paladin Paladin = new();
+    public readonly static Paladin Paladin = new();
 
-    public static readonly Warrior Warrior = new();
+    public readonly static Warrior Warrior = new();
 
-    public static readonly DarkKnight DarkKnight = new();
+    public readonly static DarkKnight DarkKnight = new();
 
-    public static readonly Gunbreaker Gunbreaker = new();
+    public readonly static Gunbreaker Gunbreaker = new();
 
-    public static bool IsTank {
+    public static bool IsTank
+    {
         get => Current != null;
     }
 
-    public static ITank? Current {
-        get => Player.Job.GetData().RowId switch {
+    public static ITank? Current
+    {
+        get => Player.Job.GetData().RowId switch
+        {
             1 or 19 => Paladin,
             3 or 21 => Warrior,
             32 => DarkKnight,

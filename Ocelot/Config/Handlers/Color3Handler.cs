@@ -9,7 +9,8 @@ namespace Ocelot.Config.Handlers;
 
 public class Color3Handler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop) : Handler(self, attribute, prop)
 {
-    protected override Type type {
+    protected override Type type
+    {
         get => typeof(Vector3);
     }
 

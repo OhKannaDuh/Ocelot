@@ -35,7 +35,6 @@ public unsafe class Item(uint id)
         }
     }
 
-
     public void Render(RenderContext context)
     {
         var value = $"{Count()}";
@@ -45,5 +44,9 @@ public unsafe class Item(uint id)
         }
 
         OcelotUI.LabelledValue(Data.Plural.ExtractText().ToTitleCase(), value);
+        if (Data.StackSize > 0 && Data.StackSize % 1000 != 999)
+        {
+            OcelotUI.ProgressBar(Count() / (float)Data.StackSize);
+        }
     }
 }

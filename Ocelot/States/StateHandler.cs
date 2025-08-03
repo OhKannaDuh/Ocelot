@@ -3,7 +3,7 @@ using Ocelot.Modules;
 
 namespace Ocelot.States;
 
-public abstract class StateHandler<T, M>(M module)
+public abstract class StateHandler<T, M>(M module) : IDisposable
     where T : struct, Enum
     where M : IModule
 {
@@ -23,5 +23,11 @@ public abstract class StateHandler<T, M>(M module)
     public virtual void Exit()
     {
         OnExit?.Invoke(Module);
+    }
+
+    public virtual void Dispose()
+    {
+        OnEnter = null;
+        OnExit = null;
     }
 }

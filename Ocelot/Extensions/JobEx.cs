@@ -8,7 +8,7 @@ namespace Ocelot.Extensions;
 
 public static class JobEx
 {
-    private static readonly Dictionary<uint, ClassJob?> Data = [];
+    private readonly static Dictionary<uint, ClassJob?> Data = [];
 
     private static ClassJob? GetData(this Job job)
     {

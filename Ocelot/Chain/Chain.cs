@@ -1,11 +1,12 @@
 using System;
+using System.Threading;
 using Dalamud.Plugin.Services;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.DalamudServices;
 
 namespace Ocelot.Chain;
 
-public class Chain
+public class Chain : IDisposable
 {
     private readonly TaskManager tasks;
 
@@ -13,11 +14,18 @@ public class Chain
 
     public readonly string Name;
 
-    public float Progress {
+    public float Progress
+    {
         get => tasks.Progress;
     }
 
-    private Action<ChainContext> OnCancelCallback = _ => { };
+    private event Action? OnCancelCallback;
+
+    private event Action? OnCompleteCallback;
+
+    private event Action? OnFinallyCallback;
+
+    private bool hasTriggeredClosingTasks;
 
     private Chain(string name, TaskManagerConfiguration? defaultConfiguration = null)
     {
@@ -25,7 +33,8 @@ public class Chain
 
         if (defaultConfiguration == null)
         {
-            defaultConfiguration = new TaskManagerConfiguration {
+            defaultConfiguration = new TaskManagerConfiguration
+            {
                 TimeLimitMS = int.MaxValue,
             };
         }
@@ -49,11 +58,20 @@ public class Chain
 
     private void Tick(IFramework _)
     {
-        if (context.token.IsCancellationRequested && !IsComplete())
+        if (context.token.IsCancellationRequested && !IsMainComplete() && !hasTriggeredClosingTasks)
         {
             Logger.Debug($"Chain [{Name}] was cancelled.");
             tasks.Abort();
-            tasks.Enqueue(() => OnCancelCallback(context));
+
+            hasTriggeredClosingTasks = true;
+            tasks.Enqueue(() => OnCancelCallback?.Invoke());
+            tasks.Enqueue(() => OnFinallyCallback?.Invoke());
+        }
+        else if (IsMainComplete() && !hasTriggeredClosingTasks)
+        {
+            hasTriggeredClosingTasks = true;
+            tasks.Enqueue(() => OnCompleteCallback?.Invoke());
+            tasks.Enqueue(() => OnFinallyCallback?.Invoke());
         }
     }
 
@@ -65,7 +83,8 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, Action<ChainContext> action)
     {
-        tasks.Enqueue(() => {
+        tasks.Enqueue(() =>
+        {
             if (condition(context))
             {
                 tasks.Insert(() => action(context));
@@ -89,7 +108,8 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, TaskManagerTask task)
     {
-        tasks.Enqueue(() => {
+        tasks.Enqueue(() =>
+        {
             if (condition(context))
             {
                 tasks.InsertMulti(task);
@@ -102,7 +122,8 @@ public class Chain
     public Chain Then(Func<Chain> factory, TaskManagerConfiguration? config = null)
     {
         Chain? chain = null;
-        return Then(new TaskManagerTask(() => {
+        return Then(new TaskManagerTask(() =>
+        {
             if (chain == null)
             {
                 chain = factory();
@@ -115,7 +136,8 @@ public class Chain
 
     public Chain ConditionalThen(Func<ChainContext, bool> condition, Func<Chain> factory, TaskManagerConfiguration? config = null)
     {
-        tasks.Enqueue(() => {
+        tasks.Enqueue(() =>
+        {
             if (condition(context))
             {
                 var chain = factory();
@@ -144,7 +166,8 @@ public class Chain
 
     public Chain ConditionalWait(Func<ChainContext, bool> condition, int delay)
     {
-        tasks.Enqueue(() => {
+        tasks.Enqueue(() =>
+        {
             if (condition(context))
             {
                 tasks.InsertDelay(delay);
@@ -186,17 +209,49 @@ public class Chain
 
     public void Abort()
     {
+        Svc.Log.Info($"Aborting chain [{Name}]");
         tasks.Abort();
+
+        Dispose();
     }
 
-    public bool IsComplete()
+    public bool IsMainComplete()
     {
         return tasks is { IsBusy: false, NumQueuedTasks: 0 };
     }
 
-    public Chain OnCancel(Action<ChainContext> callback)
+    public bool IsComplete()
     {
-        OnCancelCallback = callback;
+        return IsMainComplete() && hasTriggeredClosingTasks;
+    }
+
+    public Chain OnCancel(Action callback)
+    {
+        OnCancelCallback += callback;
         return this;
+    }
+
+    public Chain OnComplete(Action callback)
+    {
+        OnCompleteCallback += callback;
+        return this;
+    }
+
+    public Chain OnFinally(Action callback)
+    {
+        OnFinallyCallback += callback;
+        return this;
+    }
+
+    public void Dispose()
+    {
+        Svc.Log.Info($"Disposing chain [{Name}]");
+        tasks.Dispose();
+
+        OnCancelCallback = null;
+        OnCompleteCallback = null;
+        OnFinallyCallback = null;
+
+        Svc.Framework.Update -= Tick;
     }
 }

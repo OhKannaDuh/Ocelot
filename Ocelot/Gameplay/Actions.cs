@@ -4,7 +4,9 @@ namespace Ocelot.Gameplay;
 
 public partial class Actions
 {
-    protected Actions() { }
+    protected Actions()
+    {
+    }
 
     public static Action Sprint { get; private set; } = new(ActionType.GeneralAction, 4);
 

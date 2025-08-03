@@ -5,7 +5,7 @@ using Ocelot.Modules;
 
 namespace Ocelot.States;
 
-public class StateMachine<T, M>
+public class StateMachine<T, M> : IDisposable
     where T : struct, Enum
     where M : IModule
 {
@@ -17,8 +17,10 @@ public class StateMachine<T, M>
 
     protected readonly M Module;
 
-    protected StateHandler<T, M> CurrentHandler {
-        get {
+    protected StateHandler<T, M> CurrentHandler
+    {
+        get
+        {
             if (Handlers.TryGetValue(State, out var handler))
             {
                 return handler;
@@ -102,5 +104,19 @@ public class StateMachine<T, M>
 
         handler = null!;
         return false;
+    }
+
+    public virtual void Dispose()
+    {
+        foreach (var handler in Handlers.Values)
+        {
+            handler.Exit();
+            if (handler is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+
+        Handlers.Clear();
     }
 }

@@ -10,12 +10,15 @@ namespace Ocelot.Config.Handlers;
 
 public class IntRangeHandler : Handler
 {
-    protected override Type type {
+    protected override Type type
+    {
         get => typeof(int);
     }
 
     public IntRangeHandler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop)
-        : base(self, attribute, prop) { }
+        : base(self, attribute, prop)
+    {
+    }
 
     protected override (bool handled, bool changed) RenderComponent(RenderContext payload)
     {

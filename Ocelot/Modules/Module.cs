@@ -22,35 +22,47 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
 
     private List<string> _missingIPCs = [];
 
-    public IReadOnlyList<string> MissingIPCs {
+    public IReadOnlyList<string> MissingIPCs
+    {
         get => _missingIPCs.AsReadOnly();
     }
 
-    public virtual bool IsEnabled {
+    public virtual bool IsEnabled
+    {
         get => true;
     }
 
-    public virtual bool ShouldUpdate {
+    public virtual bool ShouldUpdate
+    {
         get => IsEnabled;
     }
 
-    public virtual bool ShouldRender {
+    public virtual bool ShouldRender
+    {
         get => IsEnabled;
     }
 
-    public virtual bool ShouldInitialize {
+    public virtual bool ShouldInitialize
+    {
         get => IsEnabled;
     }
 
-    public virtual ModuleConfig? Config {
+    public virtual ModuleConfig? Config
+    {
         get => null;
     }
 
-    public virtual void PreInitialize() { }
+    public virtual void PreInitialize()
+    {
+    }
 
-    public virtual void Initialize() { }
+    public virtual void Initialize()
+    {
+    }
 
-    public virtual void PostInitialize() { }
+    public virtual void PostInitialize()
+    {
+    }
 
     public virtual void InjectModules()
     {
@@ -175,13 +187,21 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
         }
     }
 
-    public virtual void PreUpdate(UpdateContext context) { }
+    public virtual void PreUpdate(UpdateContext context)
+    {
+    }
 
-    public virtual void Update(UpdateContext context) { }
+    public virtual void Update(UpdateContext context)
+    {
+    }
 
-    public virtual void PostUpdate(UpdateContext context) { }
+    public virtual void PostUpdate(UpdateContext context)
+    {
+    }
 
-    public virtual void Render(RenderContext context) { }
+    public virtual void Render(RenderContext context)
+    {
+    }
 
     public virtual bool RenderMainUi(RenderContext context)
     {
@@ -196,11 +216,17 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
         }
     }
 
-    public virtual void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled) { }
+    public virtual void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled)
+    {
+    }
 
-    public virtual void OnTerritoryChanged(ushort id) { }
+    public virtual void OnTerritoryChanged(ushort id)
+    {
+    }
 
-    public virtual void Dispose() { }
+    public virtual void Dispose()
+    {
+    }
 
     public void Debug(string log)
     {
@@ -237,7 +263,7 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
         string ToSnakeCase(string input)
         {
             return string.Concat(input.Select((x, i) =>
-                                                  i > 0 && char.IsUpper(x) ? "_" + x : x.ToString())).ToLower();
+                i > 0 && char.IsUpper(x) ? "_" + x : x.ToString())).ToLower();
         }
 
         var module = ToSnakeCase(GetType().Name).Replace("_module", "");
@@ -258,7 +284,8 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
 
     // Accessors for OcelotPlugin managers
     // Modules
-    public ModuleManager modules {
+    public ModuleManager modules
+    {
         get => Plugin.Modules;
     }
 
@@ -281,7 +308,8 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
     }
 
     // IPC
-    public IPCManager ipc {
+    public IPCManager ipc
+    {
         get => Plugin.IPC;
     }
 
@@ -296,7 +324,8 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
     }
 
     // Windows
-    public WindowManager windows {
+    public WindowManager windows
+    {
         get => Plugin.Windows;
     }
 
