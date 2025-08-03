@@ -25,7 +25,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         get => Svc.PluginInterface.Manifest.AssemblyVersion.ToString();
     }
 
-    public const string OcelotVersion = "0.57.0";
+    public const string OcelotVersion = "0.57.1";
 
     public abstract IOcelotConfig OcelotConfig { get; }
 
