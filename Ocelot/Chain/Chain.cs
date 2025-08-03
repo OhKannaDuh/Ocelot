@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using Dalamud.Plugin.Services;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.DalamudServices;
@@ -19,6 +18,16 @@ public class Chain : IDisposable
         get => tasks.Progress;
     }
 
+    public int TotalLinks
+    {
+        get => tasks.MaxTasks;
+    }
+
+    public int CompletedLinks
+    {
+        get => TotalLinks - tasks.NumQueuedTasks;
+    }
+
     private event Action? OnCancelCallback;
 
     private event Action? OnCompleteCallback;
@@ -26,6 +35,13 @@ public class Chain : IDisposable
     private event Action? OnFinallyCallback;
 
     private bool hasTriggeredClosingTasks;
+    
+    private DateTime createdAt { get; } = DateTime.UtcNow;
+    
+    public TimeSpan TimeAlive
+    {
+        get => DateTime.UtcNow - createdAt;
+    }
 
     private Chain(string name, TaskManagerConfiguration? defaultConfiguration = null)
     {

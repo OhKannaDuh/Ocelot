@@ -5,16 +5,16 @@ namespace Ocelot.IPC;
 
 public abstract class IPCSubscriber
 {
-    protected readonly string identifier;
+    protected readonly string Identifier;
 
-    public IPCSubscriber(string identifier)
+    protected IPCSubscriber(string identifier)
     {
-        this.identifier = identifier;
+        Identifier = identifier;
         EzIPC.Init(this, identifier);
     }
 
     public bool IsReady()
     {
-        return DalamudReflector.TryGetDalamudPlugin(identifier, out _, false, true);
+        return DalamudReflector.TryGetDalamudPlugin(Identifier, out _, false, true);
     }
 }

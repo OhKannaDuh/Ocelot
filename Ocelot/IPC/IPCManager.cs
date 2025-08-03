@@ -5,27 +5,34 @@ using Ocelot.Modules;
 
 namespace Ocelot.IPC;
 
-public class IPCManager
+public class IPCManager : IDisposable
 {
-    private readonly List<IPCSubscriber> subscribers = new();
+    private readonly List<IPCSubscriber> subscribers = [];
 
     public IReadOnlyList<IPCSubscriber> Subscribers
     {
         get => subscribers;
     }
 
-    private readonly List<object> providers = new();
+    private readonly List<object> providers = [];
+
+    public IReadOnlyList<object> Providers
+    {
+        get => providers;
+    }
 
     public void Initialize()
     {
         foreach (var type in Registry.GetTypesImplementing<IPCSubscriber>())
         {
             var ctor = type.GetConstructor(Type.EmptyTypes);
-            if (ctor != null && Activator.CreateInstance(type) is IPCSubscriber instance)
+            if (ctor == null || Activator.CreateInstance(type) is not IPCSubscriber instance)
             {
-                Logger.Info($"Registered IPCProvider: {type.FullName}");
-                subscribers.Add(instance);
+                continue;
             }
+
+            Logger.Info($"Registered IPCSubscriber: {type.FullName}");
+            subscribers.Add(instance);
         }
 
         foreach (var type in Registry.GetTypesWithAttribute<OcelotIPCAttribute>())
@@ -41,50 +48,61 @@ public class IPCManager
         }
     }
 
-    public IPCSubscriber GetProvider(Type type)
+    public void AddProvider(object provider)
     {
-        var provider = subscribers.FirstOrDefault(type.IsInstanceOfType);
-        if (provider == null)
-        {
-            throw new UnableToLoadIpcProviderException($"IPC provider of type {type.Name} was not found.");
-        }
-
-        if (!provider.IsReady())
-        {
-            throw new UnableToLoadIpcProviderException($"IPC provider of type {type.Name} was not ready.");
-        }
-
-        return provider;
+        providers.Add(provider);
     }
 
-    public T GetProvider<T>() where T : IPCSubscriber
+    public IPCSubscriber GetSubscriber(Type type)
     {
-        var provider = subscribers.OfType<T>().FirstOrDefault();
-        if (provider == null)
+        var subscriber = subscribers.FirstOrDefault(type.IsInstanceOfType);
+        if (subscriber == null)
         {
-            throw new UnableToLoadIpcProviderException($"IPC provider of type {typeof(T).Name} was not found.");
+            throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {type.Name} was not found.");
         }
 
-        if (!provider.IsReady())
+        if (!subscriber.IsReady())
         {
-            throw new UnableToLoadIpcProviderException($"IPC provider of type {typeof(T).Name} was not ready.");
+            throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {type.Name} was not ready.");
         }
 
-        return provider;
+        return subscriber;
     }
 
-    public bool TryGetProvider<T>(out T? provider) where T : IPCSubscriber
+    public T GetSubscriber<T>() where T : IPCSubscriber
+    {
+        var subscriber = subscribers.OfType<T>().FirstOrDefault();
+        if (subscriber == null)
+        {
+            throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {typeof(T).Name} was not found.");
+        }
+
+        if (!subscriber.IsReady())
+        {
+            throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {typeof(T).Name} was not ready.");
+        }
+
+        return subscriber;
+    }
+
+    public bool TryGetSubscriber<T>(out T? subscriber) where T : IPCSubscriber
     {
         try
         {
-            provider = GetProvider<T>();
-            return provider.IsReady();
+            subscriber = GetSubscriber<T>();
+            return subscriber.IsReady();
         }
-        catch (UnableToLoadIpcProviderException ex)
+        catch (UnableToLoadIpcSubscriberException ex)
         {
             Logger.Error(ex.Message);
-            provider = null;
+            subscriber = null;
             return false;
         }
+    }
+
+    public void Dispose()
+    {
+        providers.Clear();
+        subscribers.Clear();
     }
 }

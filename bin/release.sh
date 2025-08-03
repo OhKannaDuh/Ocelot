@@ -4,7 +4,7 @@ set -e
 
 # Usage check
 if [ $# -ne 2 ]; then
-  echo "Usage: ./publish.sh <api_key> <version>"
+  echo "Usage: ./release.sh <api_key> <version>"
   exit 1
 fi
 
@@ -28,6 +28,17 @@ else
     git add $CSPROJ_PATH
     git commit -m"Version: $VERSION"
   fi
+fi
+
+# Ensure OcelotVersion matches the input version
+echo "🔍 Ensuring OcelotVersion is \"$VERSION\" in $PLUGIN_CLASS_PATH..."
+if grep -q "public const string OcelotVersion = \"$VERSION\";" "$PLUGIN_CLASS_PATH"; then
+  echo "✅ OcelotVersion already correct"
+else
+  echo "✏️ Updating OcelotVersion in source..."
+  sed -i "s|public const string OcelotVersion = \".*\";|public const string OcelotVersion = \"$VERSION\";|" "$PLUGIN_CLASS_PATH"
+  git add $PLUGIN_CLASS_PATH
+  git commit -m"OcelotVersion: $VERSION"
 fi
 
 echo "🔧 Building project..."

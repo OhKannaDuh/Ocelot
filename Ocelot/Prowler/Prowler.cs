@@ -27,7 +27,7 @@ public class Prowler
 
     private VNavmesh Vnavmesh
     {
-        get => Instance.plugin.IPC.GetProvider<VNavmesh>();
+        get => Instance.plugin.IPC.GetSubscriber<VNavmesh>();
     }
 
     private ChainQueue Chain

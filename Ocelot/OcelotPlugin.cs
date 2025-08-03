@@ -8,6 +8,7 @@ using ECommons;
 using ECommons.DalamudServices;
 using Ocelot.Chain;
 using Ocelot.Commands;
+using Ocelot.Debug;
 using Ocelot.IPC;
 using Ocelot.Modules;
 using Ocelot.Windows;
@@ -18,6 +19,13 @@ namespace Ocelot;
 public abstract class OcelotPlugin : IDalamudPlugin
 {
     public abstract string Name { get; }
+
+    public virtual string Version
+    {
+        get => Svc.PluginInterface.Manifest.AssemblyVersion.ToString();
+    }
+
+    public const string OcelotVersion = "0.57.0";
 
     public abstract IOcelotConfig OcelotConfig { get; }
 
@@ -106,6 +114,11 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
 
         Svc.PluginInterface.UiBuilder.Draw += PostRender;
+    }
+
+    protected void InitializeDebug()
+    {
+        IPC.AddProvider(new DebugIPCProvider(this));
     }
 
     protected virtual bool ShouldUpdate()
@@ -226,6 +239,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
         Modules.Dispose();
         Windows.Dispose();
+        IPC.Dispose();
         Commands.Dispose();
         ChainManager.Close();
 

@@ -134,10 +134,10 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
 
             try
             {
-                var subscriber = Plugin.IPC.GetProvider(field.FieldType);
+                var subscriber = Plugin.IPC.GetSubscriber(field.FieldType);
                 field.SetValue(this, subscriber);
             }
-            catch (UnableToLoadIpcProviderException)
+            catch (UnableToLoadIpcSubscriberException)
             {
                 if (field.GetCustomAttribute<InjectIpcAttribute>()?.Required == false)
                 {
@@ -169,10 +169,10 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
 
             try
             {
-                var subscriber = Plugin.IPC.GetProvider(prop.PropertyType);
+                var subscriber = Plugin.IPC.GetSubscriber(prop.PropertyType);
                 prop.SetValue(this, subscriber);
             }
-            catch (UnableToLoadIpcProviderException)
+            catch (UnableToLoadIpcSubscriberException)
             {
                 if (prop.GetCustomAttribute<InjectIpcAttribute>()?.Required == false)
                 {
@@ -315,12 +315,12 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
 
     public T GetIPCSubscriber<T>() where T : IPCSubscriber
     {
-        return ipc.GetProvider<T>();
+        return ipc.GetSubscriber<T>();
     }
 
     public bool TryGetIPCSubscriber<T>(out T? provider) where T : IPCSubscriber
     {
-        return ipc.TryGetProvider(out provider);
+        return ipc.TryGetSubscriber(out provider);
     }
 
     // Windows

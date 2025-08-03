@@ -6,27 +6,27 @@ namespace Ocelot.Chain;
 
 public static class ChainManager
 {
-    private readonly static Dictionary<string, ChainQueue> Queues = [];
+    private readonly static Dictionary<string, ChainQueue> queues = [];
+
+    public static IReadOnlyDictionary<string, ChainQueue> Queues
+    {
+        get => queues;
+    }
 
     private static bool Initialized;
 
     public static ChainQueue Get(string id)
     {
-        lock (Queues)
+        lock (queues)
         {
-            if (!Queues.TryGetValue(id, out var queue))
+            if (!queues.TryGetValue(id, out var queue))
             {
                 queue = new ChainQueue();
-                Queues[id] = queue;
+                queues[id] = queue;
             }
 
             return queue;
         }
-    }
-
-    public static Dictionary<string, ChainQueue> Active()
-    {
-        return Queues;
     }
 
     internal static void Initialize()
@@ -43,20 +43,20 @@ public static class ChainManager
 
     private static void Tick(IFramework framework)
     {
-        lock (Queues)
+        lock (queues)
         {
             var toRemove = new List<string>();
 
-            foreach (var pair in Queues)
+            foreach (var pair in queues)
             {
                 var id = pair.Key;
                 var queue = pair.Value;
 
                 queue.Tick(framework);
 
-                if (queue is { IsRunning: false, QueueCount: 0, aliveTime: >= 1000 })
+                if (queue is { IsRunning: false, QueueCount: 0, TimeAlive.Seconds: >= 1 })
                 {
-                    if (queue.hasRun)
+                    if (queue.HasRun)
                     {
                         Logger.Debug($"Disposing ChainQueue '{id}' (inactive and empty)");
                     }
@@ -68,16 +68,16 @@ public static class ChainManager
 
             foreach (var id in toRemove)
             {
-                Queues.Remove(id);
+                queues.Remove(id);
             }
         }
     }
 
     public static void AbortAll()
     {
-        lock (Queues)
+        lock (queues)
         {
-            foreach (var queue in Queues.Values)
+            foreach (var queue in queues.Values)
             {
                 queue.Abort();
             }
@@ -90,14 +90,14 @@ public static class ChainManager
     {
         Svc.Framework.Update -= Tick;
 
-        lock (Queues)
+        lock (queues)
         {
-            foreach (var queue in Queues.Values)
+            foreach (var queue in queues.Values)
             {
                 queue.Dispose();
             }
 
-            Queues.Clear();
+            queues.Clear();
             Initialized = false;
         }
     }

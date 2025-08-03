@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Dalamud.Plugin.Services;
 using ECommons.Automation.NeoTaskManager;
+using ECommons.DalamudServices;
 
 namespace Ocelot.Chain;
 
@@ -10,14 +11,21 @@ public class ChainQueue : IDisposable
     private readonly LinkedList<Func<Chain>> chains = [];
 
     private Chain? chain = null;
+    
+    private DateTime createdAt { get; } = DateTime.UtcNow;
 
-    public bool hasRun { get; private set; } = false;
+    public bool HasRun { get; private set; } = false;
 
-    public int aliveTime { get; private set; } = 0;
+    public TimeSpan TimeAlive
+    {
+        get => DateTime.UtcNow - createdAt;
+    }
+    
+    public int ChainsCompleted { get; private set; } = 0;
 
     public void Submit(Func<Chain> factory)
     {
-        hasRun = true;
+        HasRun = true;
         lock (chains)
         {
             chains.AddLast(factory);
@@ -26,7 +34,7 @@ public class ChainQueue : IDisposable
 
     public void Submit(Func<Chain, Chain> factory)
     {
-        hasRun = true;
+        HasRun = true;
         lock (chains)
         {
             chains.AddLast(() => factory(Chain.Create()));
@@ -35,7 +43,7 @@ public class ChainQueue : IDisposable
 
     public void SubmitFront(Func<Chain> factory)
     {
-        hasRun = true;
+        HasRun = true;
         lock (chains)
         {
             chains.AddFirst(factory);
@@ -93,8 +101,6 @@ public class ChainQueue : IDisposable
 
     public void Tick(IFramework framework)
     {
-        aliveTime += framework.UpdateDelta.Milliseconds;
-
         if (chain != null && !chain.IsComplete())
         {
             return;
@@ -104,6 +110,7 @@ public class ChainQueue : IDisposable
         {
             chain.Dispose();
             chain = null;
+            ChainsCompleted++;
         }
 
         lock (chains)
