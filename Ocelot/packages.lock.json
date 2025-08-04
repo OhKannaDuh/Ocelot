@@ -27,6 +27,17 @@
           "Microsoft.Extensions.Primitives": "7.0.0"
         }
       },
+      "Pictomancy": {
+        "type": "Direct",
+        "requested": "[0.0.0, )",
+        "resolved": "0.0.0",
+        "contentHash": "yT8ak19FG+vhjBRIxjEiUIFzkVqY26PZ3WJ4SPWfuyHUjXnWxtCbhaKgDqzcBWkmNlp0YFpxDvi2FsxZ8Uc7kg==",
+        "dependencies": {
+          "SharpDX.D3DCompiler": "4.2.0",
+          "SharpDX.Direct2D1": "4.2.0",
+          "SharpDX.Direct3D11": "4.2.0"
+        }
+      },
       "Microsoft.Extensions.Primitives": {
         "type": "Transitive",
         "resolved": "7.0.0",
@@ -89,14 +100,6 @@
         "dependencies": {
           "NETStandard.Library": "1.6.1",
           "SharpDX": "4.2.0"
-        }
-      },
-      "pictomancy": {
-        "type": "Project",
-        "dependencies": {
-          "SharpDX.D3DCompiler": "[4.2.0, )",
-          "SharpDX.Direct2D1": "[4.2.0, )",
-          "SharpDX.Direct3D11": "[4.2.0, )"
         }
       }
     }
