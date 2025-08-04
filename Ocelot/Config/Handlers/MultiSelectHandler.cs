@@ -99,7 +99,7 @@ public abstract class MultiSelectHandler<T>(ModuleConfig self, ConfigAttribute a
 
     protected virtual List<T> GetValue(RenderContext context)
     {
-        return (List<T>)context.GetValue() ?? new List<T>();
+        return context.GetValue() as List<T> ?? [];
     }
 
     protected virtual void SetValue(RenderContext context, List<T> value)

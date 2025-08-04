@@ -16,8 +16,6 @@ public class PluginWatcher
 
     public event Action? OnPluginListChanged;
 
-    private long millisecondsSinceLastUpdate = 0;
-
     public IReadOnlyDictionary<string, bool> CurrentPlugins
     {
         get => previousPluginList;

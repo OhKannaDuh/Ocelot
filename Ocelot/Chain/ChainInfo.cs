@@ -4,7 +4,7 @@ namespace Ocelot.Chain;
 
 public class ChainInfo
 {
-    public string Name { get; init; }
+    public required string Name { get; init; }
 
     public TimeSpan TimeAlive { get; init; }
 
@@ -13,6 +13,10 @@ public class ChainInfo
     public int TotalLinks { get; init; }
 
     public int CompletedLinks { get; init; }
+
+    private ChainInfo()
+    {
+    }
 
     public static ChainInfo? FromChain(Chain? chain)
     {
