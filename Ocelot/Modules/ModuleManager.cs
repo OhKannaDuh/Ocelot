@@ -15,20 +15,11 @@ public class ModuleManager
 
     private readonly Dictionary<IModule, int> mainOrders = new();
 
-    private List<IModule> ToUpdate
-    {
-        get => modules.Where(m => m is { ShouldUpdate: true, HasRequiredIPCs: true }).ToList();
-    }
+    private List<IModule> toUpdate = [];
 
-    private List<IModule> ToRender
-    {
-        get => modules.Where(m => m is { ShouldRender: true, HasRequiredIPCs: true }).ToList();
-    }
+    private List<IModule> toRender = [];
 
-    private List<IModule> ToInitialize
-    {
-        get => modules.Where(m => m.ShouldInitialize).ToList();
-    }
+    private List<IModule> toInitialize = [];
 
     public void Add(Module<OcelotPlugin, IOcelotConfig> module)
     {
@@ -56,7 +47,7 @@ public class ModuleManager
 
     public IEnumerable<IModule> GetModulesByMainOrder()
     {
-        return ToRender.OrderBy(m => mainOrders.GetValueOrDefault(m, int.MaxValue));
+        return toRender.OrderBy(m => mainOrders.GetValueOrDefault(m, int.MaxValue));
     }
 
     public IEnumerable<IModule> GetModulesByConfigOrder()
@@ -66,48 +57,52 @@ public class ModuleManager
 
     public void PreInitialize()
     {
+        toInitialize = modules.Where(m => m.ShouldInitialize).ToList();
+        
         modules.ForEach(m => m.Config?.SetOwner(m));
-        ToInitialize.ForEach(m => m.PreInitialize());
+        toInitialize.ForEach(m => m.PreInitialize());
     }
 
     public void Initialize()
     {
-        ToInitialize.ForEach(m => m.Initialize());
+        toInitialize.ForEach(m => m.Initialize());
     }
 
     public void PostInitialize()
     {
-        ToInitialize.ForEach(m => m.PostInitialize());
+        toInitialize.ForEach(m => m.PostInitialize());
     }
 
     public void InjectModules()
     {
-        ToInitialize.ForEach(m => m.InjectModules());
+        toInitialize.ForEach(m => m.InjectModules());
     }
 
     public void InjectIPCs()
     {
-        ToInitialize.ForEach(m => m.InjectIPCs());
+        toInitialize.ForEach(m => m.InjectIPCs());
     }
 
     public void PreUpdate(UpdateContext context)
     {
-        ToUpdate.ForEach(m => m.PreUpdate(context));
+        toUpdate = modules.Where(m => m is { ShouldUpdate: true, HasRequiredIPCs: true } && m.UpdateLimit.ShouldUpdate(m, context)).ToList();
+        toUpdate.ForEach(m => m.PreUpdate(context));
     }
 
     public void Update(UpdateContext context)
     {
-        ToUpdate.ForEach(m => m.Update(context));
+        toUpdate.ForEach(m => m.Update(context));
     }
 
     public void PostUpdate(UpdateContext context)
     {
-        ToUpdate.ForEach(m => m.PostUpdate(context));
+        toUpdate.ForEach(m => m.PostUpdate(context));
     }
 
     public void Render(RenderContext context)
     {
-        ToRender.ForEach(m => m.Render(context));
+        toRender = modules.Where(m => m is { ShouldRender: true, HasRequiredIPCs: true }).ToList();
+        toRender.ForEach(m => m.Render(context));
     }
 
     public void RenderMainUi(RenderContext context)
@@ -143,15 +138,14 @@ public class ModuleManager
         }
     }
 
-
     public void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled)
     {
-        ToUpdate.ForEach(m => m.OnChatMessage(type, timestamp, sender, message, isHandled));
+        toUpdate.ForEach(m => m.OnChatMessage(type, timestamp, sender, message, isHandled));
     }
 
     public void OnTerritoryChanged(ushort id)
     {
-        ToUpdate.ForEach(m => m.OnTerritoryChanged(id));
+        toUpdate.ForEach(m => m.OnTerritoryChanged(id));
     }
 
     public T GetModule<T>() where T : class, IModule

@@ -5,6 +5,7 @@ using System.Reflection;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using ECommons.DalamudServices;
+using Ocelot.Data;
 using Ocelot.IPC;
 using Ocelot.Windows;
 
@@ -50,6 +51,11 @@ public abstract class Module<P, C>(P plugin, C pluginConfig) : IModule
     public virtual ModuleConfig? Config
     {
         get => null;
+    }
+
+    public virtual UpdateLimit UpdateLimit
+    {
+        get => UpdateLimit.None;
     }
 
     public virtual void PreInitialize()

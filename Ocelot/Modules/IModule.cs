@@ -1,6 +1,7 @@
 using System;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Ocelot.Data;
 using Ocelot.IPC;
 using Ocelot.Windows;
 
@@ -29,6 +30,8 @@ public interface IModule : IDisposable
     void InjectModules();
 
     void InjectIPCs();
+
+    UpdateLimit UpdateLimit { get; }
 
     // Functions
     void PreUpdate(UpdateContext context);

@@ -8,6 +8,7 @@ using ECommons;
 using ECommons.DalamudServices;
 using Ocelot.Chain;
 using Ocelot.Commands;
+using Ocelot.Data;
 using Ocelot.Debug;
 using Ocelot.IPC;
 using Ocelot.Modules;
@@ -37,11 +38,12 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public readonly IPCManager IPC = new();
 
-    private Dictionary<string, bool> pluginList = [];
+    // private Dictionary<string, bool> pluginList = [];
+    protected readonly PluginWatcher PluginWatcher;
 
     public RenderContext? RenderContext { get; private set; } = null;
 
-    public OcelotPlugin(IDalamudPluginInterface plugin, params Module[] eModules)
+    protected OcelotPlugin(IDalamudPluginInterface plugin, params Module[] eModules)
     {
         ECommonsMain.Init(plugin, this, eModules);
         PictoService.Initialize(plugin);
@@ -49,16 +51,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Registry.RegisterAssemblies(typeof(OcelotPlugin).Assembly);
         Registry.RegisterAssemblies(GetType().Assembly);
 
-        foreach (var p in Svc.PluginInterface.InstalledPlugins)
-        {
-            var key = $"{p.InternalName}.{p.Version}";
-            if (p.IsDev)
-            {
-                key = $"{key}.Dev";
-            }
-
-            pluginList[key] = p.IsLoaded;
-        }
+        PluginWatcher = new PluginWatcher();
     }
 
     protected void OcelotInitialize(params OcelotFeature[] features)
@@ -114,11 +107,13 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
 
         Svc.PluginInterface.UiBuilder.Draw += PostRender;
-    }
+        
+        PluginWatcher.OnPluginListChanged += OnPluginListChanged;
 
-    protected void InitializeDebug()
-    {
-        IPC.AddProvider(new DebugIPCProvider(this));
+        if (PluginWatcher.IsOcelotPluginEnabled(OcelotPlugins.OcelotMonitor))
+        {
+            IPC.AddProvider(new DebugIPCProvider(this));
+        }
     }
 
     protected virtual bool ShouldUpdate()
@@ -128,14 +123,14 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     protected virtual void Update(IFramework framework)
     {
-        PluginCheckup();
-
         if (!ShouldUpdate())
         {
             return;
         }
 
         var context = new UpdateContext(framework, this);
+        
+        PluginWatcher.Update(context);
 
         Modules.PreUpdate(context);
         Modules.Update(context);
@@ -164,7 +159,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     private void PreRender()
     {
-        var draw = PictoService.Draw(); // Start draw
+        var draw = PictoService.Draw();
         if (draw == null)
         {
             RenderContext = null;
@@ -190,44 +185,13 @@ public abstract class OcelotPlugin : IDalamudPlugin
         }
     }
 
-    private void PluginCheckup()
+    private void OnPluginListChanged()
     {
-        var isDirty = false;
-        Dictionary<string, bool> currentPluginList = [];
-        foreach (var p in Svc.PluginInterface.InstalledPlugins)
-        {
-            var key = $"{p.InternalName}.{p.Version}";
-            if (p.IsDev)
-            {
-                key = $"{key}.Dev";
-            }
-
-
-            currentPluginList.Add(key, p.IsLoaded);
-
-            if (!pluginList.TryGetValue(key, out var value) || value != p.IsLoaded)
-            {
-                isDirty = true;
-            }
-        }
-
-        if (currentPluginList.Count != pluginList.Count)
-        {
-            isDirty = true;
-        }
-
-        pluginList = currentPluginList;
-
-        if (!isDirty)
-        {
-            return;
-        }
-
         if (OcelotFeature.IPC.IsEnabled())
         {
             IPC.Initialize();
         }
-
+        
         Modules.InjectIPCs();
     }
 
@@ -236,6 +200,8 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.PluginInterface.UiBuilder.Draw -= PostRender;
         Svc.PluginInterface.UiBuilder.Draw -= Render;
         Svc.PluginInterface.UiBuilder.Draw -= PreRender;
+        
+        PluginWatcher.OnPluginListChanged -= OnPluginListChanged;
 
         Modules.Dispose();
         Windows.Dispose();
