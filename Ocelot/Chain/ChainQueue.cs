@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Dalamud.Plugin.Services;
 using ECommons.Automation.NeoTaskManager;
-using ECommons.DalamudServices;
 
 namespace Ocelot.Chain;
 
@@ -11,7 +10,7 @@ public class ChainQueue : IDisposable
     private readonly LinkedList<Func<Chain>> chains = [];
 
     private Chain? chain = null;
-    
+
     private DateTime createdAt { get; } = DateTime.UtcNow;
 
     public bool HasRun { get; private set; } = false;
@@ -20,7 +19,7 @@ public class ChainQueue : IDisposable
     {
         get => DateTime.UtcNow - createdAt;
     }
-    
+
     public int ChainsCompleted { get; private set; } = 0;
 
     public void Submit(Func<Chain> factory)

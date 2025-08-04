@@ -7,7 +7,7 @@ public class QueueInfo
     public TimeSpan TimeAlive { get; init; }
 
     public int ChainsCompleted { get; init; }
-    
+
     public ChainInfo? CurrentChain { get; init; }
 
 

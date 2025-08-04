@@ -35,9 +35,9 @@ public class Chain : IDisposable
     private event Action? OnFinallyCallback;
 
     private bool hasTriggeredClosingTasks;
-    
+
     private DateTime createdAt { get; } = DateTime.UtcNow;
-    
+
     public TimeSpan TimeAlive
     {
         get => DateTime.UtcNow - createdAt;

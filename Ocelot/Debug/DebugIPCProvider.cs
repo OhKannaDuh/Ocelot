@@ -22,14 +22,13 @@ public class DebugIPCProvider
     {
         return OcelotPlugin.OcelotVersion;
     }
-    
-    
+
     [EzIPC]
     private string GetPluginVersion()
     {
         return plugin.Version;
     }
-    
+
     [EzIPC]
     private string GetPluginName()
     {
@@ -41,10 +40,10 @@ public class DebugIPCProvider
     {
         return ChainManager.Queues.ToDictionary(p => p.Key, p => QueueInfo.FromChainQueue(p.Value));
     }
-    
+
     [EzIPC]
     private void AbortAllChains()
     {
-         ChainManager.AbortAll();
+        ChainManager.AbortAll();
     }
 }

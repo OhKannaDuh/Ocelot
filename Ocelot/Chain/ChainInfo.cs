@@ -7,9 +7,9 @@ public class ChainInfo
     public string Name { get; init; }
 
     public TimeSpan TimeAlive { get; init; }
-    
+
     public float Progress { get; init; }
-    
+
     public int TotalLinks { get; init; }
 
     public int CompletedLinks { get; init; }
@@ -20,7 +20,7 @@ public class ChainInfo
         {
             return null;
         }
-        
+
         return new ChainInfo
         {
             Name = chain.Name,
