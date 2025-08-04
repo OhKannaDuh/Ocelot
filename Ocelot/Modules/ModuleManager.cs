@@ -58,7 +58,7 @@ public class ModuleManager
     public void PreInitialize()
     {
         toInitialize = modules.Where(m => m.ShouldInitialize).ToList();
-        
+
         modules.ForEach(m => m.Config?.SetOwner(m));
         toInitialize.ForEach(m => m.PreInitialize());
     }

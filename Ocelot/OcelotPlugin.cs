@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
@@ -107,7 +106,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
 
         Svc.PluginInterface.UiBuilder.Draw += PostRender;
-        
+
         PluginWatcher.OnPluginListChanged += OnPluginListChanged;
 
         if (PluginWatcher.IsOcelotPluginEnabled(OcelotPlugins.OcelotMonitor))
@@ -129,7 +128,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         }
 
         var context = new UpdateContext(framework, this);
-        
+
         PluginWatcher.Update(context);
 
         Modules.PreUpdate(context);
@@ -191,7 +190,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             IPC.Initialize();
         }
-        
+
         Modules.InjectIPCs();
     }
 
@@ -200,7 +199,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.PluginInterface.UiBuilder.Draw -= PostRender;
         Svc.PluginInterface.UiBuilder.Draw -= Render;
         Svc.PluginInterface.UiBuilder.Draw -= PreRender;
-        
+
         PluginWatcher.OnPluginListChanged -= OnPluginListChanged;
 
         Modules.Dispose();
