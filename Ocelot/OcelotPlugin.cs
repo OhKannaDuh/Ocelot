@@ -25,7 +25,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         get => Svc.PluginInterface.Manifest.AssemblyVersion.ToString();
     }
 
-    public const string OcelotVersion = "0.58.0";
+    public const string OcelotVersion = "1.0.0-beta";
 
     public abstract IOcelotConfig OcelotConfig { get; }
 
@@ -37,7 +37,6 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public readonly IPCManager IPC = new();
 
-    // private Dictionary<string, bool> pluginList = [];
     protected readonly PluginWatcher PluginWatcher;
 
     public RenderContext? RenderContext { get; private set; } = null;
@@ -158,30 +157,32 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     private void PreRender()
     {
-        var draw = PictoService.Draw();
-        if (draw == null)
-        {
-            RenderContext = null;
-            return;
-        }
+        // @todo uncomment when pictomancy updates
+        // var draw = PictoService.Draw();
+        // if (draw == null)
+        // {
+            // RenderContext = null;
+            // return;
+        // }
 
         RenderContext = new RenderContext(this);
     }
 
     private void PostRender()
     {
-        if (RenderContext == null)
-        {
-            return;
-        }
-
-        try
-        {
-            PictoService.GetDrawList().Dispose();
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        // @todo uncomment when pictomancy updates
+        // if (RenderContext == null)
+        // {
+        //     return;
+        // }
+        //
+        // try
+        // {
+        //     PictoService.GetDrawList().Dispose();
+        // }
+        // catch (InvalidOperationException)
+        // {
+        // }
     }
 
     private void OnPluginListChanged()
