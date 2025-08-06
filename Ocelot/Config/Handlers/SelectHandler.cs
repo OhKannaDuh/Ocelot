@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
 

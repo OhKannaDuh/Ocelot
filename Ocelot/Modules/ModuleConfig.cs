@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using ECommons.Reflection;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Attributes;
 using Ocelot.Config.Handlers;
 

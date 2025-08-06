@@ -1,6 +1,6 @@
 using System;
 using System.Reflection;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
 

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 using ECommons.GameHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Ocelot.Commands;
 using Ocelot.IPC;
 using Ocelot.Modules;

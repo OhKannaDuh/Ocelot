@@ -157,32 +157,30 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     private void PreRender()
     {
-        // @todo uncomment when pictomancy updates
-        // var draw = PictoService.Draw();
-        // if (draw == null)
-        // {
-            // RenderContext = null;
-            // return;
-        // }
+        var draw = PictoService.Draw();
+        if (draw == null)
+        {
+            RenderContext = null;
+            return;
+        }
 
         RenderContext = new RenderContext(this);
     }
 
     private void PostRender()
     {
-        // @todo uncomment when pictomancy updates
-        // if (RenderContext == null)
-        // {
-        //     return;
-        // }
-        //
-        // try
-        // {
-        //     PictoService.GetDrawList().Dispose();
-        // }
-        // catch (InvalidOperationException)
-        // {
-        // }
+        if (RenderContext == null)
+        {
+            return;
+        }
+        
+        try
+        {
+            PictoService.GetDrawList().Dispose();
+        }
+        catch (InvalidOperationException)
+        {
+        }
     }
 
     private void OnPluginListChanged()

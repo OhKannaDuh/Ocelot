@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using Dalamud.Interface;
 using ECommons.Reflection;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
 

@@ -19,7 +19,7 @@ public static class ChainAddon
                 var addonPtr = Svc.GameGui.GetAddonByName(addonName);
                 if (addonPtr != IntPtr.Zero)
                 {
-                    var addon = (AtkUnitBase*)addonPtr;
+                    var addon = (AtkUnitBase*)addonPtr.Address;
                     if (addon->IsReady)
                     {
                         Callback.Fire(addon, updateState, callbackValues);
@@ -48,7 +48,7 @@ public static class ChainAddon
                 var addonPtr = Svc.GameGui.GetAddonByName(addonName);
                 if (addonPtr != IntPtr.Zero)
                 {
-                    var addon = (AtkUnitBase*)addonPtr;
+                    var addon = (AtkUnitBase*)addonPtr.Address;
                     return GenericHelpers.IsAddonReady(addon);
                 }
             }
@@ -71,7 +71,7 @@ public static class ChainAddon
                 var addonPtr = Svc.GameGui.GetAddonByName(addonName);
                 if (addonPtr != IntPtr.Zero)
                 {
-                    var addon = (AtkUnitBase*)addonPtr;
+                    var addon = (AtkUnitBase*)addonPtr.Address;
                     return !GenericHelpers.IsAddonReady(addon);
                 }
             }

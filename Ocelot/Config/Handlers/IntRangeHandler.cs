@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 using ECommons.GameHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
 using Pictomancy;

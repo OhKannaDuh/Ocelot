@@ -1,5 +1,5 @@
 ﻿using System;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Ocelot.Windows;
 
 namespace Ocelot.Gameplay;

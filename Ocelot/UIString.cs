@@ -6,7 +6,7 @@ using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Ocelot;
 
@@ -102,7 +102,7 @@ public class UIImageComponent : UIStringComponent
 
     public bool Render()
     {
-        ImGui.Image(texture.ImGuiHandle, new Vector2(GetWidth(), GetHeight()));
+        ImGui.Image(texture.Handle, new Vector2(GetWidth(), GetHeight()));
         return ImGui.IsItemHovered();
     }
 }
