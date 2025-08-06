@@ -1,6 +1,6 @@
-﻿namespace Ocelot;
+﻿namespace Ocelot.Ui;
 
-public enum UIState
+public enum UiState
 {
     None,
 

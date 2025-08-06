@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Ocelot.Ui;
 using Ocelot.Windows;
 
 namespace Ocelot.Modules;
@@ -110,14 +111,14 @@ public class ModuleManager
         var orderedModules = GetModulesByMainOrder().ToList();
         foreach (var module in orderedModules)
         {
-            OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () =>
+            OcelotUi.Region($"OcelotMain##{module.GetType().FullName}", () =>
             {
                 if (module.RenderMainUi(context))
                 {
-                    OcelotUI.VSpace();
+                    OcelotUi.VSpace();
                     if (module != orderedModules.Last())
                     {
-                        OcelotUI.Separator();
+                        OcelotUi.Separator();
                     }
                 }
             });
@@ -130,10 +131,10 @@ public class ModuleManager
         foreach (var module in orderedModules)
         {
             module.RenderConfigUi(context);
-            OcelotUI.VSpace();
+            OcelotUi.VSpace();
             if (module != orderedModules.Last())
             {
-                OcelotUI.Separator();
+                OcelotUi.Separator();
             }
         }
     }

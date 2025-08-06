@@ -6,14 +6,17 @@ namespace Ocelot.Gameplay;
 
 public partial class Actions
 {
-    public static Action MountRoulette { get; private set; } = new(ActionType.GeneralAction, 9);
+    public static Action Roulette
+    {
+        get => Actions.MountRoulette;
+    }
 
     public static Action Mount(uint id)
     {
         return new Action(ActionType.Mount, id);
     }
 
-    public static Action Unmount { get; private set; } = new(ActionType.Mount, 0);
+    public readonly static Action Unmount = new(ActionType.Mount, 0);
 
     public static void TryUnmount()
     {

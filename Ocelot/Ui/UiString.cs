@@ -8,16 +8,16 @@ using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
 using Dalamud.Bindings.ImGui;
 
-namespace Ocelot;
+namespace Ocelot.Ui;
 
-public interface UIStringComponent
+public interface UiStringComponent
 {
     float GetWidth();
 
     bool Render();
 }
 
-public class UITextComponent(string text, Vector4 color, ImFontPtr font) : UIStringComponent
+public class UiTextComponent(string text, Vector4 color, ImFontPtr font) : UiStringComponent
 {
     public ImFontPtr Font { get; private set; } = font;
 
@@ -25,18 +25,18 @@ public class UITextComponent(string text, Vector4 color, ImFontPtr font) : UIStr
 
     public Vector4 Color { get; private set; } = color;
 
-    public UITextComponent(string text)
+    public UiTextComponent(string text)
         : this(text, Vector4.Zero, UiBuilder.DefaultFont)
     {
         Color = OcelotColor.Text;
     }
 
-    public UITextComponent(string text, Vector4 color)
+    public UiTextComponent(string text, Vector4 color)
         : this(text, color, UiBuilder.DefaultFont)
     {
     }
 
-    public UITextComponent(string text, ImFontPtr font)
+    public UiTextComponent(string text, ImFontPtr font)
         : this(text, Vector4.Zero, font)
     {
         Color = OcelotColor.Text;
@@ -55,35 +55,35 @@ public class UITextComponent(string text, Vector4 color, ImFontPtr font) : UIStr
         return ImGui.IsItemHovered();
     }
 
-    public UITextComponent WithText(string text)
+    public UiTextComponent WithText(string text)
     {
         Text = text;
         return this;
     }
 
-    public UITextComponent WithColor(Vector4 color)
+    public UiTextComponent WithColor(Vector4 color)
     {
         Color = color;
         return this;
     }
 
-    public UITextComponent WithFont(ImFontPtr font)
+    public UiTextComponent WithFont(ImFontPtr font)
     {
         Font = font;
         return this;
     }
 }
 
-public class UIImageComponent : UIStringComponent
+public class UiImageComponent : UiStringComponent
 {
     private IDalamudTextureWrap texture;
 
-    public UIImageComponent(IDalamudTextureWrap texture)
+    public UiImageComponent(IDalamudTextureWrap texture)
     {
         this.texture = texture;
     }
 
-    public UIImageComponent(uint id)
+    public UiImageComponent(uint id)
     {
         texture = Svc.Texture.GetFromGameIcon(new GameIconLookup(id)).GetWrapOrEmpty();
     }
@@ -107,22 +107,22 @@ public class UIImageComponent : UIStringComponent
     }
 }
 
-public class UIString
+public class UiString
 {
-    public readonly List<UIStringComponent> Components = [];
+    public readonly List<UiStringComponent> Components = [];
 
-    public UIString()
+    public UiString()
     {
     }
 
-    public UIString(IEnumerable<UIStringComponent> components)
+    public UiString(IEnumerable<UiStringComponent> components)
     {
         Components.AddRange(components);
     }
 
-    public static UIString Text(string text, Vector4? color = null, ImFontPtr? font = null)
+    public static UiString Text(string text, Vector4? color = null, ImFontPtr? font = null)
     {
-        var comp = new UITextComponent(text);
+        var comp = new UiTextComponent(text);
         if (color is { } c)
         {
             comp.WithColor(c);
@@ -133,48 +133,48 @@ public class UIString
             comp.WithFont(f);
         }
 
-        return new UIString().Add(comp);
+        return new UiString().Add(comp);
     }
 
-    public UIString Add(string text)
+    public UiString Add(string text)
     {
-        return Add(new UITextComponent(text));
+        return Add(new UiTextComponent(text));
     }
 
-    public UIString Add(string text, Vector4 color)
+    public UiString Add(string text, Vector4 color)
     {
-        return Add(new UITextComponent(text, color));
+        return Add(new UiTextComponent(text, color));
     }
 
-    public UIString Add(string text, ImFontPtr font)
+    public UiString Add(string text, ImFontPtr font)
     {
-        return Add(new UITextComponent(text, font));
+        return Add(new UiTextComponent(text, font));
     }
 
-    public UIString Add(FontAwesomeIcon icon, Vector4 color)
+    public UiString Add(FontAwesomeIcon icon, Vector4 color)
     {
-        return Add(new UITextComponent(icon.ToString(), color, UiBuilder.IconFont));
+        return Add(new UiTextComponent(icon.ToString(), color, UiBuilder.IconFont));
     }
 
-    public UIString Add(FontAwesomeIcon icon)
+    public UiString Add(FontAwesomeIcon icon)
     {
-        return Add(new UITextComponent(icon.ToString(), UiBuilder.IconFont));
+        return Add(new UiTextComponent(icon.ToString(), UiBuilder.IconFont));
     }
 
-    public UIString Add(UIStringComponent component)
+    public UiString Add(UiStringComponent component)
     {
         Components.Add(component);
         return this;
     }
 
-    public UIString AddImage(IDalamudTextureWrap texture)
+    public UiString AddImage(IDalamudTextureWrap texture)
     {
-        return Add(new UIImageComponent(texture));
+        return Add(new UiImageComponent(texture));
     }
 
-    public UIString AddIcon(uint iconId)
+    public UiString AddIcon(uint iconId)
     {
-        return Add(new UIImageComponent(iconId));
+        return Add(new UiImageComponent(iconId));
     }
 
     public float Width
@@ -182,7 +182,7 @@ public class UIString
         get => Components.Count == 0 ? 0 : Components.Sum(c => c.GetWidth()) + ImGui.GetStyle().ItemSpacing.X * (Components.Count - 1);
     }
 
-    public UIState Render()
+    public UiState Render()
     {
         var hovered = false;
         for (var i = 0; i < Components.Count; i++)
@@ -198,6 +198,6 @@ public class UIString
             }
         }
 
-        return hovered ? UIState.Hovered : UIState.None;
+        return hovered ? UiState.Hovered : UiState.None;
     }
 }

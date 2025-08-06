@@ -1,13 +1,12 @@
-using System;
+﻿using System;
 using System.Numerics;
-using ECommons.DalamudServices;
 using Dalamud.Bindings.ImGui;
 
-namespace Ocelot;
+namespace Ocelot.Ui;
 
-public static class OcelotUI
+public static class OcelotUi
 {
-    public static void Title(string title)
+       public static void Title(string title)
     {
         ImGui.TextColored(OcelotColor.Yellow, title);
     }
@@ -17,12 +16,12 @@ public static class OcelotUI
         ImGui.TextColored(OcelotColor.Error, error);
     }
 
-    public static UIState LabelledValue(string title, object value)
+    public static UiState LabelledValue(string title, object value)
     {
         return LabelledValue(title, value.ToString() ?? "");
     }
 
-    public static UIState LabelledValue(string title, string value)
+    public static UiState LabelledValue(string title, string value)
     {
         var hovered = false;
 
@@ -33,21 +32,21 @@ public static class OcelotUI
         ImGui.TextUnformatted(value);
         hovered |= ImGui.IsItemHovered();
 
-        return hovered ? UIState.Hovered : UIState.None;
+        return hovered ? UiState.Hovered : UiState.None;
     }
 
-    public static UIState LeftRightText(UIString left, UIString right)
+    public static UiState LeftRightText(UiString left, UiString right)
     {
-        var state = UIState.None;
-        if (left.Render() == UIState.Hovered)
+        var state = UiState.None;
+        if (left.Render() == UiState.Hovered)
         {
-            state = UIState.LeftHovered;
+            state = UiState.LeftHovered;
         }
 
         ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - right.Width);
-        if (right.Render() == UIState.Hovered)
+        if (right.Render() == UiState.Hovered)
         {
-            state = UIState.RightHovered;
+            state = UiState.RightHovered;
         }
 
         return state;
@@ -80,21 +79,8 @@ public static class OcelotUI
         Indent(16, contents);
     }
 
-    public static void DrawLine(Vector3 start, Vector3 end, float thickness, Vector4 color)
-    {
-        var startValid = Svc.GameGui.WorldToScreen(start, out var startScreen);
-        var endValid = Svc.GameGui.WorldToScreen(end, out var endScreen);
-
-        if (startValid && endValid)
-        {
-            var imguiColor = ImGui.ColorConvertFloat4ToU32(color);
-            ImGui.GetBackgroundDrawList().AddLine(startScreen, endScreen, imguiColor, thickness);
-        }
-    }
-
     public static void Separator()
     {
-        // ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
         var pos = ImGui.GetCursorScreenPos();
         var width = ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
         var drawList = ImGui.GetWindowDrawList();
@@ -111,12 +97,12 @@ public static class OcelotUI
         ImGui.Dummy(new Vector2(0, px));
     }
 
-    public static UIState ProgressBar(float fraction, float rounding = 4.0f)
+    public static UiState ProgressBar(float fraction, float rounding = 4.0f)
     {
         return ProgressBar(fraction, new Vector2(ImGui.GetContentRegionAvail().X, 8f), rounding);
     }
 
-    public static UIState ProgressBar(float fraction, Vector2 size, float rounding = 4.0f)
+    public static UiState ProgressBar(float fraction, Vector2 size, float rounding = 4.0f)
     {
         fraction = Math.Clamp(fraction, 0.0f, 1.0f);
 
@@ -138,6 +124,6 @@ public static class OcelotUI
 
         ImGui.Dummy(size);
 
-        return ImGui.IsItemHovered() ? UIState.Hovered : UIState.None;
+        return ImGui.IsItemHovered() ? UiState.Hovered : UiState.None;
     }
 }

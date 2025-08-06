@@ -2,6 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using Ocelot.Extensions;
+using Ocelot.Ui;
 using Ocelot.Windows;
 using ItemData = Lumina.Excel.Sheets.Item;
 
@@ -43,10 +44,10 @@ public unsafe class Item(uint id)
             value += $"/{Data.StackSize}";
         }
 
-        OcelotUI.LabelledValue(Data.Plural.ExtractText().ToTitleCase(), value);
+        OcelotUi.LabelledValue(Data.Plural.ExtractText().ToTitleCase(), value);
         if (Data.StackSize > 0 && Data.StackSize % 1000 != 999)
         {
-            OcelotUI.ProgressBar(Count() / (float)Data.StackSize);
+            OcelotUi.ProgressBar(Count() / (float)Data.StackSize);
         }
     }
 }
