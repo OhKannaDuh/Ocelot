@@ -1,0 +1,13 @@
+{
+  "modules": {
+    "ocelot_core": {
+      "config": {
+        "title": "オセロットコア",
+        "language": {
+          "label": "言語",
+          "tooltip": "プラグインUIの言語を選択してください。"
+        }
+      }
+    }
+  }
+}

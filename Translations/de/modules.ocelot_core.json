@@ -1,0 +1,13 @@
+{
+  "modules": {
+    "ocelot_core": {
+      "config": {
+        "title": "Ocelot Kern",
+        "language": {
+          "label": "Sprache",
+          "tooltip": "Wählen Sie die Sprache für die Plugin-Benutzeroberfläche aus."
+        }
+      }
+    }
+  }
+}

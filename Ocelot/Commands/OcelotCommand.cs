@@ -7,20 +7,21 @@ namespace Ocelot.Commands;
 
 public abstract class OcelotCommand
 {
-    protected abstract string Command { get; }
+    public abstract string Command { get; init; }
 
-    protected abstract string Description { get; }
+    public abstract string Description { get; init; }
 
-    protected virtual IReadOnlyList<string> Aliases { get; set; } = [];
+    public virtual IReadOnlyList<string> Aliases { get; init; } = [];
 
-    protected virtual IReadOnlyList<string> ValidArguments { get; set; } = [];
+    public virtual IReadOnlyList<string> ValidArguments { get; init; } = [];
 
     public void Register()
     {
-        EzCmd.Add(Command, Handle, Description);
+        var cmd = Command.StartsWith('/') ? Command : $"/{Command}";
+        EzCmd.Add(cmd, Handle, Description);
         foreach (var alias in Aliases)
         {
-            EzCmd.Add(alias, Handle, $"Alias: {Command}", int.MaxValue);
+            EzCmd.Add(alias, Handle, $"Alias: {cmd}", int.MaxValue);
         }
     }
 
@@ -36,13 +37,15 @@ public abstract class OcelotCommand
 
     public void Handle(string command, string arguments)
     {
+        arguments = arguments.ToLower().Trim();
+
         if (!ValidateArguments(arguments))
         {
             Logger.Error($"Invalid argument ({arguments}) to command ({command})");
         }
 
-        Execute(command, arguments);
+        Execute(arguments.Split(" ").ToList());
     }
 
-    public abstract void Execute(string command, string arguments);
+    public abstract void Execute(List<string> arguments);
 }

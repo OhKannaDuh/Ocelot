@@ -1,8 +1,3 @@
-﻿using System;
+﻿namespace Ocelot.Gameplay.Rotation;
 
-namespace Ocelot.Gameplay.Rotation;
-
-public interface IRotationPlugin : IDisposable
-{
-    void DisableAoe();
-}
+public interface IRotationPlugin : IPlugin;

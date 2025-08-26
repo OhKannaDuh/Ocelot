@@ -1,9 +1,10 @@
 {
-    "generic": {
-        "start": "開始",
-        "stop": "停止",
-        "enabled": "有効",
-        "disabled": "無効",
-        "toggle_config_window": "設定ウィンドウの切り替え"
-    }
+  "generic": {
+    "start": "開始",
+    "stop": "停止",
+    "enabled": "有効",
+    "disabled": "無効",
+    "toggle": "トグル",
+    "toggle_config_window": "設定ウィンドウの切り替え"
+  }
 }

@@ -1,0 +1,13 @@
+{
+  "modules": {
+    "ocelot_core": {
+      "config": {
+        "title": "Ocelot Core",
+        "language": {
+          "label": "Language",
+          "tooltip": "Select the language for the plugin UI."
+        }
+      }
+    }
+  }
+}

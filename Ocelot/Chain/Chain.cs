@@ -262,6 +262,7 @@ public class Chain : IDisposable
     public void Dispose()
     {
         Svc.Log.Info($"Disposing chain [{Name}]");
+
         tasks.Dispose();
 
         OnCancelCallback = null;

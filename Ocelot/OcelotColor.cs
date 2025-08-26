@@ -1,6 +1,6 @@
 using System.Numerics;
-using Dalamud.Interface.Colors;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Colors;
 
 namespace Ocelot;
 

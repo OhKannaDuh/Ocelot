@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
-using Ocelot.Ui;
+using Ocelot.UI;
 
 namespace Ocelot.Config.Handlers;
 
@@ -41,7 +41,7 @@ public abstract class Handler(ModuleConfig self, ConfigAttribute attribute, Prop
 
         var handled = false;
         var changed = false;
-        OcelotUi.Indent(context.GetIndentation(), () =>
+        OcelotUI.Indent(context.GetIndentation(), () =>
         {
             context.CustomIcons();
 

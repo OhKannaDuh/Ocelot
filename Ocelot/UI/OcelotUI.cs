@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
+using Ocelot.UI.Components;
 
-namespace Ocelot.Ui;
+namespace Ocelot.UI;
 
-public static class OcelotUi
+public static class OcelotUI
 {
-       public static void Title(string title)
+    public static void Title(string title)
     {
         ImGui.TextColored(OcelotColor.Yellow, title);
     }
@@ -35,7 +37,7 @@ public static class OcelotUi
         return hovered ? UiState.Hovered : UiState.None;
     }
 
-    public static UiState LeftRightText(UiString left, UiString right)
+    public static UiState LeftRightComponents(ComponentGroup left, ComponentGroup right)
     {
         var state = UiState.None;
         if (left.Render() == UiState.Hovered)
@@ -99,7 +101,7 @@ public static class OcelotUi
 
     public static UiState ProgressBar(float fraction, float rounding = 4.0f)
     {
-        return ProgressBar(fraction, new Vector2(ImGui.GetContentRegionAvail().X, 8f), rounding);
+        return ProgressBar(fraction, new Vector2(ImGui.GetContentRegionAvail().X, 5f * ImGuiHelpers.GlobalScale), rounding);
     }
 
     public static UiState ProgressBar(float fraction, Vector2 size, float rounding = 4.0f)

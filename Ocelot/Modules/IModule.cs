@@ -80,4 +80,8 @@ public interface IModule : IDisposable
     T GetWindow<T>() where T : OcelotWindow;
 
     bool TryGetWindow<T>(out T? provider) where T : OcelotWindow;
+
+    void PreDispose();
+
+    void PostDispose();
 }

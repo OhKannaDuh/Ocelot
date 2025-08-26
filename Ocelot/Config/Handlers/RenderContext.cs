@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using System.Text;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using ECommons.Reflection;
-using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
 

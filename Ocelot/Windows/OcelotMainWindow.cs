@@ -1,10 +1,10 @@
 using System.Numerics;
-using Dalamud.Interface;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 
 namespace Ocelot.Windows;
 
-public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig pluginConfig) : OcelotWindow(plugin, pluginConfig)
+public abstract class OcelotMainWindow(OcelotPlugin plugin, OcelotConfig pluginConfig) : OcelotWindow(plugin, pluginConfig)
 {
     public override void PostInitialize()
     {
@@ -26,7 +26,7 @@ public abstract class OcelotMainWindow(OcelotPlugin plugin, IOcelotConfig plugin
             },
             Icon = FontAwesomeIcon.Cog,
             IconOffset = new Vector2(2, 2),
-            ShowTooltip = () => ImGui.SetTooltip(I18N.T("windows.main.buttons.toggle_config")),
+            ShowTooltip = () => ImGui.SetTooltip(I18N.T("windows.main.titlebar_buttons.toggle_config")),
         });
     }
 

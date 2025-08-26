@@ -18,7 +18,7 @@ public class WindowManager : IDisposable
 
     private List<OcelotWindow> windows = [];
 
-    public void Initialize(OcelotPlugin plugin, IOcelotConfig config)
+    public void Initialize(OcelotPlugin plugin, OcelotConfig config)
     {
         if (Registry.GetTypesWithAttribute<OcelotMainWindowAttribute>().TryGetFirst(out var mainWindowType))
         {

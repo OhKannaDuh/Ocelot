@@ -6,18 +6,15 @@ namespace Ocelot;
 public enum OcelotFeature
 {
     All,
-
     ModuleManager,
-
     WindowManager,
-
     CommandManager,
-
     IPC,
-
     Prowler,
-
     ChainManager,
+    RotationHelper,
+    MechanicHelper,
+    TargetingHelper,
 }
 
 public static class OcelotFeatureEx

@@ -1,0 +1,9 @@
+{
+  "windows": {
+    "main": {
+      "titlebar_buttons": {
+        "toggle_config": "Toggle config window"
+      }
+    }
+  }
+}

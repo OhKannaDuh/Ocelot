@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Nodes;
 
 namespace Ocelot;
@@ -18,6 +19,16 @@ public static class I18N
     private static string directory = "";
 
     public static event Action<string, string>? OnLanguageChanged;
+
+    public static IEnumerable<string> GetAllLanguageKeys()
+    {
+        return translations.Keys;
+    }
+
+    public static bool HasLanguage(string language)
+    {
+        return GetAllLanguageKeys().Contains(language);
+    }
 
     public static void SetLanguage(string language)
     {
@@ -151,6 +162,23 @@ public static class I18N
 
     public static string T(string key)
     {
+        var value = TOrNull(key);
+        if (value != null)
+        {
+            return value;
+        }
+
+        var missingMessageKey = $"{currentLanguage}|{fallbackLanguage}|{key}";
+        if (reportedMissingKeys.Add(missingMessageKey))
+        {
+            Logger.Warning($"A translation for '{key}' was not found for the language '{currentLanguage}' or fallback '{fallbackLanguage}'.");
+        }
+
+        return $"Unknown translation key: [[{key}]]";
+    }
+
+    public static string? TOrNull(string key)
+    {
         if (translations.TryGetValue(currentLanguage, out var currentDict) && currentDict.TryGetValue(key, out var value))
         {
             return value;
@@ -169,13 +197,7 @@ public static class I18N
             return fallbackValue;
         }
 
-        var missingMessageKey = $"{currentLanguage}|{fallbackLanguage}|{key}";
-        if (reportedMissingKeys.Add(missingMessageKey))
-        {
-            Logger.Warning($"A translation for '{key}' was not found for the language '{currentLanguage}' or fallback '{fallbackLanguage}'.");
-        }
-
-        return $"Unknown translation key: [[{key}]]";
+        return null;
     }
 
     public static string T(string key, Dictionary<string, string> replacements)

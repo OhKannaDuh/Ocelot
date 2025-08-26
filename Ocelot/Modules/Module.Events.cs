@@ -5,7 +5,7 @@ namespace Ocelot.Modules;
 
 public abstract partial class Module<P, C>
     where P : OcelotPlugin
-    where C : IOcelotConfig
+    where C : OcelotConfig
 {
     public virtual void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled)
     {

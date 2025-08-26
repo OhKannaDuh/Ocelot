@@ -7,55 +7,68 @@ namespace Ocelot.IPC;
 
 public class IPCManager : IDisposable
 {
-    private readonly List<IPCSubscriber> subscribers = [];
+    private readonly Dictionary<string, IPCSubscriber> subscribers = [];
 
     public IReadOnlyList<IPCSubscriber> Subscribers
     {
-        get => subscribers;
+        get => subscribers.Values.ToList();
     }
 
-    private readonly List<object> providers = [];
+    private readonly Dictionary<string, object> providers = [];
 
     public IReadOnlyList<object> Providers
     {
-        get => providers;
+        get => providers.Values.ToList();
     }
 
     public void Initialize()
     {
         foreach (var type in Registry.GetTypesImplementing<IPCSubscriber>())
         {
+            var key = type.FullName ?? type.Name;
+            if (subscribers.ContainsKey(key))
+            {
+                continue;
+            }
+
             var ctor = type.GetConstructor(Type.EmptyTypes);
             if (ctor == null || Activator.CreateInstance(type) is not IPCSubscriber instance)
             {
                 continue;
             }
 
-            Logger.Info($"Registered IPCSubscriber: {type.FullName}");
-            subscribers.Add(instance);
+            Logger.Info($"Registered IPCSubscriber: {key}");
+            subscribers.Add(key, instance);
         }
 
         foreach (var type in Registry.GetTypesWithAttribute<OcelotIPCAttribute>())
         {
+            var key = type.FullName ?? type.Name;
+            if (subscribers.ContainsKey(key))
+            {
+                continue;
+            }
+
             var ctor = type.GetConstructor(Type.EmptyTypes);
             if (ctor == null || Activator.CreateInstance(type) is not { } instance)
             {
                 continue;
             }
 
-            Logger.Info($"Registered OcelotIPC: {type.FullName}");
-            providers.Add(instance);
+            Logger.Info($"Registered OcelotIPC: {key}");
+            providers.Add(key, instance);
         }
     }
 
     public void AddProvider(object provider)
     {
-        providers.Add(provider);
+        var type = provider.GetType();
+        providers.Add(type.FullName ?? type.Name, provider);
     }
 
     public IPCSubscriber GetSubscriber(Type type)
     {
-        var subscriber = subscribers.FirstOrDefault(type.IsInstanceOfType);
+        var subscriber = Subscribers.FirstOrDefault(type.IsInstanceOfType);
         if (subscriber == null)
         {
             throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {type.Name} was not found.");
@@ -71,7 +84,7 @@ public class IPCManager : IDisposable
 
     public T GetSubscriber<T>() where T : IPCSubscriber
     {
-        var subscriber = subscribers.OfType<T>().FirstOrDefault();
+        var subscriber = Subscribers.OfType<T>().FirstOrDefault();
         if (subscriber == null)
         {
             throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {typeof(T).Name} was not found.");

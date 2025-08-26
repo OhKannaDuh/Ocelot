@@ -7,15 +7,16 @@ public unsafe class Action(ActionType type, uint id)
 {
     public float GetRecastTime()
     {
-        var recast = ActionManager.Instance()->GetRecastTime(type, id);
-        var elapsed = ActionManager.Instance()->GetRecastTimeElapsed(type, id);
+        var manager = ActionManager.Instance();
+        var recast = manager->GetRecastTime(type, id);
+        var elapsed = manager->GetRecastTimeElapsed(type, id);
 
         return recast - elapsed;
     }
 
-    public bool CanCast()
+    public unsafe bool CanCast()
     {
-        return GetRecastTime() <= 0f;
+        return GetRecastTime() <= 0f && ActionManager.Instance()->GetActionStatus(type, id) <= 0f;
     }
 
     public void Cast()

@@ -1,20 +1,34 @@
 ﻿using System;
 using ECommons.DalamudServices;
 using Ocelot.IPC;
-using Ocelot.Modules;
 
 namespace Ocelot.Gameplay.Rotation;
 
-public class Wrath : IRotationPlugin
+public class Wrath : BaseRotationPlugin
 {
+    public override string DisplayName
+    {
+        get => "Wrath Combo";
+    }
+
+    public override string InternalName
+    {
+        get => "WrathCombo";
+    }
+
+    public override string Author
+    {
+        get => "Team Wrath";
+    }
+
     private readonly WrathCombo wrath;
 
     private readonly Guid leaseId;
 
-    public Wrath(IModule module)
+    public Wrath(OcelotPlugin plugin)
     {
-        wrath = module.GetIPCSubscriber<WrathCombo>();
-        var lease = wrath.RegisterForLease(Svc.PluginInterface.InternalName, module.GetType().FullName!);
+        wrath = plugin.IPC.GetSubscriber<WrathCombo>();
+        var lease = wrath.RegisterForLease(Svc.PluginInterface.InternalName, plugin.Name);
         if (lease == null)
         {
             throw new Exception("Unable to create Wrath Combo");
@@ -23,12 +37,15 @@ public class Wrath : IRotationPlugin
         leaseId = (Guid)lease;
     }
 
-    public void DisableAoe()
+    public override void Enable()
     {
-        // wrath.SetAutoRotationConfigState(leaseId, option, null);
     }
 
-    void IDisposable.Dispose()
+    public override void Disable()
+    {
+    }
+
+    public override void Dispose()
     {
         wrath.ReleaseControl(leaseId);
     }

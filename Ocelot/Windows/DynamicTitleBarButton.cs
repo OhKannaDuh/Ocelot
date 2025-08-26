@@ -1,6 +1,6 @@
 ﻿using System;
-using Dalamud.Interface.Windowing;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Windowing;
 
 namespace Ocelot.Windows;
 

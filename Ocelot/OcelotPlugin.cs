@@ -1,4 +1,5 @@
 using System;
+using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
@@ -9,6 +10,9 @@ using Ocelot.Chain;
 using Ocelot.Commands;
 using Ocelot.Data;
 using Ocelot.Debug;
+using Ocelot.Gameplay.Mechanic;
+using Ocelot.Gameplay.Rotation;
+using Ocelot.Gameplay.Targeting;
 using Ocelot.IPC;
 using Ocelot.Modules;
 using Ocelot.Windows;
@@ -20,6 +24,8 @@ public abstract class OcelotPlugin : IDalamudPlugin
 {
     public abstract string Name { get; }
 
+    internal static OcelotPlugin Plugin { get; private set; } = null!;
+
     public virtual string Version
     {
         get => Svc.PluginInterface.Manifest.AssemblyVersion.ToString();
@@ -27,7 +33,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public const string OcelotVersion = "1.1.0";
 
-    public abstract IOcelotConfig OcelotConfig { get; }
+    public abstract OcelotConfig OcelotConfig { get; }
 
     public readonly ModuleManager Modules = new();
 
@@ -41,8 +47,11 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public RenderContext? RenderContext { get; private set; } = null;
 
+    private bool shouldRenderThisFrame = false;
+
     protected OcelotPlugin(IDalamudPluginInterface plugin, params Module[] eModules)
     {
+        Plugin = this;
         ECommonsMain.Init(plugin, this, eModules);
         PictoService.Initialize(plugin);
 
@@ -54,9 +63,54 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     protected void OcelotInitialize(params OcelotFeature[] features)
     {
+        var lang = OcelotConfig.OcelotCoreConfig.Language;
+        if (lang == "")
+        {
+            lang = Svc.ClientState.ClientLanguage switch
+            {
+                ClientLanguage.French => "fr",
+                ClientLanguage.German => "de",
+                ClientLanguage.Japanese => "jp",
+#if DALAMUD_CN
+                ClientLanguage.ChineseSimplified  => "zh",
+#endif
+                _ => "en",
+            };
+
+            OcelotConfig.OcelotCoreConfig.Language = lang;
+            OcelotConfig.Save();
+        }
+
+        if (!I18N.HasLanguage(lang))
+        {
+            lang = "en";
+        }
+
+        I18N.SetLanguage(lang);
+
+        Svc.Framework.RunOnFrameworkThread(() => LoadCore(features));
+    }
+
+    private void LoadCore(params OcelotFeature[] features)
+    {
+        Logger.Debug("Loading Core");
+
         Svc.PluginInterface.UiBuilder.Draw += PreRender;
 
         OcelotFeatureEx.SetFeatures(features.Length <= 0 ? [OcelotFeature.All] : features);
+
+        Svc.Framework.Update += Update;
+        Svc.Chat.ChatMessage += OnChatMessage;
+        Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
+
+        Svc.PluginInterface.UiBuilder.Draw += PostRender;
+
+        PluginWatcher.OnPluginListChanged += OnPluginListChanged;
+
+        if (PluginWatcher.IsOcelotPluginEnabled(OcelotPlugins.OcelotMonitor))
+        {
+            IPC.AddProvider(new DebugIPCProvider(this));
+        }
 
         if (OcelotFeature.IPC.IsEnabled())
         {
@@ -96,27 +150,40 @@ public abstract class OcelotPlugin : IDalamudPlugin
             ChainManager.Initialize();
         }
 
-        Modules.PostInitialize();
+        if (OcelotFeature.RotationHelper.IsEnabled())
+        {
+            RotationHelper.Initialize(this);
+        }
+
+        if (OcelotFeature.MechanicHelper.IsEnabled())
+        {
+            MechanicHelper.Initialize(this);
+        }
+
+        if (OcelotFeature.TargetingHelper.IsEnabled())
+        {
+            TargetingHelper.Initialize(this);
+        }
+
         Modules.InjectModules();
         Modules.InjectIPCs();
+        Modules.PostInitialize();
 
-        Svc.Framework.Update += Update;
-        Svc.Chat.ChatMessage += OnChatMessage;
-        Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
+        OnCoreLoaded();
+    }
 
-        Svc.PluginInterface.UiBuilder.Draw += PostRender;
-
-        PluginWatcher.OnPluginListChanged += OnPluginListChanged;
-
-        if (PluginWatcher.IsOcelotPluginEnabled(OcelotPlugins.OcelotMonitor))
-        {
-            IPC.AddProvider(new DebugIPCProvider(this));
-        }
+    protected virtual void OnCoreLoaded()
+    {
     }
 
     protected virtual bool ShouldUpdate()
     {
         return true;
+    }
+
+    protected virtual bool ShouldRender()
+    {
+        return ShouldUpdate();
     }
 
     protected virtual void Update(IFramework framework)
@@ -135,28 +202,14 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Modules.PostUpdate(context);
     }
 
-    protected virtual void Render()
+    private void PreRender()
     {
-        if (RenderContext == null)
+        shouldRenderThisFrame = ShouldRender();
+        if (!shouldRenderThisFrame)
         {
             return;
         }
 
-        Modules.Render(RenderContext);
-    }
-
-    protected virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
-    {
-        Modules.OnChatMessage(type, timestamp, sender, message, isHandled);
-    }
-
-    protected virtual void OnTerritoryChanged(ushort id)
-    {
-        Modules.OnTerritoryChanged(id);
-    }
-
-    private void PreRender()
-    {
         var draw = PictoService.Draw();
         if (draw == null)
         {
@@ -167,13 +220,23 @@ public abstract class OcelotPlugin : IDalamudPlugin
         RenderContext = new RenderContext(this);
     }
 
-    private void PostRender()
+    protected virtual void Render()
     {
-        if (RenderContext == null)
+        if (!shouldRenderThisFrame || RenderContext == null)
         {
             return;
         }
-        
+
+        Modules.Render(RenderContext);
+    }
+
+    private void PostRender()
+    {
+        if (!shouldRenderThisFrame || RenderContext == null)
+        {
+            return;
+        }
+
         try
         {
             PictoService.GetDrawList().Dispose();
@@ -181,6 +244,16 @@ public abstract class OcelotPlugin : IDalamudPlugin
         catch (InvalidOperationException)
         {
         }
+    }
+
+    protected virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    {
+        Modules.OnChatMessage(type, timestamp, sender, message, isHandled);
+    }
+
+    protected virtual void OnTerritoryChanged(ushort id)
+    {
+        Modules.OnTerritoryChanged(id);
     }
 
     private void OnPluginListChanged()
@@ -201,7 +274,10 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
         PluginWatcher.OnPluginListChanged -= OnPluginListChanged;
 
+        Modules.PreDispose();
         Modules.Dispose();
+        Modules.PostDispose();
+
         Windows.Dispose();
         IPC.Dispose();
         Commands.Dispose();
@@ -210,6 +286,10 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.Framework.Update -= Update;
         Svc.Chat.ChatMessage -= OnChatMessage;
         Svc.ClientState.TerritoryChanged -= OnTerritoryChanged;
+
+        RotationHelper.TearDown();
+        MechanicHelper.TearDown();
+        TargetingHelper.TearDown();
 
         PictoService.Dispose();
         ECommonsMain.Dispose();

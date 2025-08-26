@@ -13,7 +13,7 @@ public class UpdateContext(IFramework framework, OcelotPlugin plugin, IModule? m
 
     public IModule? Module { get; private set; } = module;
 
-    public IOcelotConfig Config
+    public OcelotConfig Config
     {
         get => Plugin.OcelotConfig;
     }

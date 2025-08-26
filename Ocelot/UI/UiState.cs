@@ -1,4 +1,4 @@
-﻿namespace Ocelot.Ui;
+﻿namespace Ocelot.UI;
 
 public enum UiState
 {

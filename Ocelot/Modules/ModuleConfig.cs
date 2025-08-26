@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using ECommons.Reflection;
 using Dalamud.Bindings.ImGui;
+using ECommons.Reflection;
 using Ocelot.Config.Attributes;
 using Ocelot.Config.Handlers;
-using Ocelot.Ui;
+using Ocelot.UI;
 
 namespace Ocelot.Modules;
 
@@ -84,12 +84,12 @@ public abstract class ModuleConfig
     public bool Draw()
     {
         var dirty = false;
-        OcelotUi.Region($"OcelotConfig##{GetType().FullName}", () =>
+        OcelotUI.Region($"OcelotConfig##{GetType().FullName}", () =>
         {
             var title = GetTitle();
             if (title != null)
             {
-                OcelotUi.Title(title);
+                OcelotUI.Title(title);
             }
 
             foreach (var text in GetText())
@@ -113,9 +113,9 @@ public abstract class ModuleConfig
                 if (missingClass.Count > 0)
                 {
                     error = true;
-                    OcelotUi.Indent(() =>
+                    OcelotUI.Indent(() =>
                     {
-                        OcelotUi.Error("The following plugins are required for this module:");
+                        OcelotUI.Error("The following plugins are required for this module:");
                         ImGui.SameLine();
                         ImGui.TextUnformatted(string.Join(", ", missingClass));
                     });
@@ -137,9 +137,9 @@ public abstract class ModuleConfig
                 if (conflictingClass.Count > 0)
                 {
                     error = true;
-                    OcelotUi.Indent(() =>
+                    OcelotUI.Indent(() =>
                     {
-                        OcelotUi.Error("The following plugins are conflicting with this module:");
+                        OcelotUI.Error("The following plugins are conflicting with this module:");
                         ImGui.SameLine();
                         ImGui.TextUnformatted(string.Join(", ", conflictingClass));
                     });
@@ -168,9 +168,9 @@ public abstract class ModuleConfig
 
             if (missingAttrs.Count > 0)
             {
-                OcelotUi.Indent(() =>
+                OcelotUI.Indent(() =>
                 {
-                    OcelotUi.Error("Some options are hidden due to missing plugins:");
+                    OcelotUI.Error("Some options are hidden due to missing plugins:");
                     ImGui.SameLine();
                     ImGui.TextUnformatted(string.Join(", ", missingAttrs));
                 });
@@ -193,15 +193,15 @@ public abstract class ModuleConfig
 
             if (conflictingAttrs.Count > 0)
             {
-                OcelotUi.Indent(() =>
+                OcelotUI.Indent(() =>
                 {
-                    OcelotUi.Error("Some options are hidden due to conflicting plugins: ");
+                    OcelotUI.Error("Some options are hidden due to conflicting plugins: ");
                     ImGui.SameLine();
                     ImGui.TextUnformatted(string.Join(", ", conflictingAttrs));
                 });
             }
 
-            OcelotUi.Indent(16, () =>
+            OcelotUI.Indent(16, () =>
             {
                 foreach (var handler in GetHandlers())
                 {

@@ -1,9 +1,10 @@
 {
-    "generic": {
-        "start": "Starten",
-        "stop": "Stoppen",
-        "enabled": "Aktiviert",
-        "disabled": "Deaktiviert",
-        "toggle_config_window": "Konfigurationsfenster umschalten"
-    }
+  "generic": {
+    "start": "Starten",
+    "stop": "Stoppen",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "toggle": "Umschalten",
+    "toggle_config_window": "Konfigurationsfenster umschalten"
+  }
 }

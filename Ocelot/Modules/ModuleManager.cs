@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Ocelot.Ui;
+using Ocelot.UI;
 using Ocelot.Windows;
 
 namespace Ocelot.Modules;
@@ -14,6 +14,10 @@ public class ModuleManager
 
     private readonly Dictionary<IModule, int> configOrders = new();
 
+    private readonly Dictionary<string, Dictionary<IModule, int>> configOrdersByGroup = new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly Dictionary<string, List<IModule>> modulesByGroup = new(StringComparer.OrdinalIgnoreCase);
+
     private readonly Dictionary<IModule, int> mainOrders = new();
 
     private List<IModule> toUpdate = [];
@@ -22,13 +26,20 @@ public class ModuleManager
 
     private List<IModule> toInitialize = [];
 
-    public void Add(Module<OcelotPlugin, IOcelotConfig> module)
+    public List<IModule> All()
+    {
+        return modules;
+    }
+
+    public void Add(Module<OcelotPlugin, OcelotConfig> module)
     {
         modules.Add(module);
     }
 
-    public void AutoRegister(OcelotPlugin plugin, IOcelotConfig config)
+    public void AutoRegister(OcelotPlugin plugin, OcelotConfig config)
     {
+        ModuleConfigGroupRegistry.Initialize();
+
         var moduleTypes = Registry
             .GetTypesWithAttributeData<OcelotModuleAttribute>()
             .Where(t => typeof(IModule).IsAssignableFrom(t.type));
@@ -38,11 +49,30 @@ public class ModuleManager
             Logger.Info($"Registering module: {type.FullName}");
             var moduleInstance = (IModule)Activator.CreateInstance(type, plugin, config)!;
             modules.Add(moduleInstance);
-            if (attr != null)
+
+            var cfgOrder = attr?.ConfigOrder ?? int.MaxValue;
+            var mainOrder = attr?.MainOrder ?? int.MaxValue;
+            var groupId = attr?.ConfigGroup ?? "default";
+
+
+            configOrders[moduleInstance] = cfgOrder;
+            mainOrders[moduleInstance] = mainOrder;
+
+            if (!configOrdersByGroup.TryGetValue(groupId, out var dict))
             {
-                configOrders[moduleInstance] = attr.ConfigOrder;
-                mainOrders[moduleInstance] = attr.MainOrder;
+                dict = new Dictionary<IModule, int>();
+                configOrdersByGroup[groupId] = dict;
             }
+
+            dict[moduleInstance] = cfgOrder;
+
+            if (!modulesByGroup.TryGetValue(groupId, out var list))
+            {
+                list = new List<IModule>();
+                modulesByGroup[groupId] = list;
+            }
+
+            list.Add(moduleInstance);
         }
     }
 
@@ -54,6 +84,11 @@ public class ModuleManager
     public IEnumerable<IModule> GetModulesByConfigOrder()
     {
         return modules.OrderBy(m => configOrders.GetValueOrDefault(m, int.MaxValue));
+    }
+
+    public IEnumerable<IModule> GetModulesByGroup(string groupId)
+    {
+        return modulesByGroup.TryGetValue(groupId, out var value) ? value : [];
     }
 
     public void PreInitialize()
@@ -111,31 +146,17 @@ public class ModuleManager
         var orderedModules = GetModulesByMainOrder().ToList();
         foreach (var module in orderedModules)
         {
-            OcelotUi.Region($"OcelotMain##{module.GetType().FullName}", () =>
+            OcelotUI.Region($"OcelotMain##{module.GetType().FullName}", () =>
             {
                 if (module.RenderMainUi(context))
                 {
-                    OcelotUi.VSpace();
+                    OcelotUI.VSpace();
                     if (module != orderedModules.Last())
                     {
-                        OcelotUi.Separator();
+                        OcelotUI.Separator();
                     }
                 }
             });
-        }
-    }
-
-    public void RenderConfigUi(RenderContext context)
-    {
-        var orderedModules = GetModulesByConfigOrder().ToList();
-        foreach (var module in orderedModules)
-        {
-            module.RenderConfigUi(context);
-            OcelotUi.VSpace();
-            if (module != orderedModules.Last())
-            {
-                OcelotUi.Separator();
-            }
         }
     }
 
@@ -175,8 +196,18 @@ public class ModuleManager
         }
     }
 
+    public void PreDispose()
+    {
+        modules.ForEach(m => m.PreDispose());
+    }
+
     public void Dispose()
     {
         modules.ForEach(m => m.Dispose());
+    }
+
+    public void PostDispose()
+    {
+        modules.ForEach(m => m.PostDispose());
     }
 }

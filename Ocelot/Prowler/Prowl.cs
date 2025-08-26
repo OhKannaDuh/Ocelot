@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Conditions;
@@ -74,6 +75,10 @@ public class Prowl(Vector3 destination, IGameObject? obj = null)
     private Task<List<Vector3>>? pathfindingTask = null;
 
     private Task? trackingTask = null;
+
+    private Task? retargetTask = null;
+
+    private bool hasStartedMoving = false;
 
     public float EuclideanDistance
     {
@@ -155,19 +160,32 @@ public class Prowl(Vector3 destination, IGameObject? obj = null)
                     return true;
                 }
 
-                if (!Player.IsCasting || !Player.Mounting)
-                {
-                    throw new Exception("Failed to mount");
-                }
-
                 return false;
             })
             .ConditionalThen(_ => !ShouldFly(this) && ShouldSprint(this) && Actions.Sprint.CanCast() && !Player.Mounted, _ => Actions.Sprint.Cast())
             .Debug("Following Path")
-            .Then(_ => vnavmesh.MoveTo(Nodes, ShouldFly(this)))
+            .Then(_ =>
+            {
+                Logger.Debug($"Path length: {Nodes.Count}");
+
+                if (Nodes.Count <= 2)
+                {
+                    vnavmesh.PathfindAndMoveTo(Nodes.Last(), ShouldFly(this));
+                }
+                else
+                {
+                    vnavmesh.MoveTo(Nodes, ShouldFly(this));
+                }
+            })
             .Then(_ => State = ProwlState.Moving)
             .Then(_ =>
             {
+                if (!hasStartedMoving)
+                {
+                    hasStartedMoving = vnavmesh.IsRunning();
+                    return false;
+                }
+
                 if (!vnavmesh.IsRunning() || Watcher.Invoke(this))
                 {
                     return true;
@@ -183,12 +201,19 @@ public class Prowl(Vector3 destination, IGameObject? obj = null)
                     return false;
                 }
 
+                if (retargetTask is { IsCompleted: true })
+                {
+                    retargetTask.Dispose();
+                    retargetTask = null;
+                }
+
                 if (trackingTask is { IsCompleted: true })
                 {
                     trackingTask.Dispose();
                     trackingTask = null;
                 }
 
+                // Retarget if this is aimed at a game object
                 if (GameObject.Position.DistanceTo2D(Destination) <= GameObject.HitboxRadius)
                 {
                     return false;
@@ -215,6 +240,23 @@ public class Prowl(Vector3 destination, IGameObject? obj = null)
                 OnCancel(this, vnavmesh);
                 State = ProwlState.Cancelled;
             });
+    }
+
+    public void Retarget(Vector3 destination, VNavmesh vnavmesh)
+    {
+        if (retargetTask != null)
+        {
+            return;
+        }
+
+        hasStartedMoving = false;
+        retargetTask = Task.Run(async () =>
+        {
+            var nodes = await vnavmesh.Pathfind(Player.Position, destination, false);
+            nodes = nodes.Smooth().ContinueFrom(Player.Position);
+            vnavmesh.Stop();
+            vnavmesh.MoveTo(nodes, false);
+        });
     }
 
     public void Redirect(Vector3 destination)

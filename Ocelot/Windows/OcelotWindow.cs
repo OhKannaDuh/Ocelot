@@ -7,9 +7,9 @@ public abstract class OcelotWindow : Window, IDisposable
 {
     protected readonly OcelotPlugin Plugin;
 
-    protected readonly IOcelotConfig PluginConfig;
+    protected readonly OcelotConfig PluginConfig;
 
-    public OcelotWindow(OcelotPlugin plugin, IOcelotConfig pluginConfig)
+    protected OcelotWindow(OcelotPlugin plugin, OcelotConfig pluginConfig)
         : base("")
     {
         Plugin = plugin;
@@ -42,18 +42,6 @@ public abstract class OcelotWindow : Window, IDisposable
     public virtual void PostInitialize()
     {
     }
-
-    public void ToggleOrExpand()
-    {
-        // if (IsCollapsed)
-        // {
-        //     Collapsed = false;
-        //     return;
-        // }
-
-        IsOpen = !IsOpen;
-    }
-
 
     public virtual void Dispose()
     {

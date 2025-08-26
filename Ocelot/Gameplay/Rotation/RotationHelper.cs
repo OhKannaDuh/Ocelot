@@ -1,29 +1,90 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ECommons.Reflection;
-using Ocelot.Modules;
 
 namespace Ocelot.Gameplay.Rotation;
 
 public static class RotationHelper
 {
-    private readonly static Dictionary<string, Func<IModule, IRotationPlugin>> RotationPlugins = new()
-    {
-        { "WrathCombo", m => new Wrath(m) },
-    };
+    private static bool Initialized = false;
 
-    public static IRotationPlugin GetPlugin(IModule module)
+    private readonly static Dictionary<string, IRotationPlugin> Plugins = [];
+
+    internal static void Initialize(OcelotPlugin plugin)
     {
-        foreach (var (plugin, factory) in RotationPlugins)
+        if (Initialized)
         {
-            if (!DalamudReflector.TryGetDalamudPlugin(plugin, out _, false, true))
+            return;
+        }
+
+        Logger.Info("[RotationHelper] Initializing");
+        Initialized = true;
+
+        var types = Registry.GetTypesImplementing<IRotationPlugin>().Where(t => !t.IsAbstract);
+        foreach (var type in types)
+        {
+            var ctor = type.GetConstructor([typeof(OcelotPlugin)]);
+            if (ctor == null || Activator.CreateInstance(type, plugin) is not IRotationPlugin instance)
             {
                 continue;
             }
 
-            return factory(module);
+            if (instance.InternalName != "None")
+            {
+                Logger.Info($"[RotationHelper] Registering Rotation Plugin '{instance.InternalName}'");
+            }
+
+            Plugins.Add(instance.InternalName, instance);
+        }
+    }
+
+    internal static void TearDown()
+    {
+        if (!Initialized)
+        {
+            return;
         }
 
-        return new BlankRotationPlugin();
+        foreach (var (name, plugin) in Plugins)
+        {
+            plugin.Dispose();
+            Plugins.Remove(name);
+        }
+    }
+
+    public static IRotationPlugin GetPlugin()
+    {
+        if (!Initialized)
+        {
+            throw new RotationHelperNotInitializedException();
+        }
+
+        foreach (var (name, rotationPlugin) in Plugins)
+        {
+            if (!DalamudReflector.TryGetDalamudPlugin(name, out _, false, true))
+            {
+                continue;
+            }
+
+            return rotationPlugin;
+        }
+
+        return Plugins["None"];
+    }
+
+    public static IRotationPlugin GetPlugin(string name)
+    {
+        if (!Initialized)
+        {
+            throw new RotationHelperNotInitializedException();
+        }
+
+        if (Plugins.ContainsKey(name) && DalamudReflector.TryGetDalamudPlugin(name, out _, false, true))
+        {
+            return Plugins[name];
+        }
+
+        return Plugins["None"];
     }
 }

@@ -1,9 +1,11 @@
 {
-    "generic": {
-        "start": "Start",
-        "stop": "Stop",
-        "enabled": "Enabled",
-        "disabled": "Disabled",
-        "toggle_config_window": "Toggle Config Window"
-    }
+  "generic": {
+    "start": "Start",
+    "stop": "Stop",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "toggle": "Toggle",
+    "toggle_config_window": "Toggle Config Window",
+    "emergency_stop": "Emergency Stop"
+  }
 }

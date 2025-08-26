@@ -2,7 +2,7 @@ namespace Ocelot.Modules;
 
 public abstract partial class Module<P, C>(P plugin, C pluginConfig) : IModule
     where P : OcelotPlugin
-    where C : IOcelotConfig
+    where C : OcelotConfig
 {
     public readonly P Plugin = plugin;
 
@@ -18,7 +18,15 @@ public abstract partial class Module<P, C>(P plugin, C pluginConfig) : IModule
         get => null;
     }
 
+    public virtual void PreDispose()
+    {
+    }
+
     public virtual void Dispose()
+    {
+    }
+
+    public virtual void PostDispose()
     {
     }
 }

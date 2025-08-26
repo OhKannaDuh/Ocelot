@@ -5,7 +5,7 @@ namespace Ocelot.Modules;
 
 public abstract partial class Module<P, C>
     where P : OcelotPlugin
-    where C : IOcelotConfig
+    where C : OcelotConfig
 {
     public ModuleManager Modules
     {
