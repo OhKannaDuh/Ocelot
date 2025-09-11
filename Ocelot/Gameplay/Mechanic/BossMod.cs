@@ -4,23 +4,19 @@ namespace Ocelot.Gameplay.Mechanic;
 
 public class BossMod : BaseMechanicPlugin
 {
-    public override string DisplayName
-    {
+    public override string DisplayName {
         get => "Boss Mod";
     }
 
-    public override string InternalName
-    {
+    public override string InternalName {
         get => "BossMod";
     }
 
-    public override string Author
-    {
+    public override string Author {
         get => "veyn";
     }
 
-    public override string[] Maintainers
-    {
+    public override string[] Maintainers {
         get => ["xan_0"];
     }
 

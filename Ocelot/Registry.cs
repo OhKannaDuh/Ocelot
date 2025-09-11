@@ -2,17 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Ocelot.Modules;
-using Ocelot.ScoreBased;
 using Ocelot.States;
 
 namespace Ocelot;
 
 public static class Registry
 {
-    private readonly static HashSet<Assembly> RegisteredAssemblies = new();
+    private static readonly HashSet<Assembly> RegisteredAssemblies = new();
 
-    private readonly static List<Type> CachedTypes = new();
+    private static readonly List<Type> CachedTypes = new();
 
     public static void RegisterAssemblies(params Assembly[] assemblies)
     {
@@ -32,16 +30,9 @@ public static class Registry
                         types = ex.Types.Where(t => t != null).ToArray()!;
                     }
 
-                    foreach (var type in types.Where(t => t != null))
-                    {
-                        Logger.Debug($"[Registry] Registered type: {type.FullName}");
-                    }
-
                     CachedTypes.AddRange(types.Where(t => t != null));
                 }
-                catch
-                {
-                }
+                catch { }
             }
         }
     }
@@ -69,14 +60,14 @@ public static class Registry
             .Where(t => !t.IsAbstract && typeof(TBase).IsAssignableFrom(t));
     }
 
-    public static IEnumerable<Type> GetTypesForStateMachine<T, M>()
-        where T : struct, Enum
-        where M : IModule
+    public static IEnumerable<Type> GetTypesForStateMachine<TState, TContext>()
+        where TState : struct, Enum
+        where TContext : class?
     {
         return GetAllLoadableTypes()
             .Where(t =>
-                (typeof(StateHandler<T, M>).IsAssignableFrom(t) || typeof(ScoreStateHandler<T, M>).IsAssignableFrom(t)) &&
+                typeof(StateHandler<TState, TContext>).IsAssignableFrom(t) /* || typeof(ScoreStateHandler<T, M, C>).IsAssignableFrom(t*)*/ &&
                 !t.IsAbstract &&
-                t.GetCustomAttribute<StateAttribute<T>>() is not null);
+                t.GetCustomAttribute<StateAttribute<TState>>() is not null);
     }
 }

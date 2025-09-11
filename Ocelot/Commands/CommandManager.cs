@@ -34,8 +34,7 @@ public class CommandManager : IDisposable
         IReadOnlyList<string>? aliases = null,
         IReadOnlyList<string>? validArguments = null)
     {
-        Main = new MainOcelotCommand
-        {
+        Main = new MainOcelotCommand {
             Command = command,
             Description = description,
             Aliases = aliases ?? [],
@@ -51,8 +50,7 @@ public class CommandManager : IDisposable
         IReadOnlyList<string>? aliases = null,
         IReadOnlyList<string>? validArguments = null)
     {
-        Config = new ConfigOcelotCommand
-        {
+        Config = new ConfigOcelotCommand {
             Command = command,
             Description = description,
             Aliases = aliases ?? [],

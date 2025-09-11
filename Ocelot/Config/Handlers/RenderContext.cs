@@ -8,24 +8,16 @@ using Dalamud.Interface;
 using ECommons.Reflection;
 using Ocelot.Config.Attributes;
 using Ocelot.Modules;
+using Ocelot.Services;
+using Ocelot.Services.Translation;
 
 namespace Ocelot.Config.Handlers;
 
-public class RenderContext
+public class RenderContext(PropertyInfo prop, Type type, ModuleConfig self)
 {
-    private readonly PropertyInfo prop;
-
-    private readonly Type type;
-
-    private readonly ModuleConfig self;
-
-    public RenderContext(PropertyInfo prop, Type type, ModuleConfig self)
-    {
-        this.prop = prop;
-        this.type = type;
-        this.self = self;
+    private static ITranslationService Translator {
+        get => OcelotServices.GetCached<ITranslationService>();
     }
-
 
     public bool IsValid()
     {
@@ -126,7 +118,7 @@ public class RenderContext
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip(I18N.T(iconAttr.tooltip_translation_key));
+            ImGui.SetTooltip(Translator.T(iconAttr.tooltip_translation_key));
         }
 
         ImGui.SameLine();
@@ -198,7 +190,7 @@ public class RenderContext
 
             if (translation_key != null && !hasLabel)
             {
-                ImGui.SetTooltip(I18N.T(translation_key));
+                // ImGui.SetTooltip(I18N.T(translation_key));
             }
         }
     }
@@ -210,7 +202,7 @@ public class RenderContext
         translation_key ??= prop.GetCustomAttribute<LabelAndTooltipAttribute>()?.translation_key;
         if (translation_key != null)
         {
-            return I18N.T(translation_key);
+            return Translator.T(translation_key);
         }
 
         if (self.Owner == null)

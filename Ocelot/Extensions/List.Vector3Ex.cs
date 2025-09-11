@@ -25,33 +25,100 @@ public static class ListVector3Ex
         return length;
     }
 
-    public static List<Vector3> ContinueFrom(this List<Vector3> nodes, Vector3 point)
+    // public static List<Vector3> ContinueFrom(this List<Vector3> nodes, Vector3 point)
+    // {
+    //     if (nodes.Count == 0)
+    //     {
+    //         return [];
+    //     }
+    //
+    //     var bestIndex = 0;
+    //     var bestDistance = float.MaxValue;
+    //
+    //     for (var i = 0; i < nodes.Count; i++)
+    //     {
+    //         var totalDistance = Vector3.Distance(point, nodes[i]);
+    //
+    //         for (var j = i; j < nodes.Count - 1; j++)
+    //         {
+    //             totalDistance += Vector3.Distance(nodes[j], nodes[j + 1]);
+    //         }
+    //
+    //         if (totalDistance < bestDistance)
+    //         {
+    //             bestDistance = totalDistance;
+    //             bestIndex = i;
+    //         }
+    //     }
+    //
+    //     return nodes.GetRange(bestIndex, nodes.Count - bestIndex);
+    // }
+
+    public static List<Vector3> ContinueFrom(this List<Vector3> nodes, Vector3 point, bool planarXZ = true)
     {
-        if (nodes.Count == 0)
+        if (nodes == null || nodes.Count == 0)
+            return new List<Vector3>();
+        if (nodes.Count == 1)
+            return new List<Vector3>(nodes);
+
+        // De-dup zero-length segments to avoid divide-by-zero
+        var cleaned = new List<Vector3>(nodes.Count);
+        cleaned.Add(nodes[0]);
+        for (var i = 1; i < nodes.Count; i++)
         {
-            return [];
+            if (Vector3.DistanceSquared(nodes[i], cleaned[^1]) > 1e-6f)
+                cleaned.Add(nodes[i]);
         }
 
-        var bestIndex = 0;
-        var bestDistance = float.MaxValue;
+        if (cleaned.Count == 1)
+            return cleaned;
 
-        for (var i = 0; i < nodes.Count; i++)
+        var bestSeg = 0;
+        var bestT = 0f;
+        var bestDistSq = float.MaxValue;
+        var bestPoint = cleaned[0];
+
+        for (var i = 0; i < cleaned.Count - 1; i++)
         {
-            var totalDistance = Vector3.Distance(point, nodes[i]);
+            var a = cleaned[i];
+            var b = cleaned[i + 1];
 
-            for (var j = i; j < nodes.Count - 1; j++)
+            // Work in 2D (XZ) by default to ignore vertical separation (stairs, drops)
+            var ap = planarXZ ? new Vector2(point.X, point.Z) : new Vector2(point.X, point.Y);
+            var aa = planarXZ ? new Vector2(a.X, a.Z) : new Vector2(a.X, a.Y);
+            var bb = planarXZ ? new Vector2(b.X, b.Z) : new Vector2(b.X, b.Y);
+
+            var ab = bb - aa;
+            var abLenSq = ab.LengthSquared();
+            var t = 0f;
+            if (abLenSq > 1e-8f)
             {
-                totalDistance += Vector3.Distance(nodes[j], nodes[j + 1]);
+                t = Vector2.Dot(ap - aa, ab) / abLenSq;
+                if (t < 0f) t = 0f;
+                else if (t > 1f) t = 1f;
             }
 
-            if (totalDistance < bestDistance)
+            var proj2 = aa + t * ab;
+            var distSq = (ap - proj2).LengthSquared();
+            if (distSq < bestDistSq)
             {
-                bestDistance = totalDistance;
-                bestIndex = i;
+                bestDistSq = distSq;
+                bestSeg = i;
+                bestT = t;
+                // Interpolate in 3D to keep Y smooth
+                bestPoint = Vector3.Lerp(a, b, bestT);
             }
         }
 
-        return nodes.GetRange(bestIndex, nodes.Count - bestIndex);
+        // Build the trimmed path starting from the projected point
+        var result = new List<Vector3>(cleaned.Count - bestSeg);
+        result.Add(bestPoint);
+        for (var i = bestSeg + 1; i < cleaned.Count; i++)
+        {
+            result.Add(cleaned[i]);
+        }
+
+        return result;
     }
 
     public static List<Vector3> Smooth(this List<Vector3> nodes, float pointsPerUnit = 0.25f, int minSegments = 2)

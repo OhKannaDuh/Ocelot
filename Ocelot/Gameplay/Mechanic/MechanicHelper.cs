@@ -9,7 +9,7 @@ public static class MechanicHelper
 {
     private static bool Initialized = false;
 
-    private readonly static Dictionary<string, IMechanicPlugin> Plugins = [];
+    private static readonly Dictionary<string, IMechanicPlugin> Plugins = [];
 
     internal static void Initialize(OcelotPlugin plugin)
     {

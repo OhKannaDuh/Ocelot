@@ -10,8 +10,7 @@ public class UpdateLimit
 
     public bool ShouldUpdate<T>(T owner, UpdateContext context) where T : class
     {
-        return Mode switch
-        {
+        return Mode switch {
             UpdateLimitMode.None => true,
             UpdateLimitMode.UpdatesPerSecond => Gate.UpdatesPerSecond(owner, (int)Limit, context),
             UpdateLimitMode.Milliseconds => Gate.Milliseconds(owner, Limit, context),
@@ -21,88 +20,74 @@ public class UpdateLimit
         };
     }
 
-    public readonly static UpdateLimit None = new();
+    public static readonly UpdateLimit None = new();
 
-    public readonly static UpdateLimit SixtyTimesASecond = new()
-    {
+    public static readonly UpdateLimit SixtyTimesASecond = new() {
         Mode = UpdateLimitMode.UpdatesPerSecond,
         Limit = 60,
     };
 
-    public readonly static UpdateLimit ThirtyTimesASecond = new()
-    {
+    public static readonly UpdateLimit ThirtyTimesASecond = new() {
         Mode = UpdateLimitMode.UpdatesPerSecond,
         Limit = 30,
     };
 
-    public readonly static UpdateLimit EverySecond = new()
-    {
+    public static readonly UpdateLimit EverySecond = new() {
         Mode = UpdateLimitMode.Seconds,
         Limit = 1,
     };
 
-    public readonly static UpdateLimit EveryFiveSeconds = new()
-    {
+    public static readonly UpdateLimit EveryFiveSeconds = new() {
         Mode = UpdateLimitMode.Seconds,
         Limit = 5,
     };
 
-    public readonly static UpdateLimit EveryTenSeconds = new()
-    {
+    public static readonly UpdateLimit EveryTenSeconds = new() {
         Mode = UpdateLimitMode.Seconds,
         Limit = 10,
     };
 
-    public readonly static UpdateLimit EveryFifteenSeconds = new()
-    {
+    public static readonly UpdateLimit EveryFifteenSeconds = new() {
         Mode = UpdateLimitMode.Seconds,
         Limit = 15,
     };
 
-    public readonly static UpdateLimit EveryTwentySeconds = new()
-    {
+    public static readonly UpdateLimit EveryTwentySeconds = new() {
         Mode = UpdateLimitMode.Seconds,
         Limit = 20,
     };
 
-    public readonly static UpdateLimit EveryThirtySeconds = new()
-    {
+    public static readonly UpdateLimit EveryThirtySeconds = new() {
         Mode = UpdateLimitMode.Seconds,
         Limit = 30,
     };
 
-    public readonly static UpdateLimit EveryMinute = new()
-    {
+    public static readonly UpdateLimit EveryMinute = new() {
         Mode = UpdateLimitMode.Minutes,
         Limit = 1,
     };
 
-    public readonly static UpdateLimit EveryFiveMinutes = new()
-    {
+    public static readonly UpdateLimit EveryFiveMinutes = new() {
         Mode = UpdateLimitMode.Minutes,
         Limit = 5,
     };
 
-    public readonly static UpdateLimit EveryTenMinutes = new()
-    {
+    public static readonly UpdateLimit EveryTenMinutes = new() {
         Mode = UpdateLimitMode.Minutes,
         Limit = 10,
     };
 
-    public readonly static UpdateLimit EveryFifteenMinutes = new()
-    {
+    public static readonly UpdateLimit EveryFifteenMinutes = new() {
         Mode = UpdateLimitMode.Minutes,
         Limit = 15,
     };
 
-    public readonly static UpdateLimit EveryTwentyMinutes = new()
-    {
+    public static readonly UpdateLimit EveryTwentyMinutes = new() {
         Mode = UpdateLimitMode.Minutes,
         Limit = 20,
     };
 
-    public readonly static UpdateLimit EveryThirtyMinutes = new()
-    {
+    public static readonly UpdateLimit EveryThirtyMinutes = new() {
         Mode = UpdateLimitMode.Minutes,
         Limit = 30,
     };

@@ -1,11 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using ECommons.DalamudServices;
+using Ocelot.Services;
+using Ocelot.Services.Translation;
+using Ocelot.Services.Windows;
 
 namespace Ocelot.Commands;
 
 public class MainOcelotCommand : OcelotCommand
 {
+    private static ITranslationService Translator {
+        get => OcelotServices.GetCached<ITranslationService>();
+    }
+
+    private static IWindowManager WindowManager {
+        get => OcelotServices.GetCached<IWindowManager>();
+    }
+
     public override string Command { get; init; } = $"/{Svc.PluginInterface.InternalName.ToLower()}";
 
     public override string Description { get; init; } = "";
@@ -18,25 +29,23 @@ public class MainOcelotCommand : OcelotCommand
 
     public MainOcelotCommand()
     {
-        handlers =
-        [
+        handlers = [
             ( // Config
                 ShouldRun: arguments => IncludeConfigHandler && arguments is ["config"] or ["cfg"] or ["c"],
-                Execute: _ => { OcelotPlugin.Plugin.Windows.ToggleConfigUI(); }
+                Execute: _ => { WindowManager.ToggleConfigUI(); }
             ),
             ( // Language
                 ShouldRun: arguments => IncludeLanguageHandler && arguments is ["language", _],
-                Execute: arguments =>
-                {
+                Execute: arguments => {
                     var lang = arguments[1];
-                    if (!I18N.HasLanguage(lang))
+                    if (!Translator.HasLanguage(lang))
                     {
-                        var supported = string.Join(", ", I18N.GetAllLanguageKeys());
+                        var supported = string.Join(", ", Translator.Languages);
                         Svc.Chat.PrintError($"{lang} is not supported. ({supported})");
                         return;
                     }
 
-                    I18N.SetLanguage(lang);
+                    Translator.SetLanguage(lang);
                     OcelotPlugin.Plugin.OcelotConfig.OcelotCoreConfig.Language = lang;
                     OcelotPlugin.Plugin.OcelotConfig.Save();
                 }
@@ -60,6 +69,7 @@ public class MainOcelotCommand : OcelotCommand
             }
         }
 
-        OcelotPlugin.Plugin.Windows.ToggleMainUI();
+
+        WindowManager.ToggleMainUI();
     }
 }

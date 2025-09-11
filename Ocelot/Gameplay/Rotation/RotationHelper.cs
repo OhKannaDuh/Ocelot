@@ -9,7 +9,7 @@ public static class RotationHelper
 {
     private static bool Initialized = false;
 
-    private readonly static Dictionary<string, IRotationPlugin> Plugins = [];
+    private static readonly Dictionary<string, IRotationPlugin> Plugins = [];
 
     internal static void Initialize(OcelotPlugin plugin)
     {

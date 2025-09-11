@@ -11,13 +11,14 @@ namespace Ocelot.Config.Handlers;
 public class EnumOrderSelectHandler<TEnum> : Handler
     where TEnum : struct, Enum
 {
-    protected override Type type
-    {
+    protected override Type type {
         get => typeof(List<TEnum>);
     }
 
     private readonly ModuleConfig selfRef;
+
     private readonly bool bindsArray;
+
     private readonly IEnumProvider<TEnum> provider;
 
     public EnumOrderSelectHandler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo property, string providerName)
@@ -27,8 +28,8 @@ public class EnumOrderSelectHandler<TEnum> : Handler
         bindsArray = property.PropertyType.IsArray;
 
         var qualifiedName = string.IsNullOrEmpty(self.ProviderNamespace)
-            ? providerName
-            : $"{self.ProviderNamespace}.{providerName}";
+                                ? providerName
+                                : $"{self.ProviderNamespace}.{providerName}";
 
         var providerType = Registry.GetAllLoadableTypes()
                                .FirstOrDefault(t => t.FullName == qualifiedName)
@@ -44,8 +45,8 @@ public class EnumOrderSelectHandler<TEnum> : Handler
             throw new InvalidOperationException(
                 $"Provider type '{providerType.FullName}' does not implement IEnumProvider<{typeof(TEnum).Name}>.\n" +
                 (string.IsNullOrEmpty(debugInfo)
-                    ? "No IEnumProvider<> interfaces were found on the type."
-                    : $"Found generic interfaces:\n{debugInfo}")
+                     ? "No IEnumProvider<> interfaces were found on the type."
+                     : $"Found generic interfaces:\n{debugInfo}")
             );
         }
 

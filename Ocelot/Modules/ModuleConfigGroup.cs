@@ -9,10 +9,9 @@ public class ModuleConfigGroup
 
     public int Priority { get; init; } = 0;
 
-    public readonly static ModuleConfigGroup Default = new();
+    public static readonly ModuleConfigGroup Default = new();
 
-    public readonly static ModuleConfigGroup Ocelot = new()
-    {
+    public static readonly ModuleConfigGroup Ocelot = new() {
         Id = "ocelot",
         TranslationKey = "module_config_group.ocelot",
         Priority = -1000,

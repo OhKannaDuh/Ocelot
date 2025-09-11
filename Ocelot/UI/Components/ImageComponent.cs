@@ -16,9 +16,7 @@ public class ImageComponent(IDalamudTextureWrap texture) : UIComponent
 
     public string? Tooltip { get; private set; }
 
-    public ImageComponent(uint id) : this(Svc.Texture.GetFromGameIcon(new GameIconLookup(id)).GetWrapOrEmpty())
-    {
-    }
+    public ImageComponent(uint id) : this(Svc.Texture.GetFromGameIcon(new GameIconLookup(id)).GetWrapOrEmpty()) { }
 
     public float GetHeight()
     {

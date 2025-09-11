@@ -20,9 +20,7 @@ public class TextComponent(string text, Vector4 color, ImFontPtr font) : UICompo
     }
 
     public TextComponent(string text, Vector4 color)
-        : this(text, color, UiBuilder.DefaultFont)
-    {
-    }
+        : this(text, color, UiBuilder.DefaultFont) { }
 
     public TextComponent(string text, ImFontPtr font)
         : this(text, Vector4.Zero, font)

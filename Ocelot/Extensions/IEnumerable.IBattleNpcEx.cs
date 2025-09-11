@@ -81,8 +81,7 @@ public static class IEnumerableIBattleNpcEx
 
     public static unsafe IEnumerable<IBattleNpc> FilterByFate(this IEnumerable<IBattleNpc> enemies, uint fateId)
     {
-        return enemies.Where(e =>
-        {
+        return enemies.Where(e => {
             var battleChara = (BattleChara*)e.Address;
 
             return battleChara->FateId == fateId;

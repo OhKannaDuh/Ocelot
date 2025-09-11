@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Dalamud.Plugin;
 using ECommons.DalamudServices;
 using Ocelot;
-using Ocelot.Data;
 using Ocelot.Modules;
 
 public class PluginWatcher
@@ -16,8 +15,7 @@ public class PluginWatcher
 
     public event Action? OnPluginListChanged;
 
-    public IReadOnlyDictionary<string, bool> CurrentPlugins
-    {
+    public IReadOnlyDictionary<string, bool> CurrentPlugins {
         get => previousPluginList;
     }
 
@@ -125,10 +123,5 @@ public class PluginWatcher
         }
 
         return includeDev && previousPluginList.TryGetValue($"{name}.Dev", out var devEnabled) && devEnabled;
-    }
-
-    public bool IsOcelotPluginEnabled(OcelotPlugins plugin)
-    {
-        return IsPluginEnabled(plugin.GetInternalName());
     }
 }

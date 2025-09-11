@@ -5,7 +5,7 @@ namespace Ocelot;
 
 public static class Gate
 {
-    private readonly static Dictionary<string, long> Elapsed = [];
+    private static readonly Dictionary<string, long> Elapsed = [];
 
     public static bool Milliseconds<T>(T owner, long interval, UpdateContext context) where T : class
     {

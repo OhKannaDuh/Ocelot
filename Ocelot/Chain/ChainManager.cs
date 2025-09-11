@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 
@@ -6,26 +6,25 @@ namespace Ocelot.Chain;
 
 public static class ChainManager
 {
-    private readonly static Dictionary<string, ChainQueue> queues = [];
-
-    public static IReadOnlyDictionary<string, ChainQueue> Queues
-    {
-        get => queues;
-    }
+    private static readonly Dictionary<string, ChainQueue> queues = new();
 
     private static bool Initialized;
+
+    public static IReadOnlyDictionary<string, ChainQueue> Queues {
+        get => queues;
+    }
 
     public static ChainQueue Get(string id)
     {
         lock (queues)
         {
-            if (!queues.TryGetValue(id, out var queue))
+            if (!queues.TryGetValue(id, out var q))
             {
-                queue = new ChainQueue();
-                queues[id] = queue;
+                q = new ChainQueue();
+                queues[id] = q;
             }
 
-            return queue;
+            return q;
         }
     }
 
@@ -37,38 +36,32 @@ public static class ChainManager
         }
 
         Initialized = true;
-
         Svc.Framework.Update += Tick;
     }
 
     private static void Tick(IFramework framework)
     {
+        List<string>? toRemove = null;
+
         lock (queues)
         {
-            var toRemove = new List<string>();
-
-            foreach (var pair in queues)
+            foreach (var (id, q) in queues)
             {
-                var id = pair.Key;
-                var queue = pair.Value;
+                q.Tick(framework);
 
-                queue.Tick(framework);
-
-                if (queue is { IsRunning: false, QueueCount: 0, TimeAlive.Seconds: >= 1 })
+                if (q is { IsRunning: false, QueueCount: 0, TimeAlive.TotalSeconds: >= 1 })
                 {
-                    if (queue.HasRun)
-                    {
-                        Logger.Debug($"Disposing ChainQueue '{id}' (inactive and empty)");
-                    }
-
-                    queue.Dispose();
-                    toRemove.Add(id);
+                    q.Dispose();
+                    (toRemove ??= new List<string>()).Add(id);
                 }
             }
 
-            foreach (var id in toRemove)
+            if (toRemove is not null)
             {
-                queues.Remove(id);
+                foreach (var id in toRemove)
+                {
+                    queues.Remove(id);
+                }
             }
         }
     }
@@ -77,24 +70,21 @@ public static class ChainManager
     {
         lock (queues)
         {
-            foreach (var queue in queues.Values)
+            foreach (var q in queues.Values)
             {
-                queue.Abort();
+                q.Abort();
             }
         }
-
-        Logger.Debug("Aborted all active ChainQueues.");
     }
 
     public static void Close()
     {
         Svc.Framework.Update -= Tick;
-
         lock (queues)
         {
-            foreach (var queue in queues.Values)
+            foreach (var q in queues.Values)
             {
-                queue.Dispose();
+                q.Dispose();
             }
 
             queues.Clear();

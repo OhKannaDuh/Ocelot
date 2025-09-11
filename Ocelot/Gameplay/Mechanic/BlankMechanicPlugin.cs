@@ -2,26 +2,19 @@
 
 public class BlankMechanicPlugin : BaseMechanicPlugin
 {
-    public override string DisplayName
-    {
+    public override string DisplayName {
         get => "None";
     }
 
-    public override string InternalName
-    {
+    public override string InternalName {
         get => "None";
     }
 
-    public override string Author
-    {
+    public override string Author {
         get => "N/A";
     }
 
-    public override void Enable()
-    {
-    }
+    public override void Enable() { }
 
-    public override void Disable()
-    {
-    }
+    public override void Disable() { }
 }

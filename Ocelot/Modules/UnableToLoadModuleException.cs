@@ -2,9 +2,4 @@ using System;
 
 namespace Ocelot.Modules;
 
-public class UnableToLoadModuleException : Exception
-{
-    public UnableToLoadModuleException(string message) : base(message)
-    {
-    }
-}
+public class UnableToLoadModuleException(string message) : Exception(message);

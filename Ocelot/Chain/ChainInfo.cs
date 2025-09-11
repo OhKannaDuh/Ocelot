@@ -2,7 +2,7 @@
 
 namespace Ocelot.Chain;
 
-public class ChainInfo
+public sealed class ChainInfo
 {
     public required string Name { get; init; }
 
@@ -10,28 +10,21 @@ public class ChainInfo
 
     public float Progress { get; init; }
 
-    public int TotalLinks { get; init; }
+    public int TotalSteps { get; init; }
 
-    public int CompletedLinks { get; init; }
+    public int StepsCompleted { get; init; }
 
-    private ChainInfo()
+    public int StepsRemaining { get; init; }
+
+    public static ChainInfo FromRunner(ChainRunner runner)
     {
-    }
-
-    public static ChainInfo? FromChain(Chain? chain)
-    {
-        if (chain == null)
-        {
-            return null;
-        }
-
-        return new ChainInfo
-        {
-            Name = chain.Name,
-            TimeAlive = chain.TimeAlive,
-            Progress = chain.Progress,
-            TotalLinks = chain.TotalLinks,
-            CompletedLinks = chain.CompletedLinks,
+        return new ChainInfo {
+            Name = runner.Name,
+            TimeAlive = runner.TimeAlive,
+            Progress = runner.Progress,
+            TotalSteps = runner.TotalSteps,
+            StepsCompleted = runner.StepsCompleted,
+            StepsRemaining = runner.StepsRemaining,
         };
     }
 }

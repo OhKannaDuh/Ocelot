@@ -6,8 +6,8 @@ public partial class Actions
 {
     public class Warrior
     {
-        public readonly static Action Defiance = new(ActionType.Action, 48);
+        public static readonly Action Defiance = new(ActionType.Action, 48);
 
-        public readonly static Action ReleaseDefiance = new(ActionType.Action, 32066);
+        public static readonly Action ReleaseDefiance = new(ActionType.Action, 32066);
     }
 }

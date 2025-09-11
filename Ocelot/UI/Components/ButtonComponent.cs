@@ -25,9 +25,7 @@ public class ButtonComponent(string id) : UIComponent
     public Action? OnRightClick { get; private set; }
 
     public ButtonComponent(IEnumerable<UIComponent> components, string id)
-        : this(new ComponentGroup(components), id)
-    {
-    }
+        : this(new ComponentGroup(components), id) { }
 
     public ButtonComponent(ComponentGroup content, string id)
         : this(id)

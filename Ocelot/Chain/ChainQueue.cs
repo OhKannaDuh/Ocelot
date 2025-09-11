@@ -1,156 +1,136 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Dalamud.Plugin.Services;
-using ECommons.Automation.NeoTaskManager;
+using Ocelot.Chain.Builder;
+using Ocelot.Chain.Steps;
 
 namespace Ocelot.Chain;
 
-public class ChainQueue : IDisposable
+public sealed class ChainQueue : IDisposable
 {
-    private readonly LinkedList<Func<Chain>> chains = [];
+    private readonly LinkedList<Func<ChainRunner>> queue = new();
 
-    private Chain? chain = null;
+    private ChainRunner? current;
 
-    private DateTime createdAt { get; } = DateTime.UtcNow;
+    private readonly DateTime createdAt = DateTime.UtcNow;
 
-    public bool HasRun { get; private set; } = false;
+    public bool HasRun { get; private set; }
 
-    public TimeSpan TimeAlive
-    {
+    public int ChainsCompleted { get; private set; }
+
+    public TimeSpan TimeAlive {
         get => DateTime.UtcNow - createdAt;
     }
 
-    public int ChainsCompleted { get; private set; } = 0;
-
-    public void Submit(Func<Chain> factory)
-    {
-        HasRun = true;
-        lock (chains)
-        {
-            chains.AddLast(factory);
+    public int QueueCount {
+        get {
+            lock (queue)
+            {
+                return queue.Count;
+            }
         }
     }
 
-    public void Submit(Func<Chain, Chain> factory)
+    public bool IsRunning {
+        get => current is { IsCompleted: false };
+    }
+
+    public ChainRunner? Current {
+        get => current;
+    }
+
+    public void Submit(Func<ChainRunner> factory)
     {
         HasRun = true;
-        lock (chains)
+        lock (queue)
         {
-            chains.AddLast(() => factory(Chain.Create()));
+            queue.AddLast(factory);
         }
     }
 
-    public void SubmitFront(Func<Chain> factory)
+    public void SubmitFront(Func<ChainRunner> factory)
     {
         HasRun = true;
-        lock (chains)
+        lock (queue)
         {
-            chains.AddFirst(factory);
+            queue.AddFirst(factory);
         }
     }
 
-    public void Submit(ChainFactory factory)
+    public void Submit(ChainBuilder builder)
     {
-        Submit(factory.Factory());
+        Submit(() => builder.Build());
     }
 
-    public void SubmitFront(ChainFactory factory)
+    public void SubmitFront(ChainBuilder builder)
     {
-        SubmitFront(factory.Factory());
+        SubmitFront(() => builder.Build());
     }
 
-    public void Submit(TaskManagerTask task)
+    public void Submit(string name, params IChainStep[] steps)
     {
-        Submit(() => Chain.Create().Then(task));
+        Submit(() => ChainBuilder.Default(name).Then(steps).Build());
     }
 
-    public void SubmitFront(TaskManagerTask task)
+    public void SubmitFront(string name, params IChainStep[] steps)
     {
-        SubmitFront(() => Chain.Create().Then(task));
+        SubmitFront(() => ChainBuilder.Default(name).Then(steps).Build());
     }
 
     public void Abort()
     {
-        lock (chains)
+        lock (queue)
         {
-            if (chain != null)
-            {
-                chain.Abort();
-                chain = null;
-            }
-
-            chains.Clear();
+            current?.Dispose();
+            current = null;
+            queue.Clear();
         }
-
-        Logger.Debug("Aborted current chain and cleared the queue.");
     }
 
     public void Clear()
     {
-        lock (chains)
+        lock (queue)
         {
-            chains.Clear();
+            queue.Clear();
         }
-    }
-
-    public Chain? CurrentChain
-    {
-        get => chain;
     }
 
     public void Tick(IFramework framework)
     {
-        if (chain != null && !chain.IsComplete())
+        if (current is { IsCompleted: false })
         {
+            current.Tick(framework);
             return;
         }
 
-        if (chain?.IsComplete() == true)
+        if (current is { IsCompleted: true })
         {
-            chain.Dispose();
-            chain = null;
+            current.Dispose();
+            current = null;
             ChainsCompleted++;
         }
 
-        lock (chains)
+        Func<ChainRunner>? factory = null;
+        lock (queue)
         {
-            if (chains.Count == 0)
+            if (queue.Count > 0)
             {
-                chain = null;
-                return;
+                factory = queue.First!.Value;
+                queue.RemoveFirst();
             }
-
-            var factory = chains.First!.Value;
-            chains.RemoveFirst();
-            chain = factory();
         }
-    }
 
-    public bool IsRunning
-    {
-        get => chain != null && !chain.IsComplete();
-    }
-
-    public int QueueCount
-    {
-        get
+        if (factory is not null)
         {
-            lock (chains)
-            {
-                return chains.Count;
-            }
+            current = factory();
+            current.Tick(framework);
         }
     }
 
     public void Dispose()
     {
-        if (chain != null)
-        {
-            chain.Abort();
-            chain.Dispose();
-            chain = null;
-        }
-
+        current?.Dispose();
+        current = null;
         Clear();
     }
 }

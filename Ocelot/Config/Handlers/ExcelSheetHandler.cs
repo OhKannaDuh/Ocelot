@@ -12,8 +12,7 @@ namespace Ocelot.Config.Handlers;
 public class ExcelSheetHandler<T> : SelectHandler<T>
     where T : struct, IExcelRow<T>
 {
-    protected override Type type
-    {
+    protected override Type type {
         get => typeof(uint);
     }
 

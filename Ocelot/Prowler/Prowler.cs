@@ -1,67 +1,75 @@
-﻿using System;
-using Ocelot.Chain;
-using Ocelot.IPC;
+﻿using Dalamud.Plugin.Services;
+using Ocelot.Ipc;
+using Ocelot.Services;
+using Ocelot.Services.Pathfinding;
 
 namespace Ocelot.Prowler;
 
-public class Prowler
+public static class Prowler
 {
-    private static Prowler? CachedInstance = null;
-
-    public static Prowl? Current;
-
-    private static Prowler Instance
-    {
-        get
-        {
-            if (CachedInstance == null)
-            {
-                throw new InvalidOperationException("Prowler has not been initialized. Call Initialize(plugin) first.");
-            }
-
-            return CachedInstance;
-        }
+    private static IPathfinderService Pathfinder {
+        get => OcelotServices.GetCached<IPathfinderService>();
     }
 
-    private readonly OcelotPlugin plugin;
-
-    private VNavmesh Vnavmesh
-    {
-        get => Instance.plugin.IPC.GetSubscriber<VNavmesh>();
+    public static bool IsRunning {
+        get => Current != null;
     }
 
-    private ChainQueue Chain
-    {
-        get => ChainManager.Get("Ocelot.Prowler.Prowler.ChainQueue");
-    }
+    private static ProwlerStateMachine? Current;
 
-    public static bool IsRunning
-    {
-        get => Instance.Chain.IsRunning || Instance.Vnavmesh.IsRunning() || Instance.Vnavmesh.IsPathfinding();
-    }
-
-    private Prowler(OcelotPlugin plugin)
-    {
-        this.plugin = plugin;
-    }
-
-    public static void Initialize(OcelotPlugin plugin)
-    {
-        CachedInstance ??= new Prowler(plugin);
+    public static ProwlState? State {
+        get => Current?.State;
     }
 
     public static void Prowl(Prowl prowl)
     {
-        Instance.Chain.Submit(chain => chain
-            .Then(_ => Current = prowl)
-            .Then(prowl.GetChain(Instance.Vnavmesh))
-            .OnFinally(() => Current = null)
-        );
+        if (IsRunning)
+        {
+            throw new AlreadyProwlingException();
+        }
+
+        Current = new ProwlerStateMachine(prowl);
+    }
+
+    public static void Update(IFramework _)
+    {
+        if (Current == null)
+        {
+            return;
+        }
+
+        Current.Update();
+
+        var prowl = Current.GetProwl();
+        var context = prowl.Context;
+
+        switch (Current.State)
+        {
+            case ProwlState.Faulted:
+                prowl.Options.EventHandler?.OnFaulted(context);
+                prowl.Options.EventHandler?.Finally(context);
+                Current.Dispose();
+                Current = null;
+                break;
+            case ProwlState.Cancelled:
+                prowl.Options.EventHandler?.OnCancelled(context);
+                prowl.Options.EventHandler?.Finally(context);
+                Current.Dispose();
+                Current = null;
+                break;
+            case ProwlState.Complete:
+                prowl.Options.EventHandler?.OnComplete(context);
+                prowl.Options.EventHandler?.Finally(context);
+                Current.Dispose();
+                Current = null;
+                break;
+        }
     }
 
     public static void Abort()
     {
-        Instance.Vnavmesh.Stop();
-        Instance.Chain.Abort();
+        Current?.Dispose();
+        Current = null;
+        VNavmesh.Stop();
     }
 }

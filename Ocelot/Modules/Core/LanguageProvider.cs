@@ -1,12 +1,17 @@
 ﻿using System.Collections.Generic;
 using Ocelot.Config.Handlers;
+using Ocelot.Services;
+using Ocelot.Services.Translation;
 
 namespace Ocelot.Modules;
 
 public class LanguageProvider : ListProvider<string>
 {
-    private readonly Dictionary<string, string> knownLanguages = new()
-    {
+    private static ITranslationService Translator {
+        get => OcelotServices.GetCached<ITranslationService>();
+    }
+
+    private readonly Dictionary<string, string> knownLanguages = new() {
         { "en", "English" },
         { "de", "Deutsch" },
         { "fr", "Français" },
@@ -17,7 +22,7 @@ public class LanguageProvider : ListProvider<string>
 
     public override IEnumerable<string> GetItems()
     {
-        return I18N.GetAllLanguageKeys();
+        return Translator.Languages;
     }
 
     public override bool Filter(string item)

@@ -8,8 +8,7 @@ public abstract class BaseRotationPlugin : IRotationPlugin
 
     public abstract string Author { get; }
 
-    public virtual string[] Maintainers
-    {
+    public virtual string[] Maintainers {
         get => [];
     }
 
@@ -17,7 +16,5 @@ public abstract class BaseRotationPlugin : IRotationPlugin
 
     public abstract void Disable();
 
-    public virtual void Dispose()
-    {
-    }
+    public virtual void Dispose() { }
 }

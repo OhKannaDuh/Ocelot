@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using ECommons.DalamudServices;
+using Ocelot.Services;
+using Ocelot.Services.Windows;
 
 namespace Ocelot.Commands;
 
@@ -11,6 +13,6 @@ public class ConfigOcelotCommand : OcelotCommand
 
     public override void Execute(List<string> arguments)
     {
-        OcelotPlugin.Plugin.Windows.ToggleConfigUI();
+        OcelotServices.GetCached<IWindowManager>().ToggleConfigUI();
     }
 }

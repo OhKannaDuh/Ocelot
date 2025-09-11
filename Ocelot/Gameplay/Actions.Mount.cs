@@ -23,8 +23,7 @@ public partial class Actions
         return new Action(ActionType.Mount, id);
     }
 
-    public static Action Unmount
-    {
+    public static Action Unmount {
         get => Dismount;
     }
 

@@ -4,15 +4,23 @@ public enum ProwlState
 {
     NotStarted,
 
+    Preprocessing,
+
     Pathfinding,
 
-    Mounting,
+    Postprocessing,
+
+    PreparingMovement, // Here we determine if we should mount or go straight to movement
+
+    Mount,
 
     Moving,
 
-    Complete,
+    Redirecting,
 
     Cancelled,
 
-    Redirecting,
+    Complete,
+
+    Faulted,
 }

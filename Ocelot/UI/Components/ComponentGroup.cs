@@ -105,13 +105,11 @@ public class ComponentGroup()
         return this;
     }
 
-    public float Width
-    {
+    public float Width {
         get => Components.Count == 0 ? 0 : Components.Sum(c => c.GetWidth()) + ImGui.GetStyle().ItemSpacing.X * (Components.Count - 1);
     }
 
-    public float Height
-    {
+    public float Height {
         get => Components.Count == 0 ? 0 : Components.Sum(c => c.GetHeight());
     }
 

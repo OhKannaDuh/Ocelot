@@ -2,7 +2,5 @@
 
 public partial class Actions
 {
-    protected Actions()
-    {
-    }
+    protected Actions() { }
 }

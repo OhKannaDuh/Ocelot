@@ -10,13 +10,14 @@ namespace Ocelot.Config.Handlers;
 public class ListHandler<T> : SelectHandler<T>
     where T : notnull
 {
-    protected override Type type
-    {
+    protected override Type type {
         get => typeof(T);
     }
 
     private readonly IListProvider<T> provider;
+
     private readonly ModuleConfig selfConfig;
+
     private readonly PropertyInfo propInfo;
 
     public ListHandler(ModuleConfig self, ConfigAttribute attribute, PropertyInfo prop, string provider)
@@ -50,8 +51,8 @@ public class ListHandler<T> : SelectHandler<T>
             throw new InvalidOperationException(
                 $"Provider type '{providerType.FullName}' does not implement IListProvider<{typeof(T).Name}>.\n" +
                 (matchingInterfaces.Count > 0
-                    ? $"Found generic interfaces:\n{debugInfo}"
-                    : "No IListProvider<> interfaces were found on the type.")
+                     ? $"Found generic interfaces:\n{debugInfo}"
+                     : "No IListProvider<> interfaces were found on the type.")
             );
         }
 

@@ -19,13 +19,11 @@ public static class TargetingHelper
 
     public static IEnumerable<IBattleNpc> Npcs { get; private set; } = [];
 
-    public static IEnumerable<IBattleNpc> Enemies
-    {
+    public static IEnumerable<IBattleNpc> Enemies {
         get => Npcs.Where(o => o.IsHostile());
     }
 
-    public static IEnumerable<IBattleNpc> Players
-    {
+    public static IEnumerable<IBattleNpc> Players {
         get => Npcs.Where(o => o.ObjectKind == ObjectKind.Player);
     }
 
@@ -55,8 +53,7 @@ public static class TargetingHelper
     private static void Update(IFramework _)
     {
         Npcs = Svc.Objects.OfType<IBattleNpc>()
-            .Where(o => o is
-            {
+            .Where(o => o is {
                 IsDead: false,
                 IsTargetable: true,
             })

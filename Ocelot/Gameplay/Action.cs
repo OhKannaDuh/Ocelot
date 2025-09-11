@@ -1,10 +1,15 @@
-﻿using System;
-using FFXIVClientStructs.FFXIV.Client.Game;
+﻿using FFXIVClientStructs.FFXIV.Client.Game;
+using Ocelot.Chain;
+using Ocelot.Chain.Builder;
 
 namespace Ocelot.Gameplay;
 
 public unsafe class Action(ActionType type, uint id)
 {
+    protected string Key {
+        get => $"Action({type}, {id})";
+    }
+
     public float GetRecastTime()
     {
         var manager = ActionManager.Instance();
@@ -14,7 +19,7 @@ public unsafe class Action(ActionType type, uint id)
         return recast - elapsed;
     }
 
-    public unsafe bool CanCast()
+    public bool CanCast()
     {
         return GetRecastTime() <= 0f && ActionManager.Instance()->GetActionStatus(type, id) <= 0f;
     }
@@ -24,17 +29,13 @@ public unsafe class Action(ActionType type, uint id)
         ActionManager.Instance()->UseAction(type, id);
     }
 
-    public Func<Chain.Chain> GetCastChain()
+    public ChainRunner GetChainRunner()
     {
-        return () => CastOnChain(Chain.Chain.Create($"Action({type}, {id})"));
-    }
-
-    public Chain.Chain CastOnChain(Chain.Chain chain)
-    {
-        return chain
-            .Debug("Waiting to be able to cast")
-            .Then(_ => CanCast())
-            .Debug("Casting")
-            .Then(_ => Cast());
+        return ChainBuilder.Default(Key)
+            .Debug($"Waiting to be able to cast {Key}")
+            .WaitUntil($"{Key} can cast", (_, _) => CanCast())
+            .Debug($"Casting {Key}")
+            .Then($"Cast {Key}", (_, _) => Cast())
+            .Build();
     }
 }

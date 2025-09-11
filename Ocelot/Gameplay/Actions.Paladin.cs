@@ -6,8 +6,8 @@ public partial class Actions
 {
     public class Paladin
     {
-        public readonly static Action IronWill = new(ActionType.Action, 28);
+        public static readonly Action IronWill = new(ActionType.Action, 28);
 
-        public readonly static Action ReleaseIronWill = new(ActionType.Action, 32065);
+        public static readonly Action ReleaseIronWill = new(ActionType.Action, 32065);
     }
 }

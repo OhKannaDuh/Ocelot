@@ -1,28 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Ocelot.Modules;
 using Ocelot.UI;
 using Ocelot.Windows;
 
 namespace Ocelot.States;
 
-public class StateMachine<TState, TModule> : IDisposable
+public class StateMachine<TState>(TState state) : StateMachine<TState, object>(state)
+    where TState : struct, Enum;
+
+public class StateMachine<TState, TContext> : IDisposable
     where TState : struct, Enum
-    where TModule : IModule
+    where TContext : class?
 {
     public TState State { get; protected set; }
 
     private readonly TState initial;
 
-    public readonly Dictionary<TState, StateHandler<TState, TModule>> Handlers = [];
+    public readonly Dictionary<TState, StateHandler<TState, TContext>> Handlers = [];
 
-    protected readonly TModule Module;
-
-    protected StateHandler<TState, TModule> CurrentHandler
-    {
-        get
-        {
+    protected StateHandler<TState, TContext> CurrentHandler {
+        get {
             if (Handlers.TryGetValue(State, out var handler))
             {
                 return handler;
@@ -32,13 +30,12 @@ public class StateMachine<TState, TModule> : IDisposable
         }
     }
 
-    public StateMachine(TState state, TModule module)
+    public StateMachine(TState state)
     {
         State = state;
         initial = State;
-        Module = module;
 
-        foreach (var type in Registry.GetTypesForStateMachine<TState, TModule>())
+        foreach (var type in Registry.GetTypesForStateMachine<TState, TContext>())
         {
             var attr = type.GetCustomAttribute<StateAttribute<TState>>();
             if (attr == null)
@@ -51,9 +48,9 @@ public class StateMachine<TState, TModule> : IDisposable
                 throw new InvalidOperationException($"Duplicate state handler for state '{attr.State}' in type '{type.FullName}'.");
             }
 
-            if (Activator.CreateInstance(type, module) is not StateHandler<TState, TModule> instance)
+            if (Activator.CreateInstance(type) is not StateHandler<TState, TContext> instance)
             {
-                throw new InvalidOperationException($"Failed to create instance of {type.FullName} with module argument.");
+                throw new InvalidOperationException($"Failed to create instance of {type.FullName}.");
             }
 
             Logger.Debug($"Registering handler for '{State.GetType().Name}.{attr.State}'");
@@ -69,7 +66,8 @@ public class StateMachine<TState, TModule> : IDisposable
             return;
         }
 
-        var transition = CurrentHandler.Handle();
+        var context = GetContext();
+        var transition = CurrentHandler.Handle(context);
         if (transition == null || State.Equals(transition.Value))
         {
             return;
@@ -77,28 +75,28 @@ public class StateMachine<TState, TModule> : IDisposable
 
         Logger.Debug($"Updating state from '{State.GetType().Name}.{State}' to '{State.GetType().Name}.{transition.Value}'");
 
-        CurrentHandler.Exit(transition.Value);
+        CurrentHandler.Exit(transition.Value, context);
         State = transition.Value;
-        CurrentHandler.Enter();
+        CurrentHandler.Enter(context);
     }
 
     public void SetState(TState state)
     {
         Logger.Debug($"Updating state from '{State.GetType().Name}.{State}' to '{State.GetType().Name}.{state}'");
         State = state;
-        CurrentHandler.Enter();
+        CurrentHandler.Enter(GetContext());
     }
 
     public void SetStateWithExit(TState state)
     {
-        CurrentHandler.Exit(state);
+        CurrentHandler.Exit(state, GetContext());
         SetState(state);
     }
 
     public void Reset()
     {
         State = initial;
-        CurrentHandler.Enter();
+        CurrentHandler.Enter(GetContext());
     }
 
     protected virtual bool ShouldUpdate()
@@ -112,13 +110,8 @@ public class StateMachine<TState, TModule> : IDisposable
         CurrentHandler.Render(context);
     }
 
-    public string T(string key)
-    {
-        return Module.T(key);
-    }
-
     public bool TryGetCurrentHandler<THandler>(out THandler handler)
-        where THandler : StateHandler<TState, TModule>
+        where THandler : StateHandler<TState, TContext>
     {
         if (CurrentHandler is THandler typed)
         {
@@ -146,5 +139,10 @@ public class StateMachine<TState, TModule> : IDisposable
         }
 
         Handlers.Clear();
+    }
+
+    protected virtual TContext? GetContext()
+    {
+        return null;
     }
 }

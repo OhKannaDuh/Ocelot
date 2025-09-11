@@ -11,8 +11,4 @@ public interface IPlugin : IDisposable
     public string Author { get; }
 
     public string[] Maintainers { get; }
-
-    void Enable();
-
-    void Disable();
 }

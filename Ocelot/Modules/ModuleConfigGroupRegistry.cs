@@ -8,7 +8,7 @@ public static class ModuleConfigGroupRegistry
 {
     private static bool Initialized = false;
 
-    private readonly static Dictionary<string, ModuleConfigGroup> Groups = new();
+    private static readonly Dictionary<string, ModuleConfigGroup> Groups = new();
 
     public static void Initialize()
     {

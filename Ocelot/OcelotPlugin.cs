@@ -1,20 +1,19 @@
 using System;
+using System.Linq;
 using Dalamud.Game;
-using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.DalamudServices;
 using Ocelot.Chain;
 using Ocelot.Commands;
-using Ocelot.Data;
-using Ocelot.Debug;
-using Ocelot.Gameplay.Mechanic;
-using Ocelot.Gameplay.Rotation;
-using Ocelot.Gameplay.Targeting;
-using Ocelot.IPC;
+using Ocelot.Intents;
 using Ocelot.Modules;
+using Ocelot.Services;
+using Ocelot.Services.Ipc;
+using Ocelot.Services.Pathfinding;
+using Ocelot.Services.Translation;
+using Ocelot.Services.Windows;
 using Ocelot.Windows;
 using Pictomancy;
 
@@ -26,8 +25,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     internal static OcelotPlugin Plugin { get; private set; } = null!;
 
-    public virtual string Version
-    {
+    public virtual string Version {
         get => Svc.PluginInterface.Manifest.AssemblyVersion.ToString();
     }
 
@@ -35,19 +33,25 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public abstract OcelotConfig OcelotConfig { get; }
 
-    public readonly ModuleManager Modules = new();
+    public static IIpcManager IpcManager {
+        get => OcelotServices.GetCached<IIpcManager>();
+    }
 
-    public readonly WindowManager Windows = new();
+    public static IWindowManager WindowManager {
+        get => OcelotServices.GetCached<IWindowManager>();
+    }
 
     public readonly CommandManager Commands = new();
 
-    public readonly IPCManager IPC = new();
-
     protected readonly PluginWatcher PluginWatcher;
 
-    public RenderContext? RenderContext { get; private set; } = null;
+    protected readonly EventManager EventManager = new();
 
-    private bool shouldRenderThisFrame = false;
+    protected readonly RenderScheduler RenderScheduler = new();
+
+    protected readonly UpdateScheduler UpdateScheduler = new();
+
+    public RenderContext? RenderContext { get; private set; }
 
     protected OcelotPlugin(IDalamudPluginInterface plugin, params Module[] eModules)
     {
@@ -61,13 +65,11 @@ public abstract class OcelotPlugin : IDalamudPlugin
         PluginWatcher = new PluginWatcher();
     }
 
-    protected void OcelotInitialize(params OcelotFeature[] features)
+    protected void OcelotInitialize()
     {
-        var lang = OcelotConfig.OcelotCoreConfig.Language;
-        if (lang == "")
+        if (OcelotConfig.OcelotCoreConfig.Language == "")
         {
-            lang = Svc.ClientState.ClientLanguage switch
-            {
+            OcelotConfig.OcelotCoreConfig.Language = Svc.ClientState.ClientLanguage switch {
                 ClientLanguage.French => "fr",
                 ClientLanguage.German => "de",
                 ClientLanguage.Japanese => "jp",
@@ -77,104 +79,68 @@ public abstract class OcelotPlugin : IDalamudPlugin
                 _ => "en",
             };
 
-            OcelotConfig.OcelotCoreConfig.Language = lang;
             OcelotConfig.Save();
         }
 
-        if (!I18N.HasLanguage(lang))
-        {
-            lang = "en";
-        }
-
-        I18N.SetLanguage(lang);
-
-        Svc.Framework.RunOnFrameworkThread(() => LoadCore(features));
+        Svc.Framework.RunOnFrameworkThread(LoadCore);
     }
 
-    private void LoadCore(params OcelotFeature[] features)
+    protected abstract void RegisterPluginTypes();
+
+    private void LoadCore()
     {
         Logger.Debug("Loading Core");
 
-        Svc.PluginInterface.UiBuilder.Draw += PreRender;
+        OcelotServices.Container.AddSingleton(this);
+        OcelotServices.Container.AddSingleton(OcelotConfig);
+        RegisterPluginTypes();
 
-        OcelotFeatureEx.SetFeatures(features.Length <= 0 ? [OcelotFeature.All] : features);
+        OcelotServices.Initialize(this, OcelotConfig);
 
+        OcelotServices.GetCached<ITranslationService>().SetLanguage(OcelotConfig.OcelotCoreConfig.Language, "en");
+
+        Svc.PluginInterface.UiBuilder.Draw += Render;
         Svc.Framework.Update += Update;
-        Svc.Chat.ChatMessage += OnChatMessage;
-        Svc.ClientState.TerritoryChanged += OnTerritoryChanged;
-
-        Svc.PluginInterface.UiBuilder.Draw += PostRender;
-
         PluginWatcher.OnPluginListChanged += OnPluginListChanged;
 
-        if (PluginWatcher.IsOcelotPluginEnabled(OcelotPlugins.OcelotMonitor))
+        IpcManager.Refresh();
+        WindowManager.Initialize();
+
+        Commands.Initialize(this);
+        ChainManager.Initialize();
+
+        var provider = OcelotServices.Container.Get<IPathfinderServiceProvider>();
+        var service = OcelotServices.Container.Get<PathfinderService>();
+        service.SetPathfinderService(provider.GetService());
+
+        EventManager.Initialize();
+        EventManager.Refresh();
+        RenderScheduler.Refresh();
+        UpdateScheduler.Refresh();
+
+
+        var candidates = OcelotServices.Container.GetAll<IInitializable>().ToList();
+        foreach (var candidate in candidates)
         {
-            IPC.AddProvider(new DebugIPCProvider(this));
+            candidate.PreInitialize();
         }
 
-        if (OcelotFeature.IPC.IsEnabled())
+        foreach (var candidate in candidates)
         {
-            Logger.Info("Initializing IPC Manager...");
-            IPC.Initialize();
+            candidate.Initialize();
         }
 
-        if (OcelotFeature.ModuleManager.IsEnabled())
+        foreach (var candidate in candidates)
         {
-            Logger.Info("Initializing Module Manager...");
-            Modules.AutoRegister(this, OcelotConfig);
-            Modules.PreInitialize();
-            Modules.Initialize();
-            Svc.PluginInterface.UiBuilder.Draw += Render;
+            candidate.PostInitialize();
         }
 
-        if (OcelotFeature.WindowManager.IsEnabled())
-        {
-            Logger.Info("Initializing Window Manager...");
-            Windows.Initialize(this, OcelotConfig);
-        }
-
-        if (OcelotFeature.CommandManager.IsEnabled())
-        {
-            Logger.Info("Initializing Command Manager...");
-            Commands.Initialize(this);
-        }
-
-        if (OcelotFeature.Prowler.IsEnabled() && OcelotFeature.IPC.IsEnabled())
-        {
-            Logger.Info("Initializing Prowler...");
-            Prowler.Prowler.Initialize(this);
-        }
-
-        if (OcelotFeature.ChainManager.IsEnabled())
-        {
-            ChainManager.Initialize();
-        }
-
-        if (OcelotFeature.RotationHelper.IsEnabled())
-        {
-            RotationHelper.Initialize(this);
-        }
-
-        if (OcelotFeature.MechanicHelper.IsEnabled())
-        {
-            MechanicHelper.Initialize(this);
-        }
-
-        if (OcelotFeature.TargetingHelper.IsEnabled())
-        {
-            TargetingHelper.Initialize(this);
-        }
-
-        Modules.InjectModules();
-        Modules.InjectIPCs();
-        Modules.PostInitialize();
+        OcelotServices.Container.OnServiceChanged += OnServicesChanged;
 
         OnCoreLoaded();
     }
 
-    protected virtual void OnCoreLoaded()
-    {
-    }
+    protected virtual void OnCoreLoaded() { }
 
     protected virtual bool ShouldUpdate()
     {
@@ -196,15 +162,12 @@ public abstract class OcelotPlugin : IDalamudPlugin
         var context = new UpdateContext(framework, this);
 
         PluginWatcher.Update(context);
-
-        Modules.PreUpdate(context);
-        Modules.Update(context);
-        Modules.PostUpdate(context);
+        UpdateScheduler.Update(context);
     }
 
-    private void PreRender()
+    protected virtual void Render()
     {
-        shouldRenderThisFrame = ShouldRender();
+        var shouldRenderThisFrame = ShouldRender();
         if (!shouldRenderThisFrame)
         {
             return;
@@ -218,21 +181,14 @@ public abstract class OcelotPlugin : IDalamudPlugin
         }
 
         RenderContext = new RenderContext(this);
-    }
-
-    protected virtual void Render()
-    {
-        if (!shouldRenderThisFrame || RenderContext == null)
+        if (!shouldRenderThisFrame)
         {
             return;
         }
 
-        Modules.Render(RenderContext);
-    }
+        RenderScheduler.Render(RenderContext);
 
-    private void PostRender()
-    {
-        if (!shouldRenderThisFrame || RenderContext == null)
+        if (!shouldRenderThisFrame)
         {
             return;
         }
@@ -241,57 +197,46 @@ public abstract class OcelotPlugin : IDalamudPlugin
         {
             PictoService.GetDrawList().Dispose();
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException) { }
+    }
+
+    private void OnServicesChanged(object? sender, ServiceChangedEventContext context)
+    {
+        foreach (var candidate in OcelotServices.Container.GetAll<IServiceWatcher>())
         {
+            candidate.OnServicesChanged(this, context);
         }
-    }
 
-    protected virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
-    {
-        Modules.OnChatMessage(type, timestamp, sender, message, isHandled);
-    }
-
-    protected virtual void OnTerritoryChanged(ushort id)
-    {
-        Modules.OnTerritoryChanged(id);
+        // @todo think about adding these to di and adding the IServiceWatcher Intent
+        EventManager.Refresh();
+        RenderScheduler.Refresh();
+        UpdateScheduler.Refresh();
     }
 
     private void OnPluginListChanged()
     {
-        if (OcelotFeature.IPC.IsEnabled())
-        {
-            IPC.Initialize();
-        }
+        IpcManager.Refresh();
 
-        Modules.InjectIPCs();
+        var provider = OcelotServices.Container.Get<IPathfinderServiceProvider>();
+        var service = OcelotServices.Container.Get<PathfinderService>();
+
+        service.SetPathfinderService(provider.GetService());
     }
 
     public virtual void Dispose()
     {
-        Svc.PluginInterface.UiBuilder.Draw -= PostRender;
         Svc.PluginInterface.UiBuilder.Draw -= Render;
-        Svc.PluginInterface.UiBuilder.Draw -= PreRender;
-
         PluginWatcher.OnPluginListChanged -= OnPluginListChanged;
+        Svc.Framework.Update -= Update;
 
-        Modules.PreDispose();
-        Modules.Dispose();
-        Modules.PostDispose();
-
-        Windows.Dispose();
-        IPC.Dispose();
+        WindowManager.Dispose();
         Commands.Dispose();
         ChainManager.Close();
 
-        Svc.Framework.Update -= Update;
-        Svc.Chat.ChatMessage -= OnChatMessage;
-        Svc.ClientState.TerritoryChanged -= OnTerritoryChanged;
-
-        RotationHelper.TearDown();
-        MechanicHelper.TearDown();
-        TargetingHelper.TearDown();
+        EventManager.Dispose();
 
         PictoService.Dispose();
         ECommonsMain.Dispose();
+        OcelotServices.Dispose();
     }
 }

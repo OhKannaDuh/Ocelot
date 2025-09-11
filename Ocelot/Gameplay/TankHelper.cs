@@ -1,29 +1,26 @@
-﻿using System;
-using ECommons.ExcelServices;
+﻿using ECommons.ExcelServices;
 using ECommons.GameHelpers;
+using Ocelot.Chain;
 using Ocelot.Extensions;
 
 namespace Ocelot.Gameplay;
 
 public static class TankHelper
 {
-    public readonly static Paladin Paladin = new();
+    public static readonly Paladin Paladin = new();
 
-    public readonly static Warrior Warrior = new();
+    public static readonly Warrior Warrior = new();
 
-    public readonly static DarkKnight DarkKnight = new();
+    public static readonly DarkKnight DarkKnight = new();
 
-    public readonly static Gunbreaker Gunbreaker = new();
+    public static readonly Gunbreaker Gunbreaker = new();
 
-    public static bool IsTank
-    {
+    public static bool IsTank {
         get => Current != null;
     }
 
-    public static ITank? Current
-    {
-        get => Player.Job.GetData().RowId switch
-        {
+    public static ITank? Current {
+        get => Player.Job.GetData().RowId switch {
             1 or 19 => Paladin,
             3 or 21 => Warrior,
             32 => DarkKnight,
@@ -37,9 +34,9 @@ public interface ITank
 {
     bool HasStanceOn();
 
-    Func<Chain.Chain> TurnStanceOn();
+    ChainRunner TurnStanceOn();
 
-    Func<Chain.Chain> TurnStanceOff();
+    ChainRunner TurnStanceOff();
 }
 
 public abstract class BaseTank(uint statusId) : ITank
@@ -49,59 +46,59 @@ public abstract class BaseTank(uint statusId) : ITank
         return Player.Status.HasStatus(statusId);
     }
 
-    public abstract Func<Chain.Chain> TurnStanceOn();
+    public abstract ChainRunner TurnStanceOn();
 
-    public abstract Func<Chain.Chain> TurnStanceOff();
+    public abstract ChainRunner TurnStanceOff();
 }
 
 public class Paladin() : BaseTank(79)
 {
-    public override Func<Chain.Chain> TurnStanceOn()
+    public override ChainRunner TurnStanceOn()
     {
-        return Actions.Paladin.IronWill.GetCastChain();
+        return Actions.Paladin.IronWill.GetChainRunner();
     }
 
-    public override Func<Chain.Chain> TurnStanceOff()
+    public override ChainRunner TurnStanceOff()
     {
-        return Actions.Paladin.ReleaseIronWill.GetCastChain();
+        return Actions.Paladin.ReleaseIronWill.GetChainRunner();
     }
 }
 
 public class Warrior() : BaseTank(91)
 {
-    public override Func<Chain.Chain> TurnStanceOn()
+    public override ChainRunner TurnStanceOn()
     {
-        return Actions.Warrior.Defiance.GetCastChain();
+        return Actions.Warrior.Defiance.GetChainRunner();
     }
 
-    public override Func<Chain.Chain> TurnStanceOff()
+    public override ChainRunner TurnStanceOff()
     {
-        return Actions.Warrior.ReleaseDefiance.GetCastChain();
+        return Actions.Warrior.ReleaseDefiance.GetChainRunner();
     }
 }
 
 public class DarkKnight() : BaseTank(743)
 {
-    public override Func<Chain.Chain> TurnStanceOn()
+    public override ChainRunner TurnStanceOn()
     {
-        return Actions.DarkKnight.Grit.GetCastChain();
+        return Actions.DarkKnight.Grit.GetChainRunner();
     }
 
-    public override Func<Chain.Chain> TurnStanceOff()
+    public override ChainRunner TurnStanceOff()
     {
-        return Actions.DarkKnight.ReleaseGrit.GetCastChain();
+        return Actions.DarkKnight.ReleaseGrit.GetChainRunner();
     }
 }
 
 public class Gunbreaker() : BaseTank(1833)
 {
-    public override Func<Chain.Chain> TurnStanceOn()
+    public override ChainRunner TurnStanceOn()
     {
-        return Actions.Gunbreaker.RoyalGuard.GetCastChain();
+        return Actions.Gunbreaker.RoyalGuard.GetChainRunner();
     }
 
-    public override Func<Chain.Chain> TurnStanceOff()
+    public override ChainRunner TurnStanceOff()
     {
-        return Actions.Gunbreaker.ReleaseRoyalGuard.GetCastChain();
+        return Actions.Gunbreaker.ReleaseRoyalGuard.GetChainRunner();
     }
 }
