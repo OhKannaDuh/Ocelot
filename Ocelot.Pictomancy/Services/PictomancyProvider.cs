@@ -7,7 +7,8 @@ public class PictomancyProvider : IPictomancyProvider, IOnPreRender, IOnPostRend
 {
     private PctDrawList? current;
 
-    public bool HasDrawList {
+    public bool HasDrawList
+    {
         get => current is not null;
     }
 
@@ -17,6 +18,7 @@ public class PictomancyProvider : IPictomancyProvider, IOnPreRender, IOnPostRend
         {
             throw new InvalidOperationException("Pictomancy draw list not available. It is only available during the render lifecycle hook.");
         }
+
 
         return current;
     }
@@ -56,7 +58,8 @@ public class PictomancyProvider : IPictomancyProvider, IOnPreRender, IOnPostRend
         catch (InvalidOperationException)
         {
             // Already disposed, we don't care
-        } finally
+        }
+        finally
         {
             current = null;
         }

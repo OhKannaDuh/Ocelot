@@ -4,15 +4,17 @@ using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 
-public class StartHost(IEnumerable<IOnStart> start, ILoggerService logger) : BaseEventHost(logger)
+public class StartHost(IEnumerable<IOnStart> start, ILoggerService logger) : BaseEventHost(logger), IOrderedHook
 {
     private readonly IOnStart[] start = start.OrderByDescending(h => h.Order).ToArray();
 
-    public int Order {
+    public int Order
+    {
         get => int.MaxValue;
     }
 
-    public override int Count {
+    public override int Count
+    {
         get => start.Length;
     }
 
@@ -21,5 +23,7 @@ public class StartHost(IEnumerable<IOnStart> start, ILoggerService logger) : Bas
         SafeEach(start, h => h.OnStart());
     }
 
-    public override void Stop() { }
+    public override void Stop()
+    {
+    }
 }

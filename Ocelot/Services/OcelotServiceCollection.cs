@@ -11,7 +11,8 @@ public sealed class OcelotServiceCollection : IServiceCollection
 {
     private readonly IServiceCollection collection;
 
-    private static readonly Type[] HookInterfaces = {
+    private readonly static Type[] HookInterfaces =
+    {
         typeof(IOnStart),
         typeof(IOnStop),
         typeof(IOnPreUpdate),
@@ -48,7 +49,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
         }
     }
 
-    internal void AutoWire(ServiceDescriptor item)
+    private void AutoWire(ServiceDescriptor item)
     {
         var type = item.ImplementationType ?? item.ImplementationInstance?.GetType() ?? null;
 
@@ -122,11 +123,13 @@ public sealed class OcelotServiceCollection : IServiceCollection
         return collection.Remove(item);
     }
 
-    public int Count {
+    public int Count
+    {
         get => collection.Count;
     }
 
-    public bool IsReadOnly {
+    public bool IsReadOnly
+    {
         get => collection.IsReadOnly;
     }
 
@@ -146,10 +149,12 @@ public sealed class OcelotServiceCollection : IServiceCollection
         collection.RemoveAt(index);
     }
 
-    public ServiceDescriptor this[int index] {
+    public ServiceDescriptor this[int index]
+    {
         get => collection[index];
 
-        set {
+        set
+        {
             collection[index] = value;
             AutoWire(value);
         }

@@ -19,7 +19,8 @@ public class OverlayRenderHost(
 
     private readonly IOnPostRender[] postRender = postRender.OrderByDescending(h => h.Order).ToArray();
 
-    public override int Count {
+    public override int Count
+    {
         get => preRender.Length + render.Length + postRender.Length;
     }
 

@@ -6,6 +6,7 @@ namespace Ocelot;
 
 public sealed class DalamudServices
 {
-    [PluginService]
-    public IFramework Framework { get; private set; }
+    [PluginService] public IFramework Framework { get; private set; }
+
+    [PluginService] public IDataManager Data { get; private set; }
 }

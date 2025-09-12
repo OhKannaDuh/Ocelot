@@ -4,9 +4,9 @@
 // You could argue this should be replaced by some sort of priority service, but I just don't care enough
 internal static class RotationPriority
 {
-    public static readonly int WrathCombo = 100;
+    public const int WrathCombo = 100;
 
-    public static readonly int BossMod = 90;
+    public const int BossMod = 90;
 
-    public static readonly int RotationSolverReborn = 80;
+    public const int RotationSolverReborn = 80;
 }

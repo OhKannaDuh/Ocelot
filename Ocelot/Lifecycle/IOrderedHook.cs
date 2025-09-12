@@ -4,7 +4,8 @@ public interface IOrderedHook
 {
     // Highest first
     // Stop runs in reverse order
-    int Order {
+    int Order
+    {
         get => 0;
     }
 }

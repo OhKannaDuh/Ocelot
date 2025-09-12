@@ -5,15 +5,18 @@ namespace Ocelot.Rotation.Services.BossMod;
 
 public class BossModRotationProvider(IPluginStatusService pluginStatus, IServiceProvider services) : IRotationProvider
 {
-    public string InternalName {
+    public string InternalName
+    {
         get => "BossMod";
     }
 
-    public string DisplayName {
+    public string DisplayName
+    {
         get => "Boss Mod";
     }
 
-    public int Priority {
+    public int Priority
+    {
         get => RotationPriority.BossMod;
     }
 

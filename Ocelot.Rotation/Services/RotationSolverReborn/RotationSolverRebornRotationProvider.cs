@@ -5,15 +5,18 @@ namespace Ocelot.Rotation.Services.RotationSolverReborn;
 
 public class RotationSolverRebornRotationProvider(IPluginStatusService pluginStatus, IServiceProvider services) : IRotationProvider
 {
-    public string InternalName {
+    public string InternalName
+    {
         get => "RotationSolver";
     }
 
-    public string DisplayName {
+    public string DisplayName
+    {
         get => "Rotation Solver Reborn";
     }
 
-    public int Priority {
+    public int Priority
+    {
         get => RotationPriority.RotationSolverReborn;
     }
 

@@ -5,15 +5,18 @@ namespace Ocelot.Mechanic.Services.BossMod;
 
 public class BossModMechanicProvider(IPluginStatusService pluginStatus, IServiceProvider services) : IMechanicProvider
 {
-    public string InternalName {
+    public string InternalName
+    {
         get => "BossMod";
     }
 
-    public string DisplayName {
+    public string DisplayName
+    {
         get => "Boss Mod";
     }
 
-    public int Priority {
+    public int Priority
+    {
         get => MechanicPriority.BossMod;
     }
 

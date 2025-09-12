@@ -19,7 +19,8 @@ public class UpdateHost(
 
     private readonly IOnPostUpdate[] postUpdate = postUpdate.OrderByDescending(h => h.Order).ToArray();
 
-    public override int Count {
+    public override int Count
+    {
         get => preUpdate.Length + update.Length + postUpdate.Length;
     }
 

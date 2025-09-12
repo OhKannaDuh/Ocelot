@@ -2,30 +2,19 @@
 
 namespace Ocelot.Graphics;
 
-public readonly struct Color
+public readonly struct Color(byte r, byte g, byte b, byte a = 255)
 {
-    public byte R { get; }
+    private byte R { get; } = r;
 
-    public byte G { get; }
+    private byte G { get; } = g;
 
-    public byte B { get; }
+    private byte B { get; } = b;
 
-    public byte A { get; }
+    private byte A { get; } = a;
 
-    public Color(byte r, byte g, byte b, byte a = 255)
+    public Color(float r, float g, float b, float a = 1f) : this((byte)(Clamp01(r) * 255), (byte)(Clamp01(g) * 255), (byte)(Clamp01(b) * 255),
+        (byte)(Clamp01(a) * 255))
     {
-        R = r;
-        G = g;
-        B = b;
-        A = a;
-    }
-
-    public Color(float r, float g, float b, float a = 1f)
-    {
-        R = (byte)(Clamp01(r) * 255);
-        G = (byte)(Clamp01(g) * 255);
-        B = (byte)(Clamp01(b) * 255);
-        A = (byte)(Clamp01(a) * 255);
     }
 
     private static float Clamp01(float v)
@@ -51,8 +40,8 @@ public readonly struct Color
     public string ToHex(bool includeAlpha = false)
     {
         return includeAlpha
-                   ? $"#{R:X2}{G:X2}{B:X2}{A:X2}"
-                   : $"#{R:X2}{G:X2}{B:X2}";
+            ? $"#{R:X2}{G:X2}{B:X2}{A:X2}"
+            : $"#{R:X2}{G:X2}{B:X2}";
     }
 
     public Vector4 ToVector4()
@@ -71,27 +60,33 @@ public readonly struct Color
         return $"Color(R:{R}, G:{G}, B:{B}, A:{A})";
     }
 
-    public static Color White {
+    public static Color White
+    {
         get => new(255, 255, 255, 255);
     }
 
-    public static Color Black {
+    public static Color Black
+    {
         get => new(0, 0, 0, 255);
     }
 
-    public static Color Transparent {
+    public static Color Transparent
+    {
         get => new(0, 0, 0, 0);
     }
 
-    public static Color Red {
+    public static Color Red
+    {
         get => new(255, 0, 0, 255);
     }
 
-    public static Color Green {
+    public static Color Green
+    {
         get => new(0, 255, 0, 255);
     }
 
-    public static Color Blue {
+    public static Color Blue
+    {
         get => new(0, 0, 255, 255);
     }
 }

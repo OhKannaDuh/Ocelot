@@ -5,15 +5,18 @@ namespace Ocelot.Rotation.Services.Wrath;
 
 public class WrathRotationProvider(IPluginStatusService pluginStatus, IServiceProvider services) : IRotationProvider
 {
-    public string InternalName {
+    public string InternalName
+    {
         get => "WrathCombo";
     }
 
-    public string DisplayName {
+    public string DisplayName
+    {
         get => "Wrath Combo";
     }
 
-    public int Priority {
+    public int Priority
+    {
         get => RotationPriority.WrathCombo;
     }
 

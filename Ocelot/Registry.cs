@@ -7,9 +7,9 @@ namespace Ocelot;
 
 public static class Registry
 {
-    private static readonly HashSet<Assembly> RegisteredAssemblies = [];
+    private readonly static HashSet<Assembly> RegisteredAssemblies = [];
 
-    private static readonly List<Type> CachedTypes = [];
+    private readonly static List<Type> CachedTypes = [];
 
     public static void RegisterAssemblies(params Assembly[] assemblies)
     {
@@ -52,5 +52,10 @@ public static class Registry
     public static IEnumerable<Type> GetTypesWithAttribute<TAttribute>() where TAttribute : Attribute
     {
         return GetAllLoadableTypes().Where(t => !t.IsAbstract && t.IsDefined(typeof(TAttribute), false));
+    }
+
+    public static IEnumerable<Type> GetTypesAssignableFrom<TType>() where TType : class
+    {
+        return GetAllLoadableTypes().Where(t => !t.IsAbstract && typeof(TType).IsAssignableFrom(t));
     }
 }
