@@ -1,13 +1,12 @@
 ﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ocelot.Services;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-public sealed class OcelotServiceAttribute(Type serviceType, ServiceLifetime lifetime = ServiceLifetime.Singleton, bool replaceExisting = false) : Attribute
+public sealed class OcelotServiceAttribute : Attribute
 {
-    public Type ServiceType { get; } = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
+    public Type? Service { get; init; }
 
-    public ServiceLifetime Lifetime { get; } = lifetime;
-
-    public bool ReplaceExisting { get; } = replaceExisting;
+    public ServiceLifetime Lifetime { get; init; } = ServiceLifetime.Singleton;
 }

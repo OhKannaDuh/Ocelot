@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net9.0-windows</TargetFramework>
-        <PackageId>FFXIVOcelot</PackageId>
-        <Version>1.0.0</Version>
+        <PackageId>FFXIVOcelot.Pictomancy</PackageId>
+        <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -13,14 +13,12 @@
         <DebugType>embedded</DebugType>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9"/>
+        <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Pictomancy" Version="0.0.1"/>
     </ItemGroup>
     <ItemGroup Condition="'$(DalamudLibPath)' != ''">
         <Reference Include="Dalamud.Bindings.ImGui" HintPath="$(DalamudLibPath)Dalamud.Bindings.ImGui.dll" Private="False"/>
-        <Reference Include="Dalamud.Bindings.ImPlot" HintPath="$(DalamudLibPath)Dalamud.Bindings.ImPlot.dll" Private="False"/>
-        <Reference Include="Lumina" HintPath="$(DalamudLibPath)Lumina.dll" Private="False"/>
-        <Reference Include="Lumina.Excel" HintPath="$(DalamudLibPath)Lumina.Excel.dll" Private="False"/>
-        <Reference Include="FFXIVClientStructs" HintPath="$(DalamudLibPath)FFXIVClientStructs.dll" Private="False"/>
-        <Reference Include="InteropGenerator.Runtime" HintPath="$(DalamudLibPath)InteropGenerator.Runtime.dll" Private="False"/>
     </ItemGroup>
 </Project>
