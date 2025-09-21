@@ -6,8 +6,6 @@ public interface IMechanicProvider
 
     string DisplayName { get; }
 
-    int Priority { get; }
-
     bool IsAvailable();
 
     IMechanicService Create();

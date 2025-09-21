@@ -3,21 +3,18 @@ using Ocelot.Services.PluginStatus;
 
 namespace Ocelot.Rotation.Services.Wrath;
 
-public class WrathRotationProvider(IPluginStatusService pluginStatus, IServiceProvider services) : IRotationProvider
+public class WrathRotationProvider(IPluginStatus pluginStatus, IServiceProvider services) : IRotationProvider
 {
+    public const string Key = "WrathCombo";
+
     public string InternalName
     {
-        get => "WrathCombo";
+        get => Key;
     }
 
     public string DisplayName
     {
         get => "Wrath Combo";
-    }
-
-    public int Priority
-    {
-        get => RotationPriority.WrathCombo;
     }
 
     public bool IsAvailable()

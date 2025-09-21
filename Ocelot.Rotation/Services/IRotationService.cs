@@ -2,9 +2,9 @@
 
 public interface IRotationService
 {
-    void Load();
+    void Load() {}
 
-    void Unload();
+    void Unload() {}
 
     void EnableAutoRotation();
 

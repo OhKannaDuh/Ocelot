@@ -17,6 +17,10 @@ public readonly struct Color(byte r, byte g, byte b, byte a = 255)
     {
     }
 
+    public Color(Vector4 vec) : this(vec.X, vec.Y, vec.Z, vec.W)
+    {
+    }
+
     private static float Clamp01(float v)
     {
         return v < 0 ? 0 : v > 1 ? 1 : v;

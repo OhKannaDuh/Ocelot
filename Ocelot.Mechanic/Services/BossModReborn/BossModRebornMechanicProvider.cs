@@ -1,23 +1,21 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Ocelot.Mechanic.Services.BossMod;
 using Ocelot.Services.PluginStatus;
 
-namespace Ocelot.Mechanic.Services.BossMod;
+namespace Ocelot.Mechanic.Services.BossModReborn;
 
-public class BossModRebornMechanicProvider(IPluginStatusService pluginStatus, IServiceProvider services) : IMechanicProvider
+public class BossModRebornMechanicProvider(IPluginStatus pluginStatus, IServiceProvider services) : IMechanicProvider
 {
+    public const string Key = "BossModReborn";
+
     public string InternalName
     {
-        get => "BossModReborn";
+        get => Key;
     }
 
     public string DisplayName
     {
         get => "Bossmod Reborn";
-    }
-
-    public int Priority
-    {
-        get => MechanicPriority.BossModReborn;
     }
 
     public bool IsAvailable()

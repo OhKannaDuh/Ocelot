@@ -2,6 +2,12 @@
   "version": 1,
   "dependencies": {
     "net9.0-windows7.0": {
+      "ECommons": {
+        "type": "Direct",
+        "requested": "[3.0.1.14, )",
+        "resolved": "3.0.1.14",
+        "contentHash": "lqe2BlFaB6BS2MFXQsu33pIr/axjGmz4K4PoJwYwgcZGvt3JJqFIGLXTHUTYeWvT3eEfByPT0FQ7IdTCHQNdhA=="
+      },
       "Microsoft.Extensions.DependencyInjection": {
         "type": "Transitive",
         "resolved": "9.0.9",

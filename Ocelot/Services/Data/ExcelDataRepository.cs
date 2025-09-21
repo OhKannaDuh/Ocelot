@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Common.Lua;
 using Lumina.Excel;
 using Ocelot.Services.Data.Cache;
 
@@ -25,6 +26,22 @@ public class ExcelDataRepository<TModel> : IDataRepository<TModel> where TModel 
         this.cache = cache;
     }
 
+
+    public IEnumerable<uint> GetKeys()
+    {
+        return sheet.Select(m => m.RowId);
+    }
+
+    public void Add(uint key, TModel model)
+    {
+        throw new InvalidOperationException("You cannot add to an Excel Data Repository");
+    }
+
+    public bool TryAdd(uint key, TModel model)
+    {
+        throw new InvalidOperationException("You cannot add to an Excel Data Repository");
+    }
+
     public TModel Get(uint key)
     {
         return cache.GetOrAdd(key, () => sheet.GetRow(key));
@@ -38,5 +55,15 @@ public class ExcelDataRepository<TModel> : IDataRepository<TModel> where TModel 
     public IEnumerable<TModel> Where(Expression<Func<TModel, bool>> predicate)
     {
         return GetAll().Where(predicate.Compile());
+    }
+    
+    public bool Remove(uint key)
+    {
+        throw new InvalidOperationException("You cannot remove from an Excel Data Repository");
+    }
+
+    public bool ContainsKey(uint key)
+    {
+        return sheet.HasRow(key);
     }
 }

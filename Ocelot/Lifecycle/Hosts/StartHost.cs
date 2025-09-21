@@ -4,7 +4,7 @@ using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 
-public class StartHost(IEnumerable<IOnStart> start, ILoggerService logger) : BaseEventHost(logger), IOrderedHook
+public class StartHost(IEnumerable<IOnStart> start, ILogger logger) : BaseEventHost(logger), IOrderedHook
 {
     private readonly IOnStart[] start = start.OrderByDescending(h => h.Order).ToArray();
 

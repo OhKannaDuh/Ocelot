@@ -3,7 +3,7 @@ using Ocelot.Services.Logger;
 
 namespace Ocelot.ECommons.Services.Logger;
 
-internal sealed class ECommonsLoggerService : ILoggerService
+internal sealed class ECommonsLogger : ILogger
 {
     public void Log(string format, params object[] args)
     {

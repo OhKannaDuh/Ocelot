@@ -3,21 +3,18 @@ using Ocelot.Services.PluginStatus;
 
 namespace Ocelot.Rotation.Services.RotationSolverReborn;
 
-public class RotationSolverRebornRotationProvider(IPluginStatusService pluginStatus, IServiceProvider services) : IRotationProvider
+public class RotationSolverRebornRotationProvider(IPluginStatus pluginStatus, IServiceProvider services) : IRotationProvider
 {
+    public const string Key = "RotationSolver";
+    
     public string InternalName
     {
-        get => "RotationSolver";
+        get => Key;
     }
 
     public string DisplayName
     {
         get => "Rotation Solver Reborn";
-    }
-
-    public int Priority
-    {
-        get => RotationPriority.RotationSolverReborn;
     }
 
     public bool IsAvailable()

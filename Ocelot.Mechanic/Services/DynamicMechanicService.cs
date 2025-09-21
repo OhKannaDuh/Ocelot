@@ -1,8 +1,13 @@
 ﻿using Ocelot.Lifecycle;
+using Ocelot.Services.Logger;
 
 namespace Ocelot.Mechanic.Services;
 
-public class DynamicMechanicService(IEnumerable<IMechanicProvider> providers) : IMechanicService, IOnPreUpdate
+public class DynamicMechanicService(
+    IEnumerable<IMechanicProvider> providers, 
+    IMechanicPriorityService priority,
+    ILogger logger
+) : IMechanicService, IOnPreUpdate
 {
     private string currentInternalName = "";
 
@@ -10,15 +15,28 @@ public class DynamicMechanicService(IEnumerable<IMechanicProvider> providers) : 
 
     public void PreUpdate()
     {
-        var bestMatch = providers.Where(p => p.IsAvailable()).OrderByDescending(p => p.Priority).FirstOrDefault();
+        var order = priority.GetPriority().ToList();
+        var rank = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < order.Count; i++)
+        {
+            rank[order[i]] = i;
+        }
 
-        if (bestMatch?.InternalName == currentInternalName)
+        var bestMatch = providers
+            .Where(p => p.IsAvailable())
+            .OrderBy(p => rank.GetValueOrDefault(p.InternalName, int.MaxValue))
+            .ThenBy(p => p.InternalName, StringComparer.Ordinal)
+            .FirstOrDefault();
+
+        if ((bestMatch?.InternalName ?? "") == currentInternalName)
         {
             return;
         }
 
         currentInternalName = bestMatch?.InternalName ?? "";
         current = bestMatch?.Create();
+        
+        logger.Info($"[DynamicMechanicService] Dynamic mechanic service has been updated to {currentInternalName}");
     }
 
     public void Enable()

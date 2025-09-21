@@ -4,7 +4,7 @@ using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 
-public abstract class BaseEventHost(ILoggerService logger) : IEventHost
+public abstract class BaseEventHost(ILogger logger) : IEventHost
 {
     public abstract void Start();
 

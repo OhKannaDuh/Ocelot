@@ -3,21 +3,18 @@ using Ocelot.Services.PluginStatus;
 
 namespace Ocelot.Mechanic.Services.BossMod;
 
-public class BossModMechanicProvider(IPluginStatusService pluginStatus, IServiceProvider services) : IMechanicProvider
+public class BossModMechanicProvider(IPluginStatus pluginStatus, IServiceProvider services) : IMechanicProvider
 {
+    public const string Key = "BossMod";
+    
     public string InternalName
     {
-        get => "BossMod";
+        get => Key;
     }
 
     public string DisplayName
     {
         get => "Boss Mod";
-    }
-
-    public int Priority
-    {
-        get => MechanicPriority.BossMod;
     }
 
     public bool IsAvailable()

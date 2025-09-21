@@ -10,7 +10,7 @@ public class OverlayRenderHost(
     IEnumerable<IOnRender> render,
     IEnumerable<IOnPostRender> postRender,
     IDalamudPluginInterface plugin,
-    ILoggerService logger
+    ILogger logger
 ) : BaseEventHost(logger)
 {
     private readonly IOnPreRender[] preRender = preRender.OrderByDescending(h => h.Order).ToArray();

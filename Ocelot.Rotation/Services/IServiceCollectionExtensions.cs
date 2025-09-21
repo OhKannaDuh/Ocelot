@@ -19,5 +19,6 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<IRotationProvider, RotationSolverRebornRotationProvider>();
 
         services.AddSingleton<IRotationService, DynamicRotationService>();
+        services.AddSingleton<IRotationPriorityService, RotationPriorityService>();
     }
 }

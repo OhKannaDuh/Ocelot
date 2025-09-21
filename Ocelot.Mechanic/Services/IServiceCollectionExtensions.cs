@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Mechanic.Services.BossMod;
+using Ocelot.Mechanic.Services.BossModReborn;
 
 namespace Ocelot.Mechanic.Services;
 
@@ -14,5 +15,6 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<IMechanicProvider, BossModRebornMechanicProvider>();
 
         services.AddSingleton<IMechanicService, DynamicMechanicService>();
+        services.AddSingleton<IMechanicPriorityService, MechanicPriorityService>();
     }
 }

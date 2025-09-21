@@ -8,7 +8,7 @@ internal sealed class ECommons(IDalamudPluginInterface pluginInterface, IDalamud
 {
     public void OnStart()
     {
-        ECommonsMain.Init(pluginInterface, plugin);
+        ECommonsMain.Init(pluginInterface, plugin, Module.DalamudReflector, Module.ObjectFunctions);
     }
 
     public void OnStop()

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Plugin.Services;
+using Ocelot.Services.Gate;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
@@ -10,7 +11,8 @@ public class UpdateHost(
     IEnumerable<IOnUpdate> update,
     IEnumerable<IOnPostUpdate> postUpdate,
     IFramework framework,
-    ILoggerService logger
+    IGateService gate,
+    ILogger logger
 ) : BaseEventHost(logger)
 {
     private readonly IOnPreUpdate[] preUpdate = preUpdate.OrderByDescending(h => h.Order).ToArray();
@@ -18,6 +20,8 @@ public class UpdateHost(
     private readonly IOnUpdate[] update = update.OrderByDescending(h => h.Order).ToArray();
 
     private readonly IOnPostUpdate[] postUpdate = postUpdate.OrderByDescending(h => h.Order).ToArray();
+    
+    private readonly static string scope = typeof(UpdateHost).FullName!;
 
     public override int Count
     {
@@ -44,10 +48,10 @@ public class UpdateHost(
         framework.Update -= Update;
     }
 
-    public void Update(IFramework _)
+    private void Update(IFramework _)
     {
-        SafeEach(preUpdate, h => h.PreUpdate());
-        SafeEach(update, h => h.Update());
-        SafeEach(postUpdate, h => h.PostUpdate());
+        SafeEach(preUpdate.Where(h => h.UpdateLimit.ShouldUpdate(gate, h,"pre_update")), h => h.PreUpdate());
+        SafeEach(update.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "update")), h => h.Update());
+        SafeEach(postUpdate.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "post_update")), h => h.PostUpdate());
     }
 }

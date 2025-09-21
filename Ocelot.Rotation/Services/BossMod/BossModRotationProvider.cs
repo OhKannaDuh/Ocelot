@@ -3,21 +3,18 @@ using Ocelot.Services.PluginStatus;
 
 namespace Ocelot.Rotation.Services.BossMod;
 
-public class BossModRotationProvider(IPluginStatusService pluginStatus, IServiceProvider services) : IRotationProvider
+public class BossModRotationProvider(IPluginStatus pluginStatus, IServiceProvider services) : IRotationProvider
 {
+    public const string Key = "BossMod";
+    
     public string InternalName
     {
-        get => "BossMod";
+        get => Key;
     }
 
     public string DisplayName
     {
         get => "Boss Mod";
-    }
-
-    public int Priority
-    {
-        get => RotationPriority.BossMod;
     }
 
     public bool IsAvailable()

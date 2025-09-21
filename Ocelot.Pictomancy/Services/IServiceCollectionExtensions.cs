@@ -10,6 +10,6 @@ public static class IServiceCollectionExtensions
     {
         services.AddSingleton<Pictomancy>();
         services.AddSingleton<IPictomancyProvider, PictomancyProvider>();
-        services.AddSingleton<IOverlayRendererService, OverlayRendererService>();
+        services.AddSingleton<IOverlayRenderer, OverlayRenderer.OverlayRenderer>();
     }
 }

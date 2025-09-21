@@ -9,6 +9,6 @@ public static class IServiceCollectionExtensions
     public static void LoadECommons(this IServiceCollection services)
     {
         services.AddSingleton<ECommons>();
-        services.AddSingleton<ILoggerService, ECommonsLoggerService>();
+        services.AddSingleton<ILogger, ECommonsLogger>();
     }
 }

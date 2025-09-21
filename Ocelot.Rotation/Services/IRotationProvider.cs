@@ -6,8 +6,6 @@ public interface IRotationProvider
 
     string DisplayName { get; }
 
-    int Priority { get; }
-
     bool IsAvailable();
 
     IRotationService Create();

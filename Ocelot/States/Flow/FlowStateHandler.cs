@@ -2,12 +2,15 @@
 
 namespace Ocelot.States.Flow;
 
-public abstract class FlowStateHandler<TState> : IFlowStateHandler<TState>
+public abstract class FlowStateHandler<TState>(TState state) : IFlowStateHandler<TState>
     where TState : struct, Enum
 {
     private DateTime entered = DateTime.Now;
 
-    public abstract TState Handles { get; }
+    public TState Handles
+    {
+        get => state;
+    }
 
     public abstract TState? Handle();
 

@@ -1,14 +1,16 @@
-﻿namespace Ocelot.Mechanic.Services.BossMod;
+﻿using ECommons.Automation;
+
+namespace Ocelot.Mechanic.Services.BossMod;
 
 public class BossModMechanicService : IMechanicService
 {
     public void Enable()
     {
-        throw new NotImplementedException();
+        Chat.ExecuteCommand("/vbmai on");
     }
 
     public void Disable()
     {
-        throw new NotImplementedException();
+        Chat.ExecuteCommand("/vbmai off");
     }
 }
