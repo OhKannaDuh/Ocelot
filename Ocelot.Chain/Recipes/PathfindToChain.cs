@@ -8,13 +8,14 @@ using Ocelot.Services.Logger;
 using Ocelot.Services.Pathfinding;
 using Ocelot.Services.PlayerState;
 using Path = Ocelot.Services.Pathfinding.Path;
+using Player = ECommons.GameHelpers.Player;
 
 namespace Ocelot.Chain.Recipes;
 
 public class PathfindToChain(
     IChainFactory chains,
     IPathfinder pathfinder,
-    IPlayerState player,
+    IPlayer player,
     ILogger logger
 ) : ChainRecipe<Path>(chains)
 {

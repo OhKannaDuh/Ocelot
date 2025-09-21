@@ -5,17 +5,17 @@ using Lumina.Excel.Sheets;
 
 namespace Ocelot.Services.ClientState;
 
-public interface IClientState
+public interface IClient
 {
     ClientLanguage ClientLanguage { get; }
     
     ushort CurrentTerritoryId { get; }
     
-    TerritoryType CurrentTerritory { get; }
+    TerritoryType? CurrentTerritory { get; }
     
     uint CurrentMapId { get; }
     
-    Map CurrentMap { get; }
+    Map? CurrentMap { get; }
     
     IPlayerCharacter? Player { get; }
     

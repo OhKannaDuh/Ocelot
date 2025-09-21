@@ -7,7 +7,7 @@ namespace Ocelot.Pathfinding.Services.Navmesh;
 
 public class NavmeshPathfinder(
     IVNavmeshIpc nav,
-    IClientState clientState
+    IClient client
 ) : IPathfinder
 {
     public PathfindingState GetState()
@@ -28,7 +28,7 @@ public class NavmeshPathfinder(
 
     public void PathfindAndMoveTo(Path path)
     {
-        if (path.TerritoryType.HasValue && path.TerritoryType.Value.RowId != clientState.CurrentTerritoryId)
+        if (path.TerritoryType.HasValue && path.TerritoryType.Value.RowId != client.CurrentTerritoryId)
         {
             throw new InvalidOperationException("NavmeshPathfindingService does not support moving between territories");
         }

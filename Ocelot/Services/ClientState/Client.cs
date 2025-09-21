@@ -1,17 +1,17 @@
 ﻿using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Plugin.Services;
 using Lumina.Excel.Sheets;
 using Ocelot.Services.Data;
-using IDalamudState = Dalamud.Plugin.Services.IClientState;
 
 namespace Ocelot.Services.ClientState;
 
-public class ClientState(
-    IDalamudState clientState,
+public class Client(
+    IClientState clientState,
     IDataRepository<TerritoryType> territories,
     IDataRepository<Map> maps
-) : IClientState
+) : IClient
 {
     public ClientLanguage ClientLanguage
     {
@@ -23,9 +23,9 @@ public class ClientState(
         get => clientState.TerritoryType;
     }
 
-    public TerritoryType CurrentTerritory
+    public TerritoryType? CurrentTerritory
     {
-        get => territories.Get(clientState.TerritoryType);
+        get => CurrentTerritoryId == 0 ? null : territories.Get(CurrentTerritoryId);
     }
 
     public uint CurrentMapId
@@ -33,9 +33,9 @@ public class ClientState(
         get => clientState.MapId;
     }
 
-    public Map CurrentMap
+    public Map? CurrentMap
     {
-        get => maps.Get(clientState.MapId);
+        get => CurrentMapId == 0 ? null : maps.Get(CurrentMapId);
     }
 
     public IPlayerCharacter? Player

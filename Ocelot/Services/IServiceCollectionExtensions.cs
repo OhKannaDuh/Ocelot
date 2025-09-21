@@ -15,7 +15,6 @@ using Ocelot.Services.PlayerState;
 using Ocelot.Services.PluginStatus;
 using Ocelot.Services.WindowManager;
 using Ocelot.Windows;
-using IClientState = Ocelot.Services.ClientState.IClientState;
 
 namespace Ocelot.Services;
 
@@ -37,8 +36,8 @@ public static class IServiceCollectionExtensions
         services.AddSingleton(typeof(IDataRepository<,>), typeof(DataRepository<,>));
         services.AddSingleton(typeof(IDataRepository<>), typeof(ExcelDataRepository<>));
         
-        services.AddSingleton<IClientState, ClientState.ClientState>();
-        services.AddSingleton<IPlayerState, PlayerState.PlayerState>();
+        services.AddSingleton<IClient, ClientState.Client>();
+        services.AddSingleton<IPlayer, PlayerState.Player>();
         services.AddSingleton<IPluginStatus, PluginStatus.PluginStatus>();
 
         services.AddSingleton<IVNavmeshIpc, VNavmeshIpc>();

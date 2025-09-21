@@ -7,9 +7,9 @@ using DalamudPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 
 namespace Ocelot.Services.PlayerState;
 
-public class PlayerState(IClientState client) : IPlayerState
+public class Player(IClient client) : IPlayer
 {
-    private IPlayerCharacter? Player
+    private IPlayerCharacter? PlayerCharacter
     {
         get => client.Player;
     }
@@ -39,6 +39,6 @@ public class PlayerState(IClientState client) : IPlayerState
 
     public Vector3 GetPosition()
     {
-        return IsAvailable ? Player!.Position : Vector3.Zero;
+        return IsAvailable ? PlayerCharacter!.Position : Vector3.Zero;
     }
 }
