@@ -1,59 +1,102 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
-
-# Usage check
-if [ $# -ne 2 ]; then
-  echo "Usage: ./release.sh <api_key> <version>"
-  exit 1
+if [[ -f .env ]]; then
+  export $(grep -v '^#' .env | xargs)
 fi
+: "${NUGET_API_KEY:?NUGET_API_KEY must be set in .env or environment}"
 
-API_KEY="$1"
-VERSION="$2"
-PROJECT_NAME="FFXIVOcelot"
-CSPROJ_PATH="Ocelot/Ocelot.csproj"
-PLUGIN_CLASS_PATH="Ocelot/OcelotPlugin.cs"
-OUTPUT_DIR="Ocelot/bin/x64/Release"
 NUGET_SOURCE="https://api.nuget.org/v3/index.json"
-NUPKG_PATH="$OUTPUT_DIR/$PROJECT_NAME.$VERSION.nupkg"
+CONFIGURATION="Release"
+ARTIFACTS_DIR="artifacts"
+DRY_RUN=false
 
-# Ensure version in csproj matches the input version
-echo "🔍 Ensuring version $VERSION is set in $CSPROJ_PATH..."
-if grep -q "<Version>$VERSION</Version>" "$CSPROJ_PATH"; then
-  echo "✅ Version already correct in .csproj"
-else
-  echo "✏️ Updating version in .csproj..."
-  # Replace existing <Version>...</Version> or add if missing
-  if grep -q "<Version>.*</Version>" "$CSPROJ_PATH"; then
-    sed -i "s|<Version>.*</Version>|<Version>$VERSION</Version>|" "$CSPROJ_PATH"
-    git add $CSPROJ_PATH
-    git commit -m"Version: $VERSION"
+usage() {
+  echo "Usage: $0 [--ui VERSION] [--pathfinding VERSION] [--chain VERSION] ... [--dry-run]"
+  echo "Examples:"
+  echo "  $0 --ui 0.1.12 --dry-run"
+  echo "  $0 --pathfinding 1.2.3"
+  exit 1
+}
+
+declare -A PROJECTS=(
+  [ui]="Ocelot.UI/Ocelot.UI.csproj"
+  [pathfinding]="Ocelot.Pathfinding/Ocelot.Pathfinding.csproj"
+  [chain]="Ocelot.Chain/Ocelot.Chain.csproj"
+  [ecommons]="Ocelot.ECommons/Ocelot.ECommons.csproj"
+  [mechanic]="Ocelot.Mechanic/Ocelot.Mechanic.csproj"
+  [pictomancy]="Ocelot.Pictomancy/Ocelot.Pictomancy.csproj"
+  [rotation]="Ocelot.Rotation/Ocelot.Rotation.csproj"
+  [core]="Ocelot/Ocelot.csproj"
+)
+
+# Parse args
+declare -A TARGETS
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run) DRY_RUN=true; shift ;;
+    --*) 
+      mod="${1#--}"
+      shift
+      [[ $# -eq 0 ]] && usage
+      ver="$1"; shift
+      if [[ -z "${PROJECTS[$mod]:-}" ]]; then
+        echo "❌ Unknown module: $mod"
+        usage
+      fi
+      TARGETS["$mod"]="$ver"
+      ;;
+    *) usage ;;
+  esac
+done
+
+[[ ${#TARGETS[@]} -eq 0 ]] && usage
+
+rm -rf "$ARTIFACTS_DIR"
+mkdir -p "$ARTIFACTS_DIR"
+
+for mod in "${!TARGETS[@]}"; do
+  csproj="${PROJECTS[$mod]}"
+  version="${TARGETS[$mod]}"
+  if [[ ! -f "$csproj" ]]; then
+    echo "❌ Missing project file: $csproj"
+    exit 1
   fi
-fi
 
-# Ensure OcelotVersion matches the input version
-echo "🔍 Ensuring OcelotVersion is \"$VERSION\" in $PLUGIN_CLASS_PATH..."
-if grep -q "public const string OcelotVersion = \"$VERSION\";" "$PLUGIN_CLASS_PATH"; then
-  echo "✅ OcelotVersion already correct"
-else
-  echo "✏️ Updating OcelotVersion in source..."
-  sed -i "s|public const string OcelotVersion = \".*\";|public const string OcelotVersion = \"$VERSION\";|" "$PLUGIN_CLASS_PATH"
-  git add $PLUGIN_CLASS_PATH
-  git commit -m"OcelotVersion: $VERSION"
-fi
+  pkgid=$(xmllint --xpath "string(//PackageId)" "$csproj" 2>/dev/null || true)
 
-echo "🔧 Building project..."
-dotnet build -c Release
+  if [[ -z "$pkgid" ]]; then
+    pkgid=$(basename "$csproj" .csproj)
+  fi
 
-echo "📦 Packing version $VERSION..."
-dotnet pack -c Release
+  echo "🔧 Building $pkgid ($version)…"
+  dotnet restore "$csproj"
+  dotnet build "$csproj" -c "$CONFIGURATION" --no-restore
 
-echo "🚀 Pushing $NUPKG_PATH to NuGet..."
-dotnet nuget push "$NUPKG_PATH" -k "$API_KEY" -s "$NUGET_SOURCE"
+  echo "📦 Packing $pkgid $version…"
+  dotnet pack "$csproj" \
+    -c "$CONFIGURATION" \
+    -o "$ARTIFACTS_DIR" \
+    -p:PackageVersion="$version" \
+    -p:Version="$version" \
+    --no-build
 
-echo "✅ Publish complete!"
+  nupkg="$ARTIFACTS_DIR/$pkgid.$version.nupkg"
 
-git tag "$VERSION"
-git push origin master "$VERSION"
-  
-echo "✅ Git tag complete!"
+  if $DRY_RUN; then
+    echo "🚫 Dry run: built $nupkg but not pushing."
+  else
+    echo "🚀 Pushing $pkgid $version…"
+    dotnet nuget push "$nupkg" -k "$NUGET_API_KEY" -s "$NUGET_SOURCE" --skip-duplicate
+
+    tag="pkg/$pkgid/v$version"
+    if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+      echo "🏷️  Tag $tag already exists; skipping."
+    else
+      git tag "$tag"
+      git push origin "$tag"
+    fi
+  fi
+done
+
+echo "✅ Done!"

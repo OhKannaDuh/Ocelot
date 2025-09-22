@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <PackageId>FFXIVOcelot.Rotataion</PackageId>
+        <PackageId>FFXIVOcelot.Rotation</PackageId>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
