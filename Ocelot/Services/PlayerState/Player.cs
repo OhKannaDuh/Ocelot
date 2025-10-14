@@ -2,7 +2,6 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Lumina.Excel.Sheets;
 using Ocelot.Services.ClientState;
-
 using DalamudPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 
 namespace Ocelot.Services.PlayerState;
@@ -13,12 +12,12 @@ public class Player(IClient client) : IPlayer
     {
         get => client.Player;
     }
-    
+
     private bool IsAvailable
     {
         get => client.IsPlayerAvailable();
     }
-    
+
     public int GetLevel()
     {
         return client.Player?.Level ?? 0;
@@ -27,7 +26,7 @@ public class Player(IClient client) : IPlayer
     public ClassJob? GetClassJob()
     {
         var classJob = client.Player?.ClassJob;
-        
+
         return classJob?.Value;
     }
 

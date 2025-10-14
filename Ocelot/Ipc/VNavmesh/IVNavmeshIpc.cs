@@ -7,9 +7,9 @@ public interface IVNavmeshIpc
     bool IsPathfinding();
 
     bool IsRunning();
-    
+
     void PathfindAndMoveTo(Vector3 destination, bool shouldFly);
-    
+
     void PathfindAndMoveCloseTo(Vector3 destination, bool shouldFly, float range);
 
     Vector3 FindPointOnFloor(Vector3 origin, float halfExtentXZ);

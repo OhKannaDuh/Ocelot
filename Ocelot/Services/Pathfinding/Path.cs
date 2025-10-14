@@ -9,7 +9,7 @@ public class Path(Vector3 to)
 
     public Vector3 From { get; init; }
 
-    public float DistanceThreshold { get; init; } = 0f; 
+    public float DistanceThreshold { get; init; } = 0f;
 
     public bool AllowFlying { get; init; }
 

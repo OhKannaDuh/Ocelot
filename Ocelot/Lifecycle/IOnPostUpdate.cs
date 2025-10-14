@@ -6,6 +6,6 @@ public interface IOnPostUpdate : IOrderedHook
     {
         get => UpdateLimit.None;
     }
-    
+
     void PostUpdate();
 }

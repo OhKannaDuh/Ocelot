@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections;
 using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Lifecycle;
 
@@ -13,6 +10,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
 
     private readonly static Type[] HookInterfaces =
     {
+        typeof(IOnLoad),
         typeof(IOnStart),
         typeof(IOnStop),
         typeof(IOnPreUpdate),
@@ -21,6 +19,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
         typeof(IOnPreRender),
         typeof(IOnRender),
         typeof(IOnPostRender),
+        typeof(IOnTerritoryChanged),
     };
 
     private readonly HashSet<(Type hook, Type viaService, ServiceLifetime life)> forwards = [];

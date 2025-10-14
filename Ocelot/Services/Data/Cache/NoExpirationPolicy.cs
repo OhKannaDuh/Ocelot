@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocelot.Services.Data.Cache;
+﻿namespace Ocelot.Services.Data.Cache;
 
 public class NoExpirationPolicy : ICachePolicy
 {

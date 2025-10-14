@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Common.Lua;
 using Lumina.Excel;
 using Ocelot.Services.Data.Cache;
 
@@ -56,7 +52,7 @@ public class ExcelDataRepository<TModel> : IDataRepository<TModel> where TModel 
     {
         return GetAll().Where(predicate.Compile());
     }
-    
+
     public bool Remove(uint key)
     {
         throw new InvalidOperationException("You cannot remove from an Excel Data Repository");

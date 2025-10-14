@@ -6,6 +6,6 @@ public interface IOnPreUpdate : IOrderedHook
     {
         get => UpdateLimit.None;
     }
-    
+
     void PreUpdate();
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Ocelot.States.Score;
+﻿namespace Ocelot.States.Score;
 
 public sealed class ScoreStateMachine<TState> : IStateMachine<TState>, IDisposable
     where TState : struct, Enum

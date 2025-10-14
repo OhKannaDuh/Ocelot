@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Ocelot.States.Flow;
+﻿namespace Ocelot.States.Flow;
 
 public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposable
     where TState : struct, Enum

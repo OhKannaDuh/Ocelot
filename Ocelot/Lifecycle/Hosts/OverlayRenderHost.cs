@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Dalamud.Plugin;
+﻿using Dalamud.Plugin;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;

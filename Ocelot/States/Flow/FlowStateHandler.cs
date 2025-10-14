@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocelot.States.Flow;
+﻿namespace Ocelot.States.Flow;
 
 public abstract class FlowStateHandler<TState>(TState state) : IFlowStateHandler<TState>
     where TState : struct, Enum

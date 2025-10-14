@@ -1,6 +1,4 @@
-﻿using Ocelot.Lifecycle.Hosts;
-
-namespace Ocelot.Lifecycle;
+﻿namespace Ocelot.Lifecycle;
 
 public interface IOnUpdate : IOrderedHook
 {
@@ -8,6 +6,6 @@ public interface IOnUpdate : IOrderedHook
     {
         get => UpdateLimit.None;
     }
-    
+
     void Update();
 }

@@ -32,7 +32,7 @@ public partial class OcelotUIService
         LabelledValue(label.ToString() ?? "", value, labelColor, valueColor);
     }
 
-    public  void LabelledValue(object label, object value, Color? labelColor = null, Color? valueColor = null)
+    public void LabelledValue(object label, object value, Color? labelColor = null, Color? valueColor = null)
     {
         LabelledValue(label.ToString() ?? "", value.ToString() ?? "", labelColor, valueColor);
     }

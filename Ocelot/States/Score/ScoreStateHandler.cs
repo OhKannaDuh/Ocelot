@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocelot.States.Score;
+﻿namespace Ocelot.States.Score;
 
 public abstract class ScoreStateHandler<TState> : IScoreStateHandler<TState>
     where TState : struct, Enum

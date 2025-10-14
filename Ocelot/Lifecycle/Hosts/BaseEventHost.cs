@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Ocelot.Services.Logger;
+﻿using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 

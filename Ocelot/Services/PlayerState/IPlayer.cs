@@ -8,7 +8,7 @@ public interface IPlayer
     int GetLevel();
 
     ClassJob? GetClassJob();
-    
+
     int GetLevel(ClassJob job);
 
     Vector3 GetPosition();

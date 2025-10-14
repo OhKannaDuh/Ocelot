@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using Dalamud.Plugin;
-using Ocelot.Services.Logger;
+﻿using Dalamud.Plugin;
 
 namespace Ocelot.Services.PluginStatus;
 
