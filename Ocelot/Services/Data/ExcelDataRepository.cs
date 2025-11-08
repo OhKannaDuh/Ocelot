@@ -43,6 +43,18 @@ public class ExcelDataRepository<TModel> : IDataRepository<TModel> where TModel 
         return cache.GetOrAdd(key, () => sheet.GetRow(key));
     }
 
+    public bool TryGet(uint key, out TModel model)
+    {
+        model = default;
+        if (ContainsKey(key))
+        {
+            model = Get(key);
+            return true;
+        }
+
+        return false;
+    }
+
     public IEnumerable<TModel> GetAll()
     {
         return all.Value;

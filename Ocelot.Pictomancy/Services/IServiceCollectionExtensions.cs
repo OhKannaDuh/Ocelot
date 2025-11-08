@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Ocelot.Pictomancy.Services.OverlayRenderer;
 using Ocelot.Services.OverlayRenderer;
 
 namespace Ocelot.Pictomancy.Services;

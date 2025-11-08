@@ -25,6 +25,6 @@ public static class ChainExWait
         var until = when.ToUniversalTime();
         var delay = until - now;
 
-        return chain.Wait(delay, $"Wait until {when:O}");
+        return chain.Wait(delay, name ?? $"Wait until {when:O}");
     }
 }

@@ -32,33 +32,48 @@ public static class StateMachineDiExtensions
             },
             lifetime)
         );
-    }
 
-
-    private static void AddScoreStateHandlers<TState>(this IServiceCollection services)
-        where TState : struct, Enum
-    {
-        var candidates = Registry.GetTypesAssignableFrom<IScoreStateHandler<TState>>();
-
-        foreach (var type in candidates)
+        if (lifetime == ServiceLifetime.Transient)
         {
-            services.TryAddEnumerable(ServiceDescriptor.Transient(typeof(IScoreStateHandler<TState>), type));
+            services.AddTransient<Func<IStateMachine<TState>>>(sp => sp.GetRequiredService<IStateMachine<TState>>);
         }
     }
 
-    public static void AddScoreStateMachine<TState>(this IServiceCollection services, TState initial, ServiceLifetime lifetime = ServiceLifetime.Singleton)
+
+    private static void AddScoreStateHandlers<TState, TScore>(this IServiceCollection services)
         where TState : struct, Enum
+        where TScore : IComparable
     {
-        services.AddScoreStateHandlers<TState>();
+        var candidates = Registry.GetTypesAssignableFrom<IScoreStateHandler<TState, TScore>>();
+
+        foreach (var type in candidates)
+        {
+            services.TryAddEnumerable(ServiceDescriptor.Transient(typeof(IScoreStateHandler<TState, TScore>), type));
+        }
+    }
+
+    public static void AddScoreStateMachine<TState, TScore>(
+        this IServiceCollection services,
+        TState initial,
+        ServiceLifetime lifetime = ServiceLifetime.Singleton)
+        where TState : struct, Enum
+        where TScore : IComparable
+    {
+        services.AddScoreStateHandlers<TState, TScore>();
 
         services.Add(new ServiceDescriptor(
             typeof(IStateMachine<TState>),
             c =>
             {
-                var handlers = c.GetRequiredService<IEnumerable<IScoreStateHandler<TState>>>();
-                return new ScoreStateMachine<TState>(initial, handlers);
+                var handlers = c.GetRequiredService<IEnumerable<IScoreStateHandler<TState, TScore>>>();
+                return new ScoreStateMachine<TState, TScore>(initial, handlers);
             },
             lifetime)
         );
+
+        if (lifetime == ServiceLifetime.Transient)
+        {
+            services.AddTransient<Func<IStateMachine<TState>>>(sp => sp.GetRequiredService<IStateMachine<TState>>);
+        }
     }
 }

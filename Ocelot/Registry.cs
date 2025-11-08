@@ -51,6 +51,11 @@ public static class Registry
         return GetAllLoadableTypes().Where(t => !t.IsAbstract && t.IsDefined(typeof(TAttribute), false));
     }
 
+    public static IEnumerable<Type> GetInterfaceTypesWithAttribute<TAttribute>() where TAttribute : Attribute
+    {
+        return GetAllLoadableTypes().Where(t => t.IsInterface && t.IsDefined(typeof(TAttribute), false));
+    }
+
     public static IEnumerable<Type> GetTypesAssignableFrom<TType>() where TType : class
     {
         return GetAllLoadableTypes().Where(t => !t.IsAbstract && typeof(TType).IsAssignableFrom(t));

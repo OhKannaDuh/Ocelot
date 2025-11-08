@@ -1,12 +1,14 @@
 ﻿using System.Reflection;
 using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Fields;
+using Ocelot.Extensions;
+using Ocelot.Services.Translation;
 
 namespace Ocelot.Config.Renderers;
 
 public sealed class FloatRangeRenderer : IFieldRenderer<FloatRangeAttribute>
 {
-    public bool Render(object target, PropertyInfo prop, FloatRangeAttribute attr)
+    public bool Render(object target, PropertyInfo prop, FloatRangeAttribute attr, Type owner, ITranslator translator)
     {
         if (prop.PropertyType != typeof(float))
         {
@@ -14,15 +16,11 @@ public sealed class FloatRangeRenderer : IFieldRenderer<FloatRangeAttribute>
                 $"[FloatRange] can only be used on float properties. {prop.DeclaringType?.Name}.{prop.Name} is {prop.PropertyType.Name}.");
         }
 
-        var label = prop.Name;
         var value = (float)(prop.GetValue(target) ?? 0f);
 
-        var changed = ImGui.SliderFloat(label, ref value, attr.Min, attr.Max);
+        var changed = ImGui.SliderFloat(prop.Label(owner, translator), ref value, attr.Min, attr.Max);
 
-        // if (!string.IsNullOrEmpty(attr.Tooltip) && ImGui.IsItemHovered())
-        // {
-        //     ImGui.SetTooltip(attr.Tooltip);
-        // }
+        prop.Tooltip(owner, translator);
 
         if (changed)
         {

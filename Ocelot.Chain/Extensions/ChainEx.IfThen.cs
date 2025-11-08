@@ -109,8 +109,6 @@ public static class ChainExIfThen
             name: name));
     }
 
-    // ---- Convenience: action-style then/else bodies ----
-
     public static IChain IfThen(
         this IChain chain,
         Func<IChainContext, ValueTask<bool>> condition,

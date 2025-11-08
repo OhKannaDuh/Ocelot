@@ -1,13 +1,20 @@
 ﻿namespace Ocelot.States.Score;
 
-public abstract class ScoreStateHandler<TState> : IScoreStateHandler<TState>
+public abstract class ScoreStateHandler<TState>(TState state) : ScoreStateHandler<TState, double>(state)
+    where TState : struct, Enum;
+
+public abstract class ScoreStateHandler<TState, TScore>(TState state) : IScoreStateHandler<TState, TScore>
     where TState : struct, Enum
+    where TScore : IComparable
 {
     private DateTime entered = DateTime.Now;
 
-    public abstract TState Handles { get; }
+    public TState Handles
+    {
+        get => state;
+    }
 
-    public abstract double GetScore();
+    public abstract TScore GetScore();
 
     public abstract void Handle();
 
@@ -17,6 +24,10 @@ public abstract class ScoreStateHandler<TState> : IScoreStateHandler<TState>
     }
 
     public virtual void Exit(TState next)
+    {
+    }
+
+    public virtual void Render()
     {
     }
 

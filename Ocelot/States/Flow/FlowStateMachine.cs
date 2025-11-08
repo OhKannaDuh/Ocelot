@@ -5,6 +5,11 @@ public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposabl
 {
     public TState State { get; private set; }
 
+    public IStateHandler<TState> StateHandler
+    {
+        get => Current;
+    }
+
     private readonly TState initial;
 
     private readonly IReadOnlyDictionary<TState, IFlowStateHandler<TState>> handlers;

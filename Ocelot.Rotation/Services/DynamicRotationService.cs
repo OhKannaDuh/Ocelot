@@ -33,11 +33,11 @@ public class DynamicRotationService(
             return;
         }
 
-        current?.Unload();
+        // current?.Unload();
         currentInternalName = bestMatch?.InternalName ?? "";
         current = bestMatch?.Create();
-        current?.Load();
-        
+        // current?.Load();
+
         logger.Info($"[DynamicRotationService] Dynamic rotation service has been updated to {currentInternalName}");
     }
 
@@ -59,5 +59,15 @@ public class DynamicRotationService(
     public void DisableAutoRotation()
     {
         current?.DisableAutoRotation();
+    }
+
+    public void EnableSingleTarget()
+    {
+        current?.EnableSingleTarget();
+    }
+
+    public void DisableSingleTarget()
+    {
+        current?.DisableSingleTarget();
     }
 }

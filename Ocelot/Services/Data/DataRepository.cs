@@ -32,6 +32,18 @@ public class DataRepository<TKey, TModel> : IDataRepository<TKey, TModel>
         throw new KeyNotFoundException($"Key {key} not found");
     }
 
+    public bool TryGet(TKey key, out TModel model)
+    {
+        model = default;
+        if (ContainsKey(key))
+        {
+            model = Get(key);
+            return true;
+        }
+
+        return false;
+    }
+
     public IEnumerable<TModel> GetAll()
     {
         return data.Values;

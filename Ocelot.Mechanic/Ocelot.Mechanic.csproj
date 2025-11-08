@@ -6,6 +6,6 @@
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="ECommons" Version="3.0.1.14" />
+        <PackageReference Include="ECommons" Version="3.0.1.14"/>
     </ItemGroup>
 </Project>

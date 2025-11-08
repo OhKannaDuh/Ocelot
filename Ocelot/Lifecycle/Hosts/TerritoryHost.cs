@@ -1,5 +1,4 @@
 ﻿using Dalamud.Plugin.Services;
-using Ocelot.Services.Gate;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
@@ -11,7 +10,7 @@ public class TerritoryHost(
 ) : BaseEventHost(logger)
 {
     private readonly IOnTerritoryChanged[] territoryChanged = territoryChanged.OrderByDescending(h => h.Order).ToArray();
-    
+
     public override int Count
     {
         get => territoryChanged.Length;

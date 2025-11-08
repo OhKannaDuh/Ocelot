@@ -29,7 +29,6 @@ public class LoadHost(IEnumerable<IOnLoad> load, ILogger logger) : BaseEventHost
                 // Logger not initialized on load
             }
         }
-        
     }
 
     public override void Stop()

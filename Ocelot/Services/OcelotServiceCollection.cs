@@ -1,6 +1,6 @@
 ﻿using System.Collections;
+using Dalamud.Plugin.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Ocelot.Lifecycle;
 
 namespace Ocelot.Services;
 
@@ -8,25 +8,20 @@ public sealed class OcelotServiceCollection : IServiceCollection
 {
     private readonly IServiceCollection collection;
 
-    private readonly static Type[] HookInterfaces =
-    {
-        typeof(IOnLoad),
-        typeof(IOnStart),
-        typeof(IOnStop),
-        typeof(IOnPreUpdate),
-        typeof(IOnUpdate),
-        typeof(IOnPostUpdate),
-        typeof(IOnPreRender),
-        typeof(IOnRender),
-        typeof(IOnPostRender),
-        typeof(IOnTerritoryChanged),
-    };
+    private readonly IPluginLog logger;
+
+    private readonly static List<Type> HookInterfaces = [];
 
     private readonly HashSet<(Type hook, Type viaService, ServiceLifetime life)> forwards = [];
 
     internal OcelotServiceCollection(IServiceCollection? inner = null)
     {
         collection = inner ?? new ServiceCollection();
+
+        foreach (var type in Registry.GetInterfaceTypesWithAttribute<OcelotAutoWireAttribute>())
+        {
+            HookInterfaces.Add(type);
+        }
     }
 
     internal void AutoDiscover()

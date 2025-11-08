@@ -1,24 +1,26 @@
-﻿namespace Ocelot.Rotation.Services.RotationSolverReborn;
+﻿using Ocelot.Ipc.RotationSolverReborn;
 
-public class RotationSolverRebornRotationService : IRotationService
+namespace Ocelot.Rotation.Services.RotationSolverReborn;
+
+public class RotationSolverRebornRotationService(IRotationSolverRebornIpc ipc) : IRotationService
 {
-    public void Load()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Unload()
-    {
-        throw new NotImplementedException();
-    }
-
     public void EnableAutoRotation()
     {
-        throw new NotImplementedException();
+        ipc.ChangeOperatingMode(RSRStateCommandType.Manual);
     }
 
     public void DisableAutoRotation()
     {
-        throw new NotImplementedException();
+        ipc.ChangeOperatingMode(RSRStateCommandType.Off);
+    }
+
+    public void EnableSingleTarget()
+    {
+        // I should ask LTS or whoever about this
+    }
+
+    public void DisableSingleTarget()
+    {
+        // I should ask LTS or whoever about this
     }
 }

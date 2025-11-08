@@ -18,7 +18,7 @@ public record StepResult
             IsSuccess = true,
         };
     }
-    
+
     public static StepResult Break()
     {
         return new StepResult

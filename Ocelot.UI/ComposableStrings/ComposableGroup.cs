@@ -7,7 +7,7 @@ namespace Ocelot.UI.ComposableStrings;
 public partial class ComposableGroup(IBrandingService branding, ITextureProvider textures)
 {
     private readonly List<IComposable> composables = [];
-    
+
     public float Width
     {
         get => composables.Count == 0 ? 0 : composables.Sum(c => c.GetWidth()) + ImGui.GetStyle().ItemSpacing.X * (composables.Count - 1);

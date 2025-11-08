@@ -10,7 +10,7 @@ public class RunOnMainThreadMiddleware(IMainThread thread) : IStepMiddleware
         {
             return next();
         }
-        
+
         return thread.InvokeAsync(() => next(), context.CancellationToken);
     }
 }

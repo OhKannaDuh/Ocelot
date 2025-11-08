@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Ocelot.Mechanic.Services.BossMod;
 using Ocelot.Services.PluginStatus;
 
 namespace Ocelot.Mechanic.Services.BossModReborn;

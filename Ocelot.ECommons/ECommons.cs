@@ -1,14 +1,18 @@
 ﻿using Dalamud.Plugin;
 using ECommons;
+using Ocelot.ECommons.Services;
 using Ocelot.Lifecycle;
 
 namespace Ocelot.ECommons;
 
-internal sealed class ECommons(IDalamudPluginInterface pluginInterface, IDalamudPlugin plugin) : IOnStart, IOnStop
+internal sealed class ECommons(IDalamudPluginInterface pluginInterface, IDalamudPlugin plugin, IECommonsInitProvider init) : IOnLoad, IOnStop
 {
-    public void OnStart()
+    public void OnLoad()
     {
-        ECommonsMain.Init(pluginInterface, plugin, Module.DalamudReflector, Module.ObjectFunctions);
+        ECommonsMain.Init(pluginInterface, plugin,
+            init.GetModules());
+
+        // Module.DalamudReflector, Module.ObjectFunctions, Module.ObjectLife);
     }
 
     public void OnStop()

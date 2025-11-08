@@ -3,11 +3,11 @@
 public interface IChain
 {
     IChain Then(IStep step);
-    
+
     IChain Then(IChain chain);
-    
+
     IChain Then<T>() where T : class;
-    
+
     IChain Then<TRecipe, TArgs>(TArgs args) where TRecipe : class, IChainRecipe<TArgs>;
 
     IChain UseMiddleware(IChainMiddleware middleware);

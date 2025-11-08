@@ -1,5 +1,8 @@
-﻿namespace Ocelot.Lifecycle;
+﻿using Ocelot.Services;
 
+namespace Ocelot.Lifecycle;
+
+[OcelotAutoWire]
 public interface IOnUpdate : IOrderedHook
 {
     UpdateLimit UpdateLimit

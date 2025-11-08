@@ -1,14 +1,19 @@
-﻿using Dalamud.Game.ClientState.Objects;
+﻿using System.Reflection;
+using Dalamud.IoC;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocelot.Config;
 using Ocelot.Config.Fields;
 using Ocelot.Config.Renderers;
+using Ocelot.Ipc.BossMod;
 using Ocelot.Ipc.VNavmesh;
+using Ocelot.Ipc.WrathCombo;
 using Ocelot.Lifecycle;
 using Ocelot.Lifecycle.Hosts;
 using Ocelot.Services.ClientState;
+using Ocelot.Services.Commands;
+using Ocelot.Services.Commands.MainCommandDelegates;
 using Ocelot.Services.Data;
 using Ocelot.Services.Data.Cache;
 using Ocelot.Services.Gate;
@@ -25,7 +30,7 @@ public static class IServiceCollectionExtensions
 {
     internal static void LoadOcelotCore(this IServiceCollection services)
     {
-        services.AddSingleton<ILogger, NullLogger>();
+        services.AddSingleton<ILogger, PluginLogger>();
         services.AddSingleton<IGateService, GateService>();
 
         services.AddSingleton<IWindowManager, WindowManager.WindowManager>();
@@ -52,6 +57,8 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<IPluginStatus, PluginStatus.PluginStatus>();
 
         services.AddSingleton<IVNavmeshIpc, VNavmeshIpc>();
+        services.AddSingleton<IBossModIpc, BossModIpc>();
+        services.AddSingleton<IWrathComboIpc, WrathComboIpc>();
 
         services.AddSingleton<IEventHost, LoadHost>();
         services.AddSingleton<IEventHost, StartHost>();
@@ -61,23 +68,48 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<IEventHost, StopHost>();
 
         services.AddSingleton<EventManager>();
+
+        services.AddSingleton<CommandManager>();
+
+        // These commands don't get registered by ocelot as an IOcelotCommand, so CommandManager doesn't auto register them
+        // But they this allows them to be DId into a main command delegate
+        services.AddSingleton<ReloadTranslationsCommand>();
+
+        services.AddSingleton<IConfigCommand, ConfigCommand>();
+        services.AddSingleton<IOcelotCommand>(container => container.GetRequiredService<IConfigCommand>());
+
+        services.AddSingleton<IMainCommand, MainCommand>();
+        services.AddSingleton<IOcelotCommand>(container => container.GetRequiredService<IMainCommand>());
+        services.AddSingleton<IMainCommandDelegate, ConfigDelegate>();
+        services.AddSingleton<IMainCommandDelegate, ReloadTranslationsDelegate>();
     }
 
     internal static void LoadDalamudServices(this IServiceCollection services, IDalamudPluginInterface plugin)
     {
-        var dalamudServices = plugin.Create<DalamudServices>();
-        if (dalamudServices == null)
+        var bag = plugin.Create<DalamudServices>() ?? throw new InvalidOperationException("Unable to create Dalamud Services");
+
+        services.TryAddSingleton(bag);
+
+        var properties = typeof(DalamudServices)
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            .Where(p => p.GetCustomAttribute<PluginServiceAttribute>() != null);
+
+        foreach (var prop in properties)
         {
-            throw new Exception("Unable to create Dalamud Services");
+            var serviceType = prop.PropertyType;
+
+            services.TryAddSingleton(serviceType, sp =>
+            {
+                var svcBag = sp.GetRequiredService<DalamudServices>();
+                var value = prop.GetValue(svcBag);
+                if (value is null)
+                {
+                    throw new InvalidOperationException($"Dalamud service '{serviceType.Name}' is null on {nameof(DalamudServices)}.");
+                }
+
+                return value;
+            });
         }
-
-        services.AddSingleton(dalamudServices);
-
-        services.AddSingleton<IFramework>(c => c.GetRequiredService<DalamudServices>().Framework);
-        services.AddSingleton<IDataManager>(c => c.GetRequiredService<DalamudServices>().DataManager);
-        services.AddSingleton<IClientState>(c => c.GetRequiredService<DalamudServices>().ClientState);
-        services.AddSingleton<ITargetManager>(c => c.GetRequiredService<DalamudServices>().TargetManager);
-        services.AddSingleton<ITextureProvider>(c => c.GetRequiredService<DalamudServices>().TextureProvider);
     }
 
     public static void AddConfig<T, P>(this IServiceCollection services, Func<P, T> selector)

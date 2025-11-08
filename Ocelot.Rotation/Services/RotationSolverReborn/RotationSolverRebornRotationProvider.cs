@@ -6,7 +6,7 @@ namespace Ocelot.Rotation.Services.RotationSolverReborn;
 public class RotationSolverRebornRotationProvider(IPluginStatus pluginStatus, IServiceProvider services) : IRotationProvider
 {
     public const string Key = "RotationSolver";
-    
+
     public string InternalName
     {
         get => Key;

@@ -20,19 +20,19 @@ public class Chain(string name, IServiceProvider services) : IChain
         steps.Add(step);
         return this;
     }
-    
+
     public IChain Then(IChain chain)
     {
         return Then(new ChainStep(chain));
     }
-    
+
     public IChain Then<T>() where T : class
     {
         if (typeof(IStep).IsAssignableFrom(typeof(T)))
         {
             return Then((IStep)services.GetRequiredService<T>());
         }
-        
+
         if (typeof(IChainRecipe).IsAssignableFrom(typeof(T)))
         {
             var recipe = (IChainRecipe)services.GetRequiredService<T>();
@@ -41,7 +41,7 @@ public class Chain(string name, IServiceProvider services) : IChain
 
         return this;
     }
-    
+
     public IChain Then<TRecipe, TArgs>(TArgs args) where TRecipe : class, IChainRecipe<TArgs>
     {
         var recipe = services.GetRequiredService<TRecipe>();

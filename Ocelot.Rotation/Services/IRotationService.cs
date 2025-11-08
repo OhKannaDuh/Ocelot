@@ -2,11 +2,19 @@
 
 public interface IRotationService
 {
-    void Load() {}
+    void Load()
+    {
+    }
 
-    void Unload() {}
+    void Unload()
+    {
+    }
 
     void EnableAutoRotation();
 
     void DisableAutoRotation();
+
+    void EnableSingleTarget();
+
+    void DisableSingleTarget();
 }

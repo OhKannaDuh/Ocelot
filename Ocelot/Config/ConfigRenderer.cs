@@ -6,12 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Config.Fields;
 using Ocelot.Config.Renderers;
 using Ocelot.Graphics;
+using Ocelot.Services.Translation;
 using Ocelot.Services.WindowManager;
 
 namespace Ocelot.Config;
 
 public class ConfigRenderer : IConfigRenderer
 {
+    private readonly ITranslator translator;
+
     private readonly Dictionary<Type, object> renderers = [];
 
     private readonly IServiceProvider services;
@@ -26,11 +29,12 @@ public class ConfigRenderer : IConfigRenderer
 
     private readonly Dictionary<string, List<IAutoConfig>> grouped = [];
 
-    public ConfigRenderer(IEnumerable<IAutoConfig> registered, IServiceProvider services, IConfigSaver saver)
+    public ConfigRenderer(IEnumerable<IAutoConfig> registered, IServiceProvider services, IConfigSaver saver, ITranslator translator)
     {
         configs = registered.ToArray();
         this.services = services;
         this.saver = saver;
+        this.translator = translator;
 
         foreach (var config in configs)
         {
@@ -78,12 +82,12 @@ public class ConfigRenderer : IConfigRenderer
         return ActivatorUtilities.CreateInstance(services, attr.RendererType);
     }
 
-    private bool InvokeRenderer(object renderer, object target, PropertyInfo prop, UIFieldAttribute attr)
+    private bool InvokeRenderer(object renderer, object target, PropertyInfo prop, UIFieldAttribute attr, Type owner)
     {
         var type = renderer.GetType().GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFieldRenderer<>));
 
         var method = type.GetMethod("Render")!;
-        return (bool)method.Invoke(renderer, [target, prop, attr])!;
+        return (bool)method.Invoke(renderer, [target, prop, attr, owner, translator])!;
     }
 
     public void Render()
@@ -93,23 +97,27 @@ public class ConfigRenderer : IConfigRenderer
             foreach (var uConfig in ungrouped)
             {
                 var selected = current == uConfig;
-                if (ImGui.Selectable(uConfig.GetType().Name, selected))
+                if (ImGui.Selectable(uConfig.Label(translator), selected))
                 {
                     current = uConfig;
                 }
+
+                uConfig.Tooltip(translator);
             }
 
             foreach (var (key, gConfigs) in grouped)
             {
-                ImGui.Text(key);
+                ImGui.Text(translator.T($"config_group.{key}.label"));
                 ImGui.Indent(16);
                 foreach (var gConfig in gConfigs)
                 {
                     var selected = current == gConfig;
-                    if (ImGui.Selectable(gConfig.GetType().Name, selected))
+                    if (ImGui.Selectable(gConfig.Label(translator), selected))
                     {
                         current = gConfig;
                     }
+
+                    gConfig.Tooltip(translator);
                 }
 
                 ImGui.Unindent(16);
@@ -140,7 +148,7 @@ public class ConfigRenderer : IConfigRenderer
                 ImGui.PushID(prop.Name);
 
                 var renderer = GetRenderer(attr);
-                var changed = InvokeRenderer(renderer, current, prop, attr);
+                var changed = InvokeRenderer(renderer, current, prop, attr, type);
 
                 if (changed)
                 {

@@ -1,5 +1,4 @@
-﻿using Ocelot.Pathfinding.Services;
-using Ocelot.Services.Pathfinding;
+﻿using Ocelot.Services.Pathfinding;
 
 namespace Ocelot.Pathfinding.Extensions;
 
@@ -19,6 +18,4 @@ public static class IPathfindingServiceExtensions
     {
         return service.GetState() == PathfindingState.Moving;
     }
-    
-    
 }

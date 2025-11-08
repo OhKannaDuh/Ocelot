@@ -1,12 +1,14 @@
 ﻿using System.Reflection;
 using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Fields;
+using Ocelot.Extensions;
+using Ocelot.Services.Translation;
 
 namespace Ocelot.Config.Renderers;
 
 public sealed class CheckboxRenderer : IFieldRenderer<CheckboxAttribute>
 {
-    public bool Render(object target, PropertyInfo prop, CheckboxAttribute attr)
+    public bool Render(object target, PropertyInfo prop, CheckboxAttribute attr, Type owner, ITranslator translator)
     {
         if (prop.PropertyType != typeof(bool))
         {
@@ -14,16 +16,11 @@ public sealed class CheckboxRenderer : IFieldRenderer<CheckboxAttribute>
                 $"[Checkbox] can only be used on bool properties. {prop.DeclaringType?.Name}.{prop.Name} is {prop.PropertyType.Name}.");
         }
 
-        // var label = attr.Label ?? prop.Name;
-        var label = prop.Name;
         var value = (bool)(prop.GetValue(target) ?? false);
 
-        var changed = ImGui.Checkbox(label, ref value);
+        var changed = ImGui.Checkbox(prop.Label(owner, translator), ref value);
 
-        // if (!string.IsNullOrEmpty(attr.Tooltip) && ImGui.IsItemHovered())
-        // {
-        //     ImGui.SetTooltip(attr.Tooltip);
-        // }
+        prop.Tooltip(owner, translator);
 
         if (changed)
         {

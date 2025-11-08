@@ -12,4 +12,26 @@ public interface IPlayer
     int GetLevel(ClassJob job);
 
     Vector3 GetPosition();
+
+    bool IsMounting();
+
+    bool IsMounted();
+
+    bool IsCasting();
+
+    bool IsBetweenAreas();
+
+    bool IsInteracting();
+
+    float GetRange();
+
+    bool IsMelee();
+
+    bool IsTank();
+
+    bool IsMeleeDps();
+
+    bool IsHealer();
+
+    bool IsCaster();
 }

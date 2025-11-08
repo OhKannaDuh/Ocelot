@@ -1,15 +1,23 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
+using Dalamud.Plugin;
+using Ocelot.Services.Logger;
 
 namespace Ocelot.Services.Translation;
 
-public sealed class TranslationRepository : ITranslationRepository
+public sealed class TranslationRepository(IDalamudPluginInterface plugin, ILogger logger) : ITranslationRepository
 {
     private readonly Lock gate = new();
+
+    public event Action? LanguageChanged;
+
+    public event Action? TranslationsChanged;
 
     private readonly ConcurrentDictionary<string, Dictionary<string, string>> byLang = new(StringComparer.Ordinal);
 
     private volatile Dictionary<string, string> active = new(StringComparer.Ordinal);
+
+    private readonly List<(string Directory, string Language)> loadedDirectories = [];
 
     private string currentLanguage = "en";
 
@@ -35,11 +43,16 @@ public sealed class TranslationRepository : ITranslationRepository
             throw new ArgumentNullException(nameof(language));
         }
 
+        loadedDirectories.Add((directory, language));
+
+        directory = Path.Combine(plugin.AssemblyLocation.DirectoryName!, directory);
+
         var dir = new DirectoryInfo(directory);
         if (!dir.Exists)
         {
             throw new DirectoryNotFoundException(directory);
         }
+
 
         var chain = BuildFallbackChain(language);
 
@@ -55,14 +68,20 @@ public sealed class TranslationRepository : ITranslationRepository
 
             var files = Directory.EnumerateFiles(langFolder, "*.json", SearchOption.TopDirectoryOnly)
                 .OrderBy(p => p, StringComparer.Ordinal)
-                .ToArray();
+                .ToList();
+
+            logger.Info("Found {c} files", files.Count);
 
             foreach (var file in files)
             {
+                logger.Info("Loading file {f}", file);
+
                 using var fs = File.OpenRead(file);
                 using var doc = JsonDocument.Parse(fs, new JsonDocumentOptions { AllowTrailingCommas = true });
 
-                FlattenInto(doc.RootElement, merged, null);
+                var prefix = Path.GetFileNameWithoutExtension(file);
+
+                FlattenInto(doc.RootElement, merged, prefix);
             }
 
             lock (gate)
@@ -83,6 +102,7 @@ public sealed class TranslationRepository : ITranslationRepository
             currentLanguage = language;
             active = new Dictionary<string, string>(merged, StringComparer.Ordinal);
             byLang[language] = active;
+            TranslationsChanged?.Invoke();
         }
     }
 
@@ -102,6 +122,7 @@ public sealed class TranslationRepository : ITranslationRepository
         {
             currentLanguage = language;
             active = new Dictionary<string, string>(map, StringComparer.Ordinal);
+            LanguageChanged?.Invoke();
         }
     }
 
@@ -123,6 +144,39 @@ public sealed class TranslationRepository : ITranslationRepository
         }
 
         return active.TryGetValue(key, out var v) ? v : @default ?? key;
+    }
+
+    public bool Has(string key)
+    {
+        return active.ContainsKey(key);
+    }
+
+    public void Reload()
+    {
+        List<(string Directory, string Language)> snapshot;
+        string previousLanguage;
+
+        lock (gate)
+        {
+            snapshot = new List<(string Directory, string Language)>(loadedDirectories);
+            previousLanguage = currentLanguage;
+
+            loadedDirectories.Clear();
+            byLang.Clear();
+            active = new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+
+        foreach (var (directory, language) in snapshot)
+        {
+            LoadFromDirectory(directory, language);
+        }
+
+        if (byLang.TryGetValue(previousLanguage, out _))
+        {
+            SetLanguage(previousLanguage);
+        }
+
+        TranslationsChanged?.Invoke();
     }
 
     private static IEnumerable<string> BuildFallbackChain(string language)

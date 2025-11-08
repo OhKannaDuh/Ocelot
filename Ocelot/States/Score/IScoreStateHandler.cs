@@ -1,21 +1,13 @@
 ﻿namespace Ocelot.States.Score;
 
-public interface IScoreStateHandler<TState>
-    where TState : struct, Enum
-{
-    double GetScore();
+public interface IScoreStateHandler<TState> : IScoreStateHandler<TState, double>
+    where TState : struct, Enum;
 
-    TState Handles { get; }
+public interface IScoreStateHandler<TState, out TScore> : IStateHandler<TState>
+    where TState : struct, Enum
+    where TScore : IComparable
+{
+    TScore GetScore();
 
     void Handle();
-
-    void Enter()
-    {
-    }
-
-    void Exit(TState next)
-    {
-    }
-
-    TimeSpan TimeInState { get; }
 }

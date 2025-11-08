@@ -11,6 +11,8 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     private readonly EventManager host;
 
+    public abstract string Name { get; }
+
     protected OcelotPlugin(IDalamudPluginInterface plugin)
     {
         Registry.RegisterAssemblies(typeof(OcelotPlugin).Assembly, GetType().Assembly);
@@ -19,6 +21,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
         collection.AddSingleton(plugin);
         collection.AddSingleton<IDalamudPlugin>(this);
+        collection.AddSingleton(this);
 
         collection.LoadDalamudServices(plugin);
         collection.LoadOcelotCore();

@@ -1,4 +1,5 @@
-﻿using Ocelot.Lifecycle;
+﻿using System.Numerics;
+using Ocelot.Lifecycle;
 using Ocelot.Services.Logger;
 using Ocelot.Services.Pathfinding;
 using Path = Ocelot.Services.Pathfinding.Path;
@@ -34,10 +35,10 @@ public class DynamicPathfinder(
         {
             return;
         }
-        
+
         currentInternalName = bestMatch?.InternalName ?? "";
         current = bestMatch?.Create();
-        
+
         logger.Info($"[DynamicPathfindingService] Dynamic pathfinding service has been updated to {currentInternalName}");
     }
 
@@ -45,11 +46,26 @@ public class DynamicPathfinder(
     {
         return current?.GetState() ?? PathfindingState.Idle;
     }
-    
 
-    public void PathfindAndMoveTo(Path path)
+
+    public void PathfindAndMoveTo(PathfinderConfig config)
     {
-        current?.PathfindAndMoveTo(path);
+        current?.PathfindAndMoveTo(config);
+    }
+
+    public Task<Path> Pathfind(PathfinderConfig config)
+    {
+        return current == null ? Task.FromResult(Path.Blank(this)) : current.Pathfind(config);
+    }
+
+    public void FollowPath(Path path)
+    {
+        current?.FollowPath(path);
+    }
+
+    public Vector3 SnapToMesh(Vector3 point, float extent)
+    {
+        return current?.SnapToMesh(point, extent) ?? point;
     }
 
     public void Stop()

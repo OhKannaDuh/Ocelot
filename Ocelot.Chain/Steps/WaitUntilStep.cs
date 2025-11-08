@@ -12,9 +12,9 @@ public class WaitUntilStep(
     private readonly TimeSpan timeout = timeout < TimeSpan.Zero ? TimeSpan.Zero : timeout;
 
     private readonly TimeSpan poll =
-        ((pollInterval ?? TimeSpan.FromMilliseconds(250)) <= TimeSpan.Zero)
+        (pollInterval ?? TimeSpan.FromMilliseconds(250)) <= TimeSpan.Zero
             ? TimeSpan.FromMilliseconds(1)
-            : (pollInterval ?? TimeSpan.FromMilliseconds(250));
+            : pollInterval ?? TimeSpan.FromMilliseconds(250);
 
     public override string ToString()
     {
@@ -30,7 +30,7 @@ public class WaitUntilStep(
             var maxAdd = DateTimeOffset.MaxValue - now;
             deadline = timeout >= maxAdd ? DateTimeOffset.MaxValue : now + timeout;
         }
-        
+
         while (true)
         {
             context.CancellationToken.ThrowIfCancellationRequested();

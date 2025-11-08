@@ -21,6 +21,10 @@ public abstract class FlowStateHandler<TState>(TState state) : IFlowStateHandler
     {
     }
 
+    public virtual void Render()
+    {
+    }
+
     public TimeSpan TimeInState
     {
         get => DateTime.Now - entered;

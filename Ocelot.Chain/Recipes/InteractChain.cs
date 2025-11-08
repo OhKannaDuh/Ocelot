@@ -39,7 +39,7 @@ public class InteractChain(IChainFactory chains, ITargetManager targets, ILogger
                 {
                     return StepResult.Failure(ex);
                 }
-                
+
                 if (obj is null)
                 {
                     return StepResult.Failure("Cannot target object, null target provided.");

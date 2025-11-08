@@ -2,6 +2,10 @@
 
 public interface ITranslationRepository
 {
+    event Action? LanguageChanged;
+
+    event Action? TranslationsChanged;
+
     string CurrentLanguage { get; }
 
     IReadOnlyCollection<string> AvailableLanguages { get; }
@@ -13,4 +17,8 @@ public interface ITranslationRepository
     bool TryGet(string key, out string value);
 
     string Get(string key, string? @default = null);
+
+    bool Has(string key);
+
+    void Reload();
 }

@@ -4,11 +4,24 @@ using System.Text;
 
 namespace Ocelot.Services.Translation;
 
-public sealed class Translator(ITranslationRepository translations, string scope = "") : ITranslator
+public sealed class Translator : ITranslator, IDisposable
 {
-    private readonly ITranslationRepository translations = translations ?? throw new ArgumentNullException(nameof(translations));
+    private readonly ITranslationRepository translations;
 
-    public string Scope { get; } = NormalizeScope(scope);
+    public event Action? LanguageChanged;
+
+    public event Action? TranslationsChanged;
+
+    public string Scope { get; }
+
+    public Translator(ITranslationRepository translations, string scope = "")
+    {
+        this.translations = translations ?? throw new ArgumentNullException(nameof(translations));
+        Scope = NormalizeScope(scope);
+
+        translations.LanguageChanged += OnLanguageChanged;
+        translations.TranslationsChanged += OnTranslationsChanged;
+    }
 
     public ITranslator WithScope(string scope)
     {
@@ -42,6 +55,11 @@ public sealed class Translator(ITranslationRepository translations, string scope
         var fullKey = BuildFullKey(Scope, key);
         var template = translations.Get(fullKey, key);
         return ApplyReplacements(template, replacements);
+    }
+
+    public bool Has(string key)
+    {
+        return translations.Has(key);
     }
 
 
@@ -142,7 +160,7 @@ public sealed class Translator(ITranslationRepository translations, string scope
                 }
                 else
                 {
-                    sb.Append('{').Append(key).Append('}'); 
+                    sb.Append('{').Append(key).Append('}');
                 }
             }
 
@@ -150,5 +168,21 @@ public sealed class Translator(ITranslationRepository translations, string scope
         }
 
         return sb.ToString();
+    }
+
+    private void OnLanguageChanged()
+    {
+        LanguageChanged?.Invoke();
+    }
+
+    private void OnTranslationsChanged()
+    {
+        TranslationsChanged?.Invoke();
+    }
+
+    public void Dispose()
+    {
+        translations.TranslationsChanged -= OnTranslationsChanged;
+        translations.LanguageChanged -= OnLanguageChanged;
     }
 }

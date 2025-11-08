@@ -8,6 +8,7 @@ public static class IServiceCollectionExtensions
 {
     public static void LoadECommons(this IServiceCollection services)
     {
+        services.AddSingleton<IECommonsInitProvider, ECommonsInitProvider>();
         services.AddSingleton<ECommons>();
         services.AddSingleton<ILogger, ECommonsLogger>();
     }

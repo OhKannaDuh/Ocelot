@@ -1,8 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Ocelot.Chain.Thread;
-using Ocelot.Lifecycle;
-
-namespace Ocelot.Chain;
+﻿namespace Ocelot.Chain;
 
 public class ChainFactory(IServiceProvider services) : IChainFactory
 {

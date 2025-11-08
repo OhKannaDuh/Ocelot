@@ -1,27 +1,33 @@
 ﻿namespace Ocelot.States.Score;
 
-public sealed class ScoreStateMachine<TState> : IStateMachine<TState>, IDisposable
+public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, IDisposable
     where TState : struct, Enum
+    where TScore : IComparable
 {
     public TState State { get; private set; }
 
+    public IStateHandler<TState> StateHandler
+    {
+        get => Current;
+    }
+
     private readonly TState initial;
 
-    private readonly IReadOnlyDictionary<TState, IScoreStateHandler<TState>> handlers;
+    private readonly IReadOnlyDictionary<TState, IScoreStateHandler<TState, TScore>> handlers;
 
-    private IScoreStateHandler<TState> Current
+    private IScoreStateHandler<TState, TScore> Current
     {
         get => handlers.TryGetValue(State, out var h)
             ? h
             : throw new InvalidOperationException($"No handler for {typeof(TState).Name}.{State}");
     }
 
-    public ScoreStateMachine(TState initial, IEnumerable<IScoreStateHandler<TState>> handlers)
+    public ScoreStateMachine(TState initial, IEnumerable<IScoreStateHandler<TState, TScore>> handlers)
     {
         this.initial = initial;
         State = initial;
 
-        var map = new Dictionary<TState, IScoreStateHandler<TState>>();
+        var map = new Dictionary<TState, IScoreStateHandler<TState, TScore>>();
         foreach (var h in handlers)
         {
             if (map.TryGetValue(h.Handles, out var existing))

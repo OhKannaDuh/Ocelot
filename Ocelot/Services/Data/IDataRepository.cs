@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using Lumina.Excel;
 
 namespace Ocelot.Services.Data;
 
@@ -14,6 +13,8 @@ public interface IDataRepository<TKey, TModel>
 
     TModel Get(TKey key);
 
+    bool TryGet(TKey key, out TModel model);
+
     IEnumerable<TModel> GetAll();
 
     IEnumerable<TModel> Where(Expression<Func<TModel, bool>> predicate);
@@ -23,4 +24,4 @@ public interface IDataRepository<TKey, TModel>
     bool ContainsKey(TKey key);
 }
 
-public interface IDataRepository<TModel> : IDataRepository<uint, TModel> where TModel : struct, IExcelRow<TModel>;
+public interface IDataRepository<TModel> : IDataRepository<uint, TModel> where TModel : struct;

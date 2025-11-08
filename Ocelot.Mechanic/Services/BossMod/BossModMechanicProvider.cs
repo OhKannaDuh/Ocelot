@@ -6,7 +6,7 @@ namespace Ocelot.Mechanic.Services.BossMod;
 public class BossModMechanicProvider(IPluginStatus pluginStatus, IServiceProvider services) : IMechanicProvider
 {
     public const string Key = "BossMod";
-    
+
     public string InternalName
     {
         get => Key;
