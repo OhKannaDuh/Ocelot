@@ -1,7 +1,7 @@
 ﻿using Dalamud.Interface;
 using Ocelot.Graphics;
 
-namespace Ocelot.UI.ComposableStrings;
+namespace Ocelot.Services.UI.ComposableStrings;
 
 public partial class ComposableGroup
 {

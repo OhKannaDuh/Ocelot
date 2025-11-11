@@ -1,4 +1,4 @@
-﻿namespace Ocelot.UI.ComposableStrings;
+﻿namespace Ocelot.Services.UI.ComposableStrings;
 
 public interface IComposable
 {

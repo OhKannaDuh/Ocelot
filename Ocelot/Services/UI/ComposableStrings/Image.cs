@@ -4,7 +4,7 @@ using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Services;
 
-namespace Ocelot.UI.ComposableStrings;
+namespace Ocelot.Services.UI.ComposableStrings;
 
 public class Image(IDalamudTextureWrap texture) : IComposable
 {

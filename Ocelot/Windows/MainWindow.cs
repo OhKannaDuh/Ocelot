@@ -9,11 +9,11 @@ public sealed class MainWindow : OcelotWindow, IMainWindow, IDisposable
 
     private readonly ITranslator translator;
 
-    public MainWindow(IMainRenderer renderer, ITranslator translator)
+    public MainWindow(IMainRenderer renderer, ITranslator<MainWindow> translator)
         : base(translator.T("windows.main.title"))
     {
         this.renderer = renderer;
-        this.translator = translator.WithScope("windows.main");
+        this.translator = translator;
 
         translator.LanguageChanged += UpdateWindowTitle;
         translator.TranslationsChanged += UpdateWindowTitle;

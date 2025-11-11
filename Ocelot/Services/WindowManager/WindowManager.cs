@@ -19,7 +19,7 @@ public class WindowManager : IWindowManager, IOnRender, IDisposable
     public WindowManager(
         IDalamudPluginInterface plugin,
         IEnumerable<IWindow> windows,
-        ILogger logger,
+        ILogger<WindowManager> logger,
         IMainWindow? mainWindow = null,
         IConfigWindow? configWindow = null)
     {

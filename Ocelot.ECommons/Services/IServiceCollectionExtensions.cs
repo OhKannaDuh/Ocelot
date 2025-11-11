@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Ocelot.ECommons.Services.Logger;
-using Ocelot.Services.Logger;
 
 namespace Ocelot.ECommons.Services;
 
@@ -10,6 +8,5 @@ public static class IServiceCollectionExtensions
     {
         services.AddSingleton<IECommonsInitProvider, ECommonsInitProvider>();
         services.AddSingleton<ECommons>();
-        services.AddSingleton<ILogger, ECommonsLogger>();
     }
 }

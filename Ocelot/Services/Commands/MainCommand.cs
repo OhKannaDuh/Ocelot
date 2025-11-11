@@ -12,8 +12,6 @@ public class MainCommand : OcelotCommand, IMainCommand
 {
     public override string Command { get; }
 
-    public override string HelpTranslationKey { get; }
-
     private readonly ITranslator translator;
 
     private readonly IChatGui chat;
@@ -23,18 +21,17 @@ public class MainCommand : OcelotCommand, IMainCommand
     private readonly Dictionary<string[], IMainCommandDelegate> delegates = [];
 
     public MainCommand(
-        ITranslator translator,
+        ITranslator<MainCommand> translator,
         IDalamudPluginInterface plugin,
         IChatGui chat,
         IMainWindow window,
         IEnumerable<IMainCommandDelegate> delegates
     ) : base(translator)
     {
-        this.translator = translator.WithScope($"commands.{plugin.InternalName.ToKebabCase()}");
+        this.translator = translator;
 
         var command = plugin.InternalName.ToKebabCase();
         Command = command;
-        HelpTranslationKey = $"commands.{command}.help";
 
         this.chat = chat;
         this.window = window;
@@ -74,9 +71,9 @@ public class MainCommand : OcelotCommand, IMainCommand
             var joined = string.Join('|', keys);
             sb.Append($"  - {joined}");
 
-            if (translator.Has(del.Command.HelpTranslationKey))
+            if (translator.Has(del.Command.HelpKey))
             {
-                sb.Append($" : {translator.T(del.Command.HelpTranslationKey)}");
+                sb.Append($" : {translator.T(del.Command.HelpKey)}");
             }
 
             sb.AppendLine();

@@ -11,7 +11,10 @@ public abstract class OcelotCommand(ITranslator translator) : IOcelotCommand
         get => [];
     }
 
-    public virtual string HelpTranslationKey { get; } = "";
+    public string HelpKey
+    {
+        get => $"{translator.Scope}.help";
+    }
 
     public virtual int DisplayOrder
     {
@@ -36,7 +39,7 @@ public abstract class OcelotCommand(ITranslator translator) : IOcelotCommand
 
     public virtual (string help, bool show) BuildHelp()
     {
-        return !translator.Has(HelpTranslationKey) ? (string.Empty, false) : (translator.T(HelpTranslationKey), true);
+        return !translator.Has(HelpKey) ? (string.Empty, false) : (translator.T(HelpKey), true);
     }
 
     public abstract void Execute(CommandContext context);

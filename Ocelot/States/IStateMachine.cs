@@ -6,6 +6,10 @@ public interface IStateMachine<TState>
     TState State { get; }
 
     IStateHandler<TState> StateHandler { get; }
+    
+    string GetStateTranslationKey(TState state);
 
     void Update();
+
+    void Render();
 }

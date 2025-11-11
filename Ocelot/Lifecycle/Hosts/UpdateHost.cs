@@ -10,7 +10,7 @@ public class UpdateHost(
     IEnumerable<IOnPostUpdate> postUpdate,
     IFramework framework,
     IGateService gate,
-    ILogger logger
+    ILogger<UpdateHost> logger
 ) : BaseEventHost(logger)
 {
     private readonly IOnPreUpdate[] preUpdate = preUpdate.OrderByDescending(h => h.Order).ToArray();

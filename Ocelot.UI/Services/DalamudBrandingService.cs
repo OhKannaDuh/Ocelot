@@ -2,6 +2,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Ocelot.Graphics;
+using Ocelot.Services.UI;
 
 namespace Ocelot.UI.Services;
 

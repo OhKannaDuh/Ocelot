@@ -9,7 +9,7 @@ namespace Ocelot.Pathfinding.Services;
 public class DynamicPathfinder(
     IEnumerable<IPathfindingProvider> providers,
     IPathfindingPriorityService priority,
-    ILogger logger
+    ILogger<DynamicPathfinder> logger
 ) : IPathfinder, IOnPreUpdate
 {
     private string currentInternalName = "";
@@ -39,7 +39,7 @@ public class DynamicPathfinder(
         currentInternalName = bestMatch?.InternalName ?? "";
         current = bestMatch?.Create();
 
-        logger.Info($"[DynamicPathfindingService] Dynamic pathfinding service has been updated to {currentInternalName}");
+        logger.Info("Dynamic pathfinding service has been updated to {name}", currentInternalName);
     }
 
     public PathfindingState GetState()

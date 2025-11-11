@@ -3,7 +3,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Ocelot.Graphics;
 
-namespace Ocelot.UI.ComposableStrings;
+namespace Ocelot.Services.UI.ComposableStrings;
 
 public class Text(string text, Color color, ImFontPtr font) : IComposable
 {

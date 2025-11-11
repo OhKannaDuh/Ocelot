@@ -6,7 +6,7 @@ namespace Ocelot.Lifecycle.Hosts;
 public class TerritoryHost(
     IEnumerable<IOnTerritoryChanged> territoryChanged,
     IClientState clientState,
-    ILogger logger
+    ILogger<TerritoryHost> logger
 ) : BaseEventHost(logger)
 {
     private readonly IOnTerritoryChanged[] territoryChanged = territoryChanged.OrderByDescending(h => h.Order).ToArray();

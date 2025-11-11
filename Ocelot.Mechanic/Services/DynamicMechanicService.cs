@@ -6,7 +6,7 @@ namespace Ocelot.Mechanic.Services;
 public class DynamicMechanicService(
     IEnumerable<IMechanicProvider> providers,
     IMechanicPriorityService priority,
-    ILogger logger
+    ILogger<DynamicMechanicService> logger
 ) : IMechanicService, IOnPreUpdate
 {
     private string currentInternalName = "";
@@ -36,7 +36,7 @@ public class DynamicMechanicService(
         currentInternalName = bestMatch?.InternalName ?? "";
         current = bestMatch?.Create();
 
-        logger.Info($"[DynamicMechanicService] Dynamic mechanic service has been updated to {currentInternalName}");
+        logger.Info("Dynamic mechanic service has been updated to {name}", currentInternalName);
     }
 
     public void Enable()

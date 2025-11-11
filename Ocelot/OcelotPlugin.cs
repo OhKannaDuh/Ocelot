@@ -2,6 +2,7 @@ using Dalamud.Plugin;
 using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Lifecycle;
 using Ocelot.Services;
+using Ocelot.Services.Translation;
 
 namespace Ocelot;
 
@@ -22,6 +23,8 @@ public abstract class OcelotPlugin : IDalamudPlugin
         collection.AddSingleton(plugin);
         collection.AddSingleton<IDalamudPlugin>(this);
         collection.AddSingleton(this);
+
+        collection.AddSingleton(new TranslatorContextResolverOptions(GetType()));
 
         collection.LoadDalamudServices(plugin);
         collection.LoadOcelotCore();

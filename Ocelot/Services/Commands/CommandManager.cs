@@ -24,7 +24,7 @@ public class CommandManager : IOnStart, IDisposable
 
     private bool firstTime = true;
 
-    public CommandManager(IEnumerable<IOcelotCommand> commands, ICommandManager manager, ITranslator translator, IChatGui chat, ILogger logger)
+    public CommandManager(IEnumerable<IOcelotCommand> commands, ICommandManager manager, ITranslator translator, IChatGui chat, ILogger<CommandManager> logger)
     {
         this.manager = manager;
         this.commands = commands;

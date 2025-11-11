@@ -1,11 +1,13 @@
 {
-  "generic": {
     "start": "Start",
     "stop": "Stop",
     "enabled": "Enabled",
     "disabled": "Disabled",
     "toggle": "Toggle",
     "toggle_config_window": "Toggle Config Window",
-    "emergency_stop": "Emergency Stop"
-  }
+    "emergency_stop": "Emergency Stop",
+    "yes": "Yes",
+    "no": "No",
+    "state": "State",
+    "substate": "Substate"
 }

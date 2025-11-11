@@ -14,7 +14,7 @@ public class PathfindToChain(
     IChainFactory chains,
     IPathfinder pathfinder,
     IPlayer player,
-    ILogger logger
+    ILogger<PathfindToChain> logger
 ) : ChainRecipe<PathfinderConfig>(chains)
 {
     public override string Name { get; } = "Pathfind to Chain";

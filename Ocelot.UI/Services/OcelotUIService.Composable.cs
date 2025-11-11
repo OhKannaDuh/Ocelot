@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
-using Ocelot.UI.ComposableStrings;
+using Ocelot.Services.UI.ComposableStrings;
+using ComposableGroup = Ocelot.Services.UI.ComposableStrings.ComposableGroup;
 
 namespace Ocelot.UI.Services;
 

@@ -2,13 +2,11 @@
 
 namespace Ocelot.Services.Commands;
 
-public class ReloadTranslationsCommand(ITranslationRepository translations, ITranslator translator) : OcelotCommand(translator)
+public class ReloadTranslationsCommand(ITranslationRepository translations, ITranslator<ReloadTranslationsCommand> translator) : OcelotCommand(translator)
 {
-    public override string Command { get; } = "reload-languages";
+    public override string Command { get; } = "reload-translations";
 
-    public override List<string> Aliases { get; } = ["reload-language", "rt"];
-
-    public override string HelpTranslationKey { get; } = "commands.reload-languages.help";
+    public override List<string> Aliases { get; } = ["reload-translation", "rt"];
 
     public override void Execute(CommandContext _)
     {

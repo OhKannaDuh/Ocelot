@@ -33,4 +33,32 @@ public class NullLogger : ILogger
     public void Verbose(string format, params object[] args)
     {
     }
+
+    public void Fatal(Exception? exception, string messageTemplate, params object[] values)
+    {
+    }
+
+    public void Error(Exception? exception, string messageTemplate, params object[] values)
+    {
+    }
+
+    public void Warn(Exception? exception, string messageTemplate, params object[] values)
+    {
+    }
+
+    public void Warning(Exception? exception, string messageTemplate, params object[] values)
+    {
+    }
+
+    public void Info(Exception? exception, string messageTemplate, params object[] values)
+    {
+    }
+
+    public void Debug(Exception? exception, string messageTemplate, params object[] values)
+    {
+    }
+
+    public void Verbose(Exception? exception, string messageTemplate, params object[] values)
+    {
+    }
 }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Ocelot.Services.Translation;
+using Ocelot.Services.UI;
 using Ocelot.States.Flow;
 using Ocelot.States.Score;
 
@@ -28,7 +30,12 @@ public static class StateMachineDiExtensions
             c =>
             {
                 var handlers = c.GetRequiredService<IEnumerable<IFlowStateHandler<TState>>>();
-                return new FlowStateMachine<TState>(initial, handlers);
+                return new FlowStateMachine<TState>(
+                    initial,
+                    c.GetRequiredService<ITranslator<FlowStateMachine<TState>>>(),
+                    c.GetRequiredService<IUIService>(),
+                    handlers
+                );
             },
             lifetime)
         );
@@ -66,7 +73,12 @@ public static class StateMachineDiExtensions
             c =>
             {
                 var handlers = c.GetRequiredService<IEnumerable<IScoreStateHandler<TState, TScore>>>();
-                return new ScoreStateMachine<TState, TScore>(initial, handlers);
+                return new ScoreStateMachine<TState, TScore>(
+                    initial,
+                    c.GetRequiredService<ITranslator<ScoreStateMachine<TState, TScore>>>(),
+                    c.GetRequiredService<IUIService>(),
+                    handlers
+                );
             },
             lifetime)
         );

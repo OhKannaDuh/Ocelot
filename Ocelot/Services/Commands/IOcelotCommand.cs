@@ -6,7 +6,7 @@ public interface IOcelotCommand
 
     List<string> Aliases { get; }
 
-    string HelpTranslationKey { get; }
+    string HelpKey { get; }
 
     int DisplayOrder { get; }
 

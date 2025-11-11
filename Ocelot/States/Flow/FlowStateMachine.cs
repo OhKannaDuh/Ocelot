@@ -1,4 +1,8 @@
-﻿namespace Ocelot.States.Flow;
+﻿using Ocelot.Extensions;
+using Ocelot.Services.Translation;
+using IUIService = Ocelot.Services.UI.IUIService;
+
+namespace Ocelot.States.Flow;
 
 public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposable
     where TState : struct, Enum
@@ -12,6 +16,10 @@ public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposabl
 
     private readonly TState initial;
 
+    private readonly ITranslator<FlowStateMachine<TState>> translator;
+
+    private readonly IUIService ui;
+
     private readonly IReadOnlyDictionary<TState, IFlowStateHandler<TState>> handlers;
 
     private IFlowStateHandler<TState> Current
@@ -21,10 +29,17 @@ public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposabl
             : throw new InvalidOperationException($"No handler for {typeof(TState).Name}.{State}");
     }
 
-    public FlowStateMachine(TState initial, IEnumerable<IFlowStateHandler<TState>> handlers)
-    {
+    public FlowStateMachine(
+        TState initial,
+        ITranslator<FlowStateMachine<TState>> translator,
+        IUIService ui,
+        IEnumerable<IFlowStateHandler<TState>> handlers
+    ) {
         this.initial = initial;
         State = initial;
+
+        this.translator = translator;
+        this.ui = ui;
 
         var map = new Dictionary<TState, IFlowStateHandler<TState>>();
         foreach (var h in handlers)
@@ -45,6 +60,11 @@ public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposabl
         }
     }
 
+    public string GetStateTranslationKey(TState state)
+    {
+        return $"{translator.Scope}.{state.ToString().ToSnakeCase()}";
+    }
+
     public void Update()
     {
         var next = Current.Handle();
@@ -56,6 +76,12 @@ public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposabl
         Current.Exit(next.Value);
         State = next.Value;
         Current.Enter();
+    }
+
+    public void Render()
+    {
+        ui.LabelledValue(translator.T("generic.state"), translator.T($".{State.ToString().ToSnakeCase()}.label"));
+        StateHandler.Render();
     }
 
     private void SetState(TState state)

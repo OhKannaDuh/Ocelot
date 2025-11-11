@@ -9,11 +9,11 @@ public sealed class ConfigWindow : OcelotWindow, IConfigWindow, IDisposable
 
     private readonly ITranslator translator;
 
-    public ConfigWindow(IConfigRenderer renderer, ITranslator translator)
+    public ConfigWindow(IConfigRenderer renderer, ITranslator<ConfigWindow> translator)
         : base(translator.T("windows.config.title"))
     {
         this.renderer = renderer;
-        this.translator = translator.WithScope("windows.config");
+        this.translator = translator;
 
         translator.LanguageChanged += UpdateWindowTitle;
         translator.TranslationsChanged += UpdateWindowTitle;

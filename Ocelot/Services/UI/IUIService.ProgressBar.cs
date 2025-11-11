@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Ocelot.UI.Services;
+namespace Ocelot.Services.UI;
 
 public partial interface IUIService
 {

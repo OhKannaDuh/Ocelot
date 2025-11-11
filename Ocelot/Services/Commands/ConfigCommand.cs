@@ -9,44 +9,59 @@ using Dalamud.Plugin.Services;
 using Ocelot.Config;
 using Ocelot.Config.Fields;
 using Ocelot.Extensions;
+using Ocelot.Services.Logger;
 using Ocelot.Services.Translation;
 using Ocelot.Windows;
 
 namespace Ocelot.Services.Commands;
 
-public class ConfigCommand(
-    IDalamudPluginInterface plugin,
-    IConfigWindow window,
-    IChatGui chat,
-    IPluginLog logger,
-    ITranslator translator
-) : OcelotCommand(translator), IConfigCommand
+public class ConfigCommand : OcelotCommand, IConfigCommand
 {
-    public override string Command { get; } = plugin.InternalName.ToKebabCase().WithSuffix("-config");
+    public override string Command { get; }
 
-    public override List<string> Aliases { get; } =
-    [
-        plugin.InternalName.ToKebabCase().WithSuffix("-cfg"),
-        plugin.InternalName.ToKebabCase().WithSuffix("-c"),
-    ];
-
-    public override string HelpTranslationKey { get; } = $"commands.{plugin.InternalName.ToKebabCase().WithSuffix("-config")}.help";
+    public override List<string> Aliases { get; }
 
     private readonly Dictionary<string, Accessor> index = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly HashSet<object> roots = new(ReferenceEqualityComparer.Instance);
 
-    public void Expose<T>(T root) where T : IPluginConfiguration
+    private readonly IConfigWindow window;
+
+    private readonly IChatGui chat;
+
+    private readonly ILogger logger;
+
+    public ConfigCommand(
+        IDalamudPluginInterface plugin,
+        IConfigWindow window,
+        IChatGui chat,
+        ILogger<ConfigCommand> logger,
+        IEnumerable<IPluginConfiguration> pluginConfigurations,
+        ITranslator<ConfigCommand> translator
+    ) : base(translator)
     {
-        if (!roots.Add(root))
+        this.window = window;
+        this.chat = chat;
+        this.logger = logger;
+        Command = plugin.InternalName.ToKebabCase().WithSuffix("-config");
+        Aliases =
+        [
+            plugin.InternalName.ToKebabCase().WithSuffix("-cfg"),
+            plugin.InternalName.ToKebabCase().WithSuffix("-c"),
+        ];
+
+        foreach (var config in pluginConfigurations)
         {
-            return;
+            if (!roots.Add(config))
+            {
+                return;
+            }
+
+            BuildIndex(config, config, "", new Stack<PropertyInfo>(),
+                new HashSet<object>(ReferenceEqualityComparer.Instance));
+
+            logger.Debug($"Config: added root '{config.GetType().Name}' with {index.Count} total keys.");
         }
-
-        BuildIndex(root, root, "", new Stack<PropertyInfo>(),
-            new HashSet<object>(ReferenceEqualityComparer.Instance));
-
-        logger.Info($"Config: added root '{root.GetType().Name}' with {index.Count} total keys.");
     }
 
     public override void Execute(CommandContext ctx)
@@ -146,8 +161,6 @@ public class ConfigCommand(
 
             var segment = p.Name.EndsWith("Config") ? p.Name.Replace("Config", "").ToSnakeCase() : p.Name.ToSnakeCase();
             var fullPrefix = string.IsNullOrEmpty(prefix) ? segment : $"{prefix}.{segment}";
-
-            logger.Info(fullPrefix);
 
             if (IsLeaf(leafType))
             {

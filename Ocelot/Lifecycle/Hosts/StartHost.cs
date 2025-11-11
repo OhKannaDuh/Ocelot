@@ -2,7 +2,7 @@
 
 namespace Ocelot.Lifecycle.Hosts;
 
-public class StartHost(IEnumerable<IOnStart> start, ILogger logger) : BaseEventHost(logger), IOrderedHook
+public class StartHost(IEnumerable<IOnStart> start, ILogger<StartHost> logger) : BaseEventHost(logger), IOrderedHook
 {
     private readonly IOnStart[] start = start.OrderByDescending(h => h.Order).ToArray();
 

@@ -2,7 +2,7 @@
 
 namespace Ocelot.Lifecycle.Hosts;
 
-public class LoadHost(IEnumerable<IOnLoad> load, ILogger logger) : BaseEventHost(logger), IOrderedHook
+public class LoadHost(IEnumerable<IOnLoad> load, ILogger<LoadHost> logger) : BaseEventHost(logger), IOrderedHook
 {
     private readonly IOnLoad[] load = load.OrderByDescending(h => h.Order).ToArray();
 

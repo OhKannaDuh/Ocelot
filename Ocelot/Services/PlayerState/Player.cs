@@ -72,7 +72,7 @@ public class Player(IClient client, ICondition condition) : IPlayer
         return condition.Any(ConditionFlag.OccupiedInEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.OccupiedInCutSceneEvent);
     }
 
-    public float GetRange()
+    public float GetAttackRange()
     {
         return IsMelee() ? MeleeRange : RangedRange;
     }
@@ -102,5 +102,19 @@ public class Player(IClient client, ICondition condition) : IPlayer
     public bool IsCaster()
     {
         return GetClassJob()?.RowId is 7 or 25 or 26 or 27 or 35 or 42;
+    }
+
+    public bool CanFly()
+    {
+        if (!IsAvailable)
+        {
+            return false;
+        }
+
+        unsafe
+        {
+            var state = DalamudPlayerState.Instance();
+            return state != null && state->CanFly;
+        }
     }
 }

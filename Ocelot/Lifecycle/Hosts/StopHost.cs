@@ -2,7 +2,7 @@
 
 namespace Ocelot.Lifecycle.Hosts;
 
-public class StopHost(IEnumerable<IOnStop> stop, ILogger logger) : BaseEventHost(logger), IOrderedHook
+public class StopHost(IEnumerable<IOnStop> stop, ILogger<StopHost> logger) : BaseEventHost(logger), IOrderedHook
 {
     // This is in opposite order, so teardown happens in reverse when compared to start up
     private readonly IOnStop[] stop = stop.OrderBy(h => h.Order).ToArray();

@@ -5,7 +5,7 @@ using Ocelot.Services.Logger;
 
 namespace Ocelot.Services.Translation;
 
-public sealed class TranslationRepository(IDalamudPluginInterface plugin, ILogger logger) : ITranslationRepository
+public sealed class TranslationRepository(IDalamudPluginInterface plugin, ILogger<TranslationRepository> logger) : ITranslationRepository
 {
     private readonly Lock gate = new();
 
@@ -66,20 +66,28 @@ public sealed class TranslationRepository(IDalamudPluginInterface plugin, ILogge
                 continue;
             }
 
-            var files = Directory.EnumerateFiles(langFolder, "*.json", SearchOption.TopDirectoryOnly)
+            var files = Directory.EnumerateFiles(langFolder, "*.json", SearchOption.AllDirectories)
                 .OrderBy(p => p, StringComparer.Ordinal)
+                .Select(p => (p, p.Replace(langFolder, "").Replace("/", ".").Replace("\\", ".").Substring(1)))
                 .ToList();
-
-            logger.Info("Found {c} files", files.Count);
 
             foreach (var file in files)
             {
-                logger.Info("Loading file {f}", file);
+                logger.Log(file.Item2);
+            }
+                
+            foreach (var file in files)
+            {
+                logger.Debug("Loading file {f}", file);
 
-                using var fs = File.OpenRead(file);
+                using var fs = File.OpenRead(file.p);
                 using var doc = JsonDocument.Parse(fs, new JsonDocumentOptions { AllowTrailingCommas = true });
 
-                var prefix = Path.GetFileNameWithoutExtension(file);
+                var prefix = Path.GetFileNameWithoutExtension(file.Item2);
+                if (prefix.StartsWith("ocelot."))
+                {
+                    prefix = prefix.Substring(7);
+                }
 
                 FlattenInto(doc.RootElement, merged, prefix);
             }

@@ -1,8 +1,7 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin.Services;
-using Ocelot.UI.Services;
 
-namespace Ocelot.UI.ComposableStrings;
+namespace Ocelot.Services.UI.ComposableStrings;
 
 public partial class ComposableGroup(IBrandingService branding, ITextureProvider textures)
 {

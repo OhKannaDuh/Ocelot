@@ -3,7 +3,7 @@ using Lumina.Excel.Sheets;
 
 namespace Ocelot.Services.PlayerState;
 
-public interface IPlayer
+public  interface IPlayer
 {
     int GetLevel();
 
@@ -23,7 +23,7 @@ public interface IPlayer
 
     bool IsInteracting();
 
-    float GetRange();
+    float GetAttackRange();
 
     bool IsMelee();
 
@@ -34,4 +34,6 @@ public interface IPlayer
     bool IsHealer();
 
     bool IsCaster();
+
+    bool CanFly();
 }

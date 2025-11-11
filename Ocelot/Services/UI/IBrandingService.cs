@@ -2,7 +2,7 @@
 using Dalamud.Bindings.ImGui;
 using Ocelot.Graphics;
 
-namespace Ocelot.UI.Services;
+namespace Ocelot.Services.UI;
 
 public interface IBrandingService
 {

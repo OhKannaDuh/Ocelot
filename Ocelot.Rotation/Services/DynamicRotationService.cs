@@ -6,7 +6,7 @@ namespace Ocelot.Rotation.Services;
 public class DynamicRotationService(
     IEnumerable<IRotationProvider> providers,
     IRotationPriorityService priority,
-    ILogger logger
+    ILogger<DynamicRotationService> logger
 ) : IRotationService, IOnPreUpdate
 {
     private string currentInternalName = "";
@@ -38,7 +38,7 @@ public class DynamicRotationService(
         current = bestMatch?.Create();
         // current?.Load();
 
-        logger.Info($"[DynamicRotationService] Dynamic rotation service has been updated to {currentInternalName}");
+        logger.Info("Dynamic rotation service has been updated to {name}", currentInternalName);
     }
 
     public void Load()

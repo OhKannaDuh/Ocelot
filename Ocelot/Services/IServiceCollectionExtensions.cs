@@ -31,6 +31,7 @@ public static class IServiceCollectionExtensions
     internal static void LoadOcelotCore(this IServiceCollection services)
     {
         services.AddSingleton<ILogger, PluginLogger>();
+        services.AddSingleton(typeof(ILogger<>), typeof(ContextualLogger<>));
         services.AddSingleton<IGateService, GateService>();
 
         services.AddSingleton<IWindowManager, WindowManager.WindowManager>();
@@ -46,6 +47,8 @@ public static class IServiceCollectionExtensions
 
         services.AddSingleton<ITranslationRepository, TranslationRepository>();
         services.AddSingleton<ITranslator, Translator>();
+        services.AddSingleton(typeof(ITranslator<>), typeof(ContextualTranslator<>));
+        services.AddSingleton<ITranslatorContextResolver, TranslatorContextResolver>();
 
         services.AddSingleton(typeof(ICache<,>), typeof(GenericCache<,>));
         services.AddSingleton(typeof(ICache<,>), typeof(ExcelCache<,>));
