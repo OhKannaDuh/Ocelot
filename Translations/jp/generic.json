@@ -1,0 +1,13 @@
+{
+    "start": "開始",
+    "stop": "停止",
+    "enabled": "有効",
+    "disabled": "無効",
+    "toggle": "切り替え",
+    "toggle_config_window": "設定ウィンドウの切り替え",
+    "emergency_stop": "緊急停止",
+    "yes": "はい",
+    "no": "いいえ",
+    "state": "状態",
+    "substate": "サブ状態"
+}

@@ -1,0 +1,13 @@
+{
+    "start": "Starten",
+    "stop": "Stoppen",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "toggle": "Umschalten",
+    "toggle_config_window": "Konfigurationsfenster umschalten",
+    "emergency_stop": "Not-Aus",
+    "yes": "Ja",
+    "no": "Nein",
+    "state": "Zustand",
+    "substate": "Unterzustand"
+}

@@ -1,0 +1,13 @@
+{
+    "start": "Démarrer",
+    "stop": "Arrêter",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "toggle": "Basculer",
+    "toggle_config_window": "Basculer la fenêtre de configuration",
+    "emergency_stop": "Arrêt d'urgence",
+    "yes": "Oui",
+    "no": "Non",
+    "state": "État",
+    "substate": "Sous-état"
+}
