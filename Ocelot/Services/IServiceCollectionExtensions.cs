@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Dalamud.Configuration;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Microsoft.Extensions.DependencyInjection;
@@ -115,13 +116,35 @@ public static class IServiceCollectionExtensions
         }
     }
 
-    public static void AddConfig<T, P>(this IServiceCollection services, Func<P, T> selector)
-        where T : class, IAutoConfig where P : notnull
+    public static void AddConfig<TConcrete, TInterface>(this IServiceCollection services, IDalamudPluginInterface plugin)
+        where TConcrete : class, TInterface, new()
+        where TInterface : class, IPluginConfiguration
     {
-        ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(selector);
+        services.AddSingleton(plugin.GetPluginConfig() as TConcrete ?? new TConcrete());
+        services.AddSingleton<TInterface>(s => s.GetRequiredService<TConcrete>());
+        services.AddSingleton<IPluginConfiguration>(s => s.GetRequiredService<TConcrete>());
 
-        services.AddSingleton<T>(sp => selector(sp.GetRequiredService<P>()));
-        services.AddSingleton<IAutoConfig>(sp => sp.GetRequiredService<T>());
+        var properties = typeof(TInterface).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
+        foreach (var property in properties)
+        {
+            var prop = property;
+            var propType = prop.PropertyType;
+
+            services.AddSingleton(propType, sp =>
+            {
+                var cfg = sp.GetRequiredService<TInterface>();
+                return prop.GetValue(cfg)!;
+            });
+
+            if (typeof(IAutoConfig).IsAssignableFrom(propType))
+            {
+                services.AddSingleton(typeof(IAutoConfig), sp =>
+                {
+                    var cfg = sp.GetRequiredService<TInterface>();
+                    return prop.GetValue(cfg)!;
+                });
+            }
+        }
     }
 }
