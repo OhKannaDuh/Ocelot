@@ -6,23 +6,23 @@ namespace Ocelot.Services.UI.ComposableStrings;
 
 public partial class ComposableGroup
 {
-    public Services.UI.ComposableStrings.ComposableGroup Text(Text text)
+    public ComposableGroup Text(Text text)
     {
         composables.Add(text);
         return this;
     }
 
-    public Services.UI.ComposableStrings.ComposableGroup Text(string text)
+    public ComposableGroup Text(string text)
     {
         return Text(new Text(text, branding.Text, UiBuilder.DefaultFont));
     }
 
-    public Services.UI.ComposableStrings.ComposableGroup Text(string text, Color color)
+    public ComposableGroup Text(string text, Color color)
     {
         return Text(new Text(text, color, UiBuilder.DefaultFont));
     }
 
-    public Services.UI.ComposableStrings.ComposableGroup Text(string text, ImFontPtr font)
+    public ComposableGroup Text(string text, ImFontPtr font)
     {
         return Text(new Text(text, branding.Text, font));
     }

@@ -8,6 +8,6 @@ public static class IServiceCollectionExtensions
     public static void LoadUI(this IServiceCollection services)
     {
         services.AddSingleton<IBrandingService, DalamudBrandingService>();
-        services.AddSingleton<Ocelot.Services.UI.IUIService, OcelotUIService>();
+        services.AddSingleton<IUIService, OcelotUIService>();
     }
 }

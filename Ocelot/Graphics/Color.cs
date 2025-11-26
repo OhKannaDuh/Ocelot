@@ -59,6 +59,11 @@ public readonly struct Color(byte r, byte g, byte b, byte a = 255)
         );
     }
 
+    public Color WithAlpha(float alpha)
+    {
+        return new Color(R, G, B, (byte)(Clamp01(alpha) * 255));
+    }
+
     public override string ToString()
     {
         return $"Color(R:{R}, G:{G}, B:{B}, A:{A})";

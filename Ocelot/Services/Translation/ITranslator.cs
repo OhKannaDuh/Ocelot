@@ -17,4 +17,6 @@ public interface ITranslator
     bool Has(string key);
 }
 
-public interface ITranslator<out TScope> : ITranslator { }
+public interface ITranslator<out TScope> : ITranslator
+{
+}

@@ -3,7 +3,7 @@ using Lumina.Excel.Sheets;
 
 namespace Ocelot.Services.PlayerState;
 
-public  interface IPlayer
+public interface IPlayer
 {
     int GetLevel();
 
