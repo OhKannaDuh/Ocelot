@@ -1,10 +1,17 @@
 ﻿using System.Numerics;
+using Dalamud.Plugin.Services;
 using Lumina.Excel.Sheets;
 
 namespace Ocelot.Services.PlayerState;
 
 public interface IPlayer
 {
+    IPlayerState State { get; }
+
+    Vector3 Position { get; }
+
+    ICondition Conditions { get; }
+
     int GetLevel();
 
     ClassJob? GetClassJob();
