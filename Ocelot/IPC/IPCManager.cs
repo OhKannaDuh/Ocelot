@@ -61,10 +61,10 @@ public class IPCManager : IDisposable
             throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {type.Name} was not found.");
         }
 
-        if (!subscriber.IsReady())
-        {
-            throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {type.Name} was not ready.");
-        }
+        // if (!subscriber.IsReady())
+        // {
+        //     throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {type.Name} was not ready.");
+        // }
 
         return subscriber;
     }
@@ -77,10 +77,10 @@ public class IPCManager : IDisposable
             throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {typeof(T).Name} was not found.");
         }
 
-        if (!subscriber.IsReady())
-        {
-            throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {typeof(T).Name} was not ready.");
-        }
+        // if (!subscriber.IsReady())
+        // {
+        //     throw new UnableToLoadIpcSubscriberException($"IPC subscriber of type {typeof(T).Name} was not ready.");
+        // }
 
         return subscriber;
     }
