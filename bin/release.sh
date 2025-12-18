@@ -164,7 +164,8 @@ for mod in "${!TARGETS[@]}"; do
     exit 1
   fi
 
-  pkgid=$(xmllint --xpath "string(//PackageId)" "$csproj" 2>/dev/null || true)
+  #   pkgid=$(xmllint --xpath "string(//PackageId)" "$csproj" 2>/dev/null || true)
+  pkgid=$(dotnet msbuild "$csproj" -nologo -getProperty:PackageId 2>/dev/null | tail -n 1 || true)
   if [[ -z "$pkgid" ]]; then
     pkgid=$(basename "$csproj" .csproj)
   fi

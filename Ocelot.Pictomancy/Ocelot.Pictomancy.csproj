@@ -6,7 +6,7 @@
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Pictomancy" Version="0.0.1"/>
+        <PackageReference Include="Pictomancy" Version="0.0.2"/>
     </ItemGroup>
     <ItemGroup Condition="'$(DalamudLibPath)' != ''">
         <Reference Include="Dalamud.Bindings.ImGui" HintPath="$(DalamudLibPath)Dalamud.Bindings.ImGui.dll" Private="False"/>

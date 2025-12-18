@@ -25,7 +25,7 @@ for mod in "${!PROJECTS[@]}"; do
     continue
   fi
 
-  pkgid=$(xmllint --xpath "string(//PackageId)" "$csproj" 2>/dev/null || true)
+  pkgid=$(dotnet msbuild "$csproj" -nologo -getProperty:PackageId 2>/dev/null | tail -n 1 || true)
   [[ -z "$pkgid" ]] && pkgid=$(basename "$csproj" .csproj)
 
   # Lowercase safely
