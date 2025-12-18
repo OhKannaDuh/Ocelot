@@ -1,18 +1,18 @@
 {
   "version": 1,
   "dependencies": {
-    "net9.0-windows7.0": {
+    "net10.0-windows7.0": {
       "ECommons": {
         "type": "Direct",
-        "requested": "[3.0.0.17-api13, )",
-        "resolved": "3.0.0.17-api13",
-        "contentHash": "r7MblEmo2zOksX2qiapL7eFhGYnXZOvu4QOb6zd8LHApjde3c+iF/JVowqUWxaAz4yS+M/bvrppsfJNIdRLm2A=="
+        "requested": "[3.1.0.2, )",
+        "resolved": "3.1.0.2",
+        "contentHash": "NFVf3G23lRGnZ7xEIFWzXc61LHfLfkyw2NwYc/sYoldehzurPc49Kg4DbVksqSyhEknsTTD0LkpcxPNV16ziUw=="
       },
       "Pictomancy": {
         "type": "Direct",
-        "requested": "[0.0.1, )",
-        "resolved": "0.0.1",
-        "contentHash": "o40yKEYUsUmHLGEyfi2dzrPJBaiYGAL6Jwc32NOZUx9znXvwL0RS2A3AOGzi4wHhTEfTesLuU5yNIs60hT4ayg==",
+        "requested": "[0.0.2, )",
+        "resolved": "0.0.2",
+        "contentHash": "th7LcwtMgGWbhfZu7cyKYQKIOpRHzC/O9YvbWy5FSEs0zs1rgC/jgFg1MuX6F4XireR3XJgmg+RcHY+TCKBpsw==",
         "dependencies": {
           "SharpDX.D3DCompiler": "4.2.0",
           "SharpDX.Direct2D1": "4.2.0",
