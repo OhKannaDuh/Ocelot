@@ -8,20 +8,34 @@ using DalamudPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 
 namespace Ocelot.Services.PlayerState;
 
-public class Player(IClient client, ICondition condition) : IPlayer
+public class Player(
+    IPlayerState state,
+    IClient client,
+    ICondition condition
+) : IPlayer
 {
     private const float MeleeRange = 3.5f;
 
     private const float RangedRange = 25f;
 
-    private IPlayerCharacter? PlayerCharacter
-    {
-        get => client.Player;
-    }
-
     private bool IsAvailable
     {
         get => client.IsPlayerAvailable();
+    }
+
+    public IPlayerState State { get; } = state;
+
+    public Vector3 Position
+    {
+        get => client.Player?.Position ?? Vector3.Zero;
+    }
+
+    public ICondition Conditions { get; } = condition;
+
+
+    private IPlayerCharacter? PlayerCharacter
+    {
+        get => client.Player;
     }
 
     public int GetLevel()
@@ -49,27 +63,27 @@ public class Player(IClient client, ICondition condition) : IPlayer
 
     public bool IsMounting()
     {
-        return condition[ConditionFlag.Mounting] || condition[ConditionFlag.Mounting71];
+        return Conditions[ConditionFlag.Mounting] || Conditions[ConditionFlag.Mounting71];
     }
 
     public bool IsMounted()
     {
-        return condition[ConditionFlag.Mounted];
+        return Conditions[ConditionFlag.Mounted];
     }
 
     public bool IsCasting()
     {
-        return condition[ConditionFlag.Casting] || condition[ConditionFlag.Casting87];
+        return Conditions[ConditionFlag.Casting] || Conditions[ConditionFlag.Casting87];
     }
 
     public bool IsBetweenAreas()
     {
-        return condition[ConditionFlag.BetweenAreas] || condition[ConditionFlag.BetweenAreas51];
+        return Conditions[ConditionFlag.BetweenAreas] || Conditions[ConditionFlag.BetweenAreas51];
     }
 
     public bool IsInteracting()
     {
-        return condition.Any(ConditionFlag.OccupiedInEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.OccupiedInCutSceneEvent);
+        return Conditions.Any(ConditionFlag.OccupiedInEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.OccupiedInCutSceneEvent);
     }
 
     public float GetAttackRange()

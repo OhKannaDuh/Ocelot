@@ -1,4 +1,5 @@
-﻿using Dalamud.IoC;
+using Dalamud.IoC;
+using System.Diagnostics.CodeAnalysis;
 using Dalamud.Plugin.Services;
 
 namespace Ocelot;
@@ -64,7 +65,13 @@ public sealed class DalamudServices
 
     [PluginService] public IPartyList PartyList { get; private set; }
 
+    [PluginService] public IPlayerState PlayerState { get; private set; }
+
     [PluginService] public IPluginLog PluginLog { get; private set; }
+
+    [PluginService]
+    [Experimental("Dalamud001")]
+    public IReliableFileStorage ReliableFileStorage { get; private set; }
 
     [PluginService] public ISeStringEvaluator SeStringEvaluator { get; private set; }
 
@@ -81,4 +88,8 @@ public sealed class DalamudServices
     [PluginService] public ITitleScreenMenu TitleScreenMenu { get; private set; }
 
     [PluginService] public IToastGui ToastGui { get; private set; }
+
+    [PluginService]
+    [Experimental("Dalamud001")]
+    public IUnlockState UnlockState { get; private set; }
 }

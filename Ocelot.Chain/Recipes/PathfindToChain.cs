@@ -6,7 +6,6 @@ using Ocelot.Chain.Steps;
 using Ocelot.Services.Logger;
 using Ocelot.Services.Pathfinding;
 using Ocelot.Services.PlayerState;
-using Player = ECommons.GameHelpers.Player;
 
 namespace Ocelot.Chain.Recipes;
 
@@ -21,8 +20,6 @@ public class PathfindToChain(
 
     protected override IChain Compose(IChain chain, PathfinderConfig pathfinderConfig)
     {
-        var position = Player.Position;
-
         return chain
             .UseMiddleware<LogChainMiddleware>()
             .UseMiddleware(new RetryChainMiddleware(logger)
@@ -34,7 +31,7 @@ public class PathfindToChain(
             .UseStepMiddleware<RunOnMainThreadMiddleware>()
             .Then(_ =>
             {
-                if (Vector3.Distance(player.GetPosition(), pathfinderConfig.To()) < pathfinderConfig.DistanceThreshold)
+                if (Vector3.Distance(player.Position, pathfinderConfig.To()) < pathfinderConfig.DistanceThreshold)
                 {
                     return new ValueTask<StepResult>(StepResult.Break());
                 }

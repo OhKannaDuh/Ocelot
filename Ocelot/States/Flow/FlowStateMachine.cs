@@ -34,7 +34,8 @@ public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposabl
         ITranslator<FlowStateMachine<TState>> translator,
         IUIService ui,
         IEnumerable<IFlowStateHandler<TState>> handlers
-    ) {
+    )
+    {
         this.initial = initial;
         State = initial;
 

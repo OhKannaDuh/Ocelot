@@ -46,7 +46,7 @@ public class TranslatorContextResolver(TranslatorContextResolverOptions options)
 
             return $"commands.{name}";
         }
-        
+
         if (context.IsGenericType && context.GetGenericTypeDefinition() == typeof(FlowStateMachine<>))
         {
             var stateType = context.GetGenericArguments()[0];
@@ -54,7 +54,7 @@ public class TranslatorContextResolver(TranslatorContextResolverOptions options)
 
             return $"state_machines.{stateName}";
         }
-        
+
         if (context.IsGenericType && context.GetGenericTypeDefinition() == typeof(ScoreStateMachine<,>))
         {
             var stateType = context.GetGenericArguments()[0];

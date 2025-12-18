@@ -75,7 +75,7 @@ public sealed class TranslationRepository(IDalamudPluginInterface plugin, ILogge
             {
                 logger.Log(file.Item2);
             }
-                
+
             foreach (var file in files)
             {
                 logger.Debug("Loading file {f}", file);
