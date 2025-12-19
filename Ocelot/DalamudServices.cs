@@ -1,7 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Dalamud.Game;
-using Dalamud.Game.ClientState.Objects;
 using Dalamud.IoC;
+using System.Diagnostics.CodeAnalysis;
 using Dalamud.Plugin.Services;
 
 namespace Ocelot;
