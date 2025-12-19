@@ -10,7 +10,7 @@ namespace Ocelot.Services.PlayerState;
 
 public class Player(
     IPlayerState state,
-    IClient client,
+    IObjectTable objects,
     ICondition condition
 ) : IPlayer
 {
@@ -20,32 +20,32 @@ public class Player(
 
     private bool IsAvailable
     {
-        get => client.IsPlayerAvailable();
+        get => PlayerCharacter != null;
     }
 
     public IPlayerState State { get; } = state;
 
     public Vector3 Position
     {
-        get => client.Player?.Position ?? Vector3.Zero;
+        get => PlayerCharacter?.Position ?? Vector3.Zero;
     }
 
     public ICondition Conditions { get; } = condition;
 
 
-    private IPlayerCharacter? PlayerCharacter
+    public IPlayerCharacter? PlayerCharacter
     {
-        get => client.Player;
+        get => objects.LocalPlayer;
     }
 
     public int GetLevel()
     {
-        return client.Player?.Level ?? 0;
+        return PlayerCharacter?.Level ?? 0;
     }
 
     public ClassJob? GetClassJob()
     {
-        var classJob = client.Player?.ClassJob;
+        var classJob = PlayerCharacter?.ClassJob;
 
         return classJob?.Value;
     }
