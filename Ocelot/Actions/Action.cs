@@ -22,9 +22,9 @@ public unsafe class Action(ActionType type, uint id)
         return GetRecastTime() <= 0f && ActionManager.Instance()->GetActionStatus(type, id) <= 0f;
     }
 
-    public void Cast()
+    public bool Cast()
     {
-        ActionManager.Instance()->UseAction(type, id);
+        return ActionManager.Instance()->UseAction(type, id);
     }
 
     public bool IsValid()

@@ -3,6 +3,8 @@
 public enum ChainState
 {
     Ok,
+
     Error,
+
     Canceled,
 }

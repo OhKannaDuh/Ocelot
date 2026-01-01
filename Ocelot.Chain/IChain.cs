@@ -2,6 +2,8 @@
 
 public interface IChain
 {
+    public string Name { get; }
+
     IChain Then(IStep step);
 
     IChain Then(IChain chain);

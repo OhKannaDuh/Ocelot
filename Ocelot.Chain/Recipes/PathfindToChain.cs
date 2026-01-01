@@ -9,7 +9,8 @@ using Ocelot.Services.PlayerState;
 
 namespace Ocelot.Chain.Recipes;
 
-public class PathfindToChain(
+public class
+    PathfindToChain(
     IChainFactory chains,
     IPathfinder pathfinder,
     IPlayer player,
@@ -27,6 +28,7 @@ public class PathfindToChain(
                 DelayMs = 500,
                 MaxAttempts = 5,
             })
+            .UseStepMiddleware<RunOnMainThreadMiddleware>()
             .UseStepMiddleware<LogStepMiddleware>()
             .UseStepMiddleware<RunOnMainThreadMiddleware>()
             .Then(_ =>

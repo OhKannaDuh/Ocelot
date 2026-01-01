@@ -3,7 +3,6 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Plugin.Services;
 using Lumina.Excel.Sheets;
-using Ocelot.Services.ClientState;
 using DalamudPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 
 namespace Ocelot.Services.PlayerState;

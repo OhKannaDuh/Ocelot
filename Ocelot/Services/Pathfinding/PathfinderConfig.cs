@@ -17,7 +17,7 @@ public readonly record struct PathfinderConfig(Func<Vector3> to)
 
     public float DistanceThreshold { get; init; } = 0f;
 
-    public bool AllowFlying { get; init; }
+    public bool AllowFlying { get; init; } = false;
 
     public TerritoryType? TerritoryType { get; init; }
 
