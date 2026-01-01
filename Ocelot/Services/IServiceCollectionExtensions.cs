@@ -55,6 +55,7 @@ public static class IServiceCollectionExtensions
         services.AddSingleton(typeof(ICache<,>), typeof(ExcelCache<,>));
         services.AddSingleton(typeof(IDataRepository<,>), typeof(DataRepository<,>));
         services.AddSingleton(typeof(IDataRepository<>), typeof(ExcelDataRepository<>));
+        services.AddSingleton(typeof(ISubrowDataRepository<>), typeof(ExcelSubrowDataRepository<>));
 
         services.AddSingleton<IClient, Client>();
         services.AddSingleton<IPlayer, Player>();

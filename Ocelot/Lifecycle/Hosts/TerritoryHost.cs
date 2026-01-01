@@ -38,6 +38,6 @@ public class TerritoryHost(
 
     private void TerritoryChanged(ushort territory)
     {
-        SafeEach(territoryChanged, h => h.IOnTerritoryChanged(territory));
+        SafeEach(territoryChanged, h => h.OnTerritoryChanged(territory));
     }
 }

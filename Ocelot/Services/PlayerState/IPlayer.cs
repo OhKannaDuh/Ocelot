@@ -1,5 +1,8 @@
 ﻿using System.Numerics;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Lumina.Excel.Sheets;
 
 namespace Ocelot.Services.PlayerState;
@@ -7,6 +10,13 @@ namespace Ocelot.Services.PlayerState;
 public interface IPlayer
 {
     IPlayerState State { get; }
+    
+    IPlayerCharacter? PlayerCharacter { get; }
+
+    StatusList? StatusList
+    {
+        get => PlayerCharacter?.StatusList;
+    }
 
     Vector3 Position { get; }
 

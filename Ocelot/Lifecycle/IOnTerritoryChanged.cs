@@ -5,5 +5,5 @@ namespace Ocelot.Lifecycle;
 [OcelotAutoWire]
 public interface IOnTerritoryChanged : IOrderedHook
 {
-    void IOnTerritoryChanged(ushort territory);
+    void OnTerritoryChanged(ushort territory);
 }
