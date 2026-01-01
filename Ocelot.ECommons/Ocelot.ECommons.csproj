@@ -4,7 +4,7 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
-        <PackageReference Include="ECommons" Version="3.0.1.14"/>
+        <PackageReference Include="ECommons" Version="3.1.0.10"/>
     </ItemGroup>
     <ItemGroup Condition="'$(DalamudLibPath)' != ''">
         <Reference Include="Dalamud" HintPath="$(DalamudLibPath)Dalamud.dll" Private="False"/>
