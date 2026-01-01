@@ -4,6 +4,8 @@ public record StepResult
 {
     public bool IsSuccess { get; init; }
 
+    public bool IsCanceled { get; init; }
+
     public bool ShouldBreak { get; init; } = false;
 
     public string? ErrorMessage { get; init; }
@@ -18,6 +20,14 @@ public record StepResult
             IsSuccess = true,
         };
     }
+
+    public static StepResult Canceled() => new()
+    {
+        IsSuccess = false,
+        IsCanceled = true,
+        ShouldBreak = true,
+        ErrorMessage = "Canceled",
+    };
 
     public static StepResult Break()
     {

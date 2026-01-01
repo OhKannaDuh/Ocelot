@@ -11,6 +11,8 @@ public static class IServiceCollectionExtensions
     public static void LoadChain(this IServiceCollection services)
     {
         services.AddSingleton<IChainFactory, ChainFactory>();
+        services.AddSingleton<IChainManager, ChainManager>();
+
         services.AddSingleton<IMainThread, DalamudMainThread>();
 
         services.AddTransient<LogChainMiddleware>();

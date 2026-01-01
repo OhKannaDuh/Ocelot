@@ -5,9 +5,7 @@ namespace Ocelot.Chain;
 
 public class Chain(string name, IServiceProvider services) : IChain
 {
-    private readonly string name = name;
-
-    private readonly IServiceProvider services = services;
+    public string Name { get; } = name;
 
     private readonly List<IStep> steps = [];
 
@@ -92,7 +90,7 @@ public class Chain(string name, IServiceProvider services) : IChain
 
     public async Task<ChainResult> ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var context = new ChainContext(name, services, cancellationToken);
+        var context = new ChainContext(Name, services, cancellationToken);
         return await ExecuteAsync(context);
     }
 

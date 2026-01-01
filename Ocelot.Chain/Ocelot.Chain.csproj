@@ -4,7 +4,7 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
-    
+
         <ProjectReference Include="..\Ocelot.Pathfinding\Ocelot.Pathfinding.csproj"/>
         <Reference Include="FFXIVClientStructs" HintPath="$(DalamudLibPath)FFXIVClientStructs.dll" Private="False"/>
         <!-- Remove this depenedency to chain -->

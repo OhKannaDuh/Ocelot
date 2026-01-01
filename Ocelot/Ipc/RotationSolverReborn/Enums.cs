@@ -3,8 +3,12 @@
 public enum RSRStateCommandType : byte
 {
     Off,
+
     Auto,
+
     TargetOnly,
+
     Manual,
+
     AutoDuty,
 }

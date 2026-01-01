@@ -25,7 +25,7 @@ public static class Vector3Extensions
         return Vector2.Distance(vector.Truncate(), other.Truncate());
     }
 
-    public static Vector3 GetApproachPosition(this Vector3 to, Vector3 from, float range = 3f)
+    public static Vector3 GetApproachPosition(this Vector3 to, Vector3 from, float range = 3f, float jitter = 0f)
     {
         var distance = from.Distance(to);
         if (distance <= range)
@@ -34,13 +34,28 @@ public static class Vector3Extensions
         }
 
         var direction = to - from;
-
         if (direction.LengthSquared() < 0.0001f)
         {
             return to;
         }
 
         direction /= distance;
+
+        if (jitter > 0f)
+        {
+            var angleDeg = Random.Shared.NextSingle() * 2f * jitter - jitter;
+            var angleRad = MathF.PI / 180f * angleDeg;
+
+            var cos = MathF.Cos(angleRad);
+            var sin = MathF.Sin(angleRad);
+
+            direction = new Vector3(
+                direction.X * cos - direction.Z * sin,
+                direction.Y,
+                direction.X * sin + direction.Z * cos
+            );
+        }
+
         return to - direction * range;
     }
 

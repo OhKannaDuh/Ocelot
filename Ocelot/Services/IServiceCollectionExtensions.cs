@@ -8,6 +8,7 @@ using Ocelot.Config;
 using Ocelot.Config.Fields;
 using Ocelot.Config.Renderers;
 using Ocelot.Ipc.BossMod;
+using Ocelot.Ipc.Lifestream;
 using Ocelot.Ipc.VNavmesh;
 using Ocelot.Ipc.WrathCombo;
 using Ocelot.Lifecycle;
@@ -64,6 +65,7 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<IVNavmeshIpc, VNavmeshIpc>();
         services.AddSingleton<IBossModIpc, BossModIpc>();
         services.AddSingleton<IWrathComboIpc, WrathComboIpc>();
+        services.AddSingleton<ILifestreamIpc, LifestreamIpc>();
 
         services.AddSingleton<IEventHost, LoadHost>();
         services.AddSingleton<IEventHost, StartHost>();
@@ -117,16 +119,15 @@ public static class IServiceCollectionExtensions
         }
     }
 
-    public static void AddConfig<TConcrete, TInterface>(this IServiceCollection services, IDalamudPluginInterface plugin)
-        where TConcrete : class, TInterface, new()
+    public static void AddConfig<TInterface, TConcrete>(this IServiceCollection services, IDalamudPluginInterface plugin)
         where TInterface : class, IPluginConfiguration
+        where TConcrete : class, TInterface, new()
     {
-        services.AddSingleton(plugin.GetPluginConfig() as TConcrete ?? new TConcrete());
-        services.AddSingleton<TInterface>(s => s.GetRequiredService<TConcrete>());
+        var cfg = plugin.GetPluginConfig() as TConcrete ?? new TConcrete();
+        services.AddSingleton(cfg);
+        services.AddSingleton<TInterface>(cfg);
         services.AddSingleton<IPluginConfiguration>(s => s.GetRequiredService<TConcrete>());
-
         var properties = typeof(TInterface).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-
         foreach (var property in properties)
         {
             var prop = property;
@@ -134,18 +135,46 @@ public static class IServiceCollectionExtensions
 
             services.AddSingleton(propType, sp =>
             {
-                var cfg = sp.GetRequiredService<TInterface>();
-                return prop.GetValue(cfg)!;
+                var conf = sp.GetRequiredService<TInterface>();
+                return prop.GetValue(conf)!;
             });
 
             if (typeof(IAutoConfig).IsAssignableFrom(propType))
             {
                 services.AddSingleton(typeof(IAutoConfig), sp =>
                 {
-                    var cfg = sp.GetRequiredService<TInterface>();
-                    return prop.GetValue(cfg)!;
+                    var conf = sp.GetRequiredService<TInterface>();
+                    return prop.GetValue(conf)!;
                 });
             }
         }
+
+        // var cfg = plugin.GetPluginConfig() as TConcrete ?? new TConcrete();
+        // services.AddSingleton<TConcrete>(cfg);
+        //
+        // services.AddSingleton<TInterface>(sp => sp.GetRequiredService<TConcrete>());
+        // services.AddSingleton<IPluginConfiguration>(sp => sp.GetRequiredService<TConcrete>());
+        //
+        // var properties = typeof(TInterface).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        //
+        // foreach (var prop in properties)
+        // {
+        //     var propType = prop.PropertyType;
+        //
+        //     services.AddSingleton(propType, sp =>
+        //     {
+        //         var conf = sp.GetRequiredService<TInterface>();
+        //         return prop.GetValue(conf)!;
+        //     });
+        //
+        //     if (typeof(IAutoConfig).IsAssignableFrom(propType))
+        //     {
+        //         services.AddSingleton(typeof(IAutoConfig), sp =>
+        //         {
+        //             var conf = sp.GetRequiredService<TInterface>();
+        //             return prop.GetValue(conf)!;
+        //         });
+        //     }
+        // }
     }
 }

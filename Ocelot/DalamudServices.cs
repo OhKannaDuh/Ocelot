@@ -1,5 +1,5 @@
-using Dalamud.IoC;
 using System.Diagnostics.CodeAnalysis;
+using Dalamud.IoC;
 using Dalamud.Plugin.Services;
 
 namespace Ocelot;

@@ -27,4 +27,15 @@ public static class ChainExWait
 
         return chain.Wait(delay, name ?? $"Wait until {when:O}");
     }
+
+    public static IChain WaitUntil(
+        this IChain chain,
+        Func<IChainContext, ValueTask<bool>> predicate,
+        TimeSpan timeout,
+        TimeSpan? pollInterval = null,
+        string? name = null
+    )
+    {
+        return chain.Then(new WaitUntilStep(predicate, timeout, pollInterval, name));
+    }
 }

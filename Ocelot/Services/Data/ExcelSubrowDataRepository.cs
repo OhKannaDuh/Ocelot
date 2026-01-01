@@ -16,7 +16,7 @@ public class ExcelSubrowDataRepository<TSubrow> : ISubrowDataRepository<TSubrow>
 
     public IEnumerable<uint> RowIds
     {
-        get => Sheet.Select(rc => rc.RowId); 
+        get => Sheet.Select(rc => rc.RowId);
     }
 
     public IEnumerable<SubrowAccessor> Keys
