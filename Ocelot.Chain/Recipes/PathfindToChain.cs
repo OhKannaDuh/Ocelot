@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Dalamud.Plugin.Services;
 using Ocelot.Chain.Extensions;
 using Ocelot.Chain.Middleware.Chain;
 using Ocelot.Chain.Middleware.Step;
@@ -13,7 +14,7 @@ public class
     PathfindToChain(
     IChainFactory chains,
     IPathfinder pathfinder,
-    IPlayer player,
+    IObjectTable objects,
     ILogger<PathfindToChain> logger
 ) : ChainRecipe<PathfinderConfig>(chains)
 {
@@ -33,7 +34,7 @@ public class
             .UseStepMiddleware<RunOnMainThreadMiddleware>()
             .Then(_ =>
             {
-                if (Vector3.Distance(player.Position, pathfinderConfig.To()) < pathfinderConfig.DistanceThreshold)
+                if (Vector3.Distance(PlayerPosition(), pathfinderConfig.To()) < pathfinderConfig.DistanceThreshold)
                 {
                     return new ValueTask<StepResult>(StepResult.Break());
                 }
@@ -45,12 +46,17 @@ public class
             .Then(new WaitUntilStep(_ => new ValueTask<bool>(pathfinder.GetState() == PathfindingState.Idle), TimeSpan.MaxValue))
             .Then(_ =>
             {
-                if (Vector3.Distance(player.GetPosition(), pathfinderConfig.To()) > pathfinderConfig.DistanceThreshold)
+                if (Vector3.Distance(PlayerPosition(), pathfinderConfig.To()) > pathfinderConfig.DistanceThreshold)
                 {
                     return new ValueTask<StepResult>(StepResult.Failure("Did not reach destination"));
                 }
 
                 return new ValueTask<StepResult>(StepResult.Success());
             }, "Destination Check");
+    }
+
+    private Vector3 PlayerPosition()
+    {
+        return objects.LocalPlayer?.Position ?? Vector3.NaN;
     }
 }

@@ -1,4 +1,5 @@
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Lifecycle;
 using Ocelot.Services;
@@ -14,7 +15,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
     public abstract string Name { get; }
 
-    protected OcelotPlugin(IDalamudPluginInterface plugin)
+    protected OcelotPlugin(IDalamudPluginInterface plugin, IPluginLog logger)
     {
         Registry.RegisterAssemblies(typeof(OcelotPlugin).Assembly, GetType().Assembly);
 
@@ -32,10 +33,17 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
         Boostrap(collection);
 
+        logger.Debug("KA");
         services = collection.Build();
+        logger.Debug("KB");
 
+        logger.Debug("LA");
         host = services.GetRequiredService<EventManager>();
+        logger.Debug("LB");
+
+        logger.Debug("MA");
         host.Start();
+        logger.Debug("MB");
     }
 
     protected abstract void Boostrap(IServiceCollection collection);

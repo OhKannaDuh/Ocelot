@@ -8,9 +8,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
 {
     private readonly IServiceCollection collection;
 
-    private readonly IPluginLog logger;
-
-    private readonly static List<Type> HookInterfaces = [];
+    private readonly List<Type> HookInterfaces = [];
 
     private readonly HashSet<(Type hook, Type viaService, ServiceLifetime life)> forwards = [];
 
@@ -43,20 +41,64 @@ public sealed class OcelotServiceCollection : IServiceCollection
         }
     }
 
+    // private void AutoWire(ServiceDescriptor item)
+    // {
+    //     var type = item.ImplementationType ?? item.ImplementationInstance?.GetType() ?? null;
+    //
+    //     if (type is null)
+    //     {
+    //         return;
+    //     }
+    //
+    //     var serviceType = item.ServiceType;
+    //
+    //     foreach (var hook in HookInterfaces)
+    //     {
+    //         if (!hook.IsAssignableFrom(type))
+    //         {
+    //             continue;
+    //         }
+    //
+    //         if (hook == serviceType)
+    //         {
+    //             continue;
+    //         }
+    //
+    //         if (!forwards.Add((hook, serviceType, item.Lifetime)))
+    //         {
+    //             continue;
+    //         }
+    //
+    //         collection.Add(new ServiceDescriptor(hook, sp => sp.GetRequiredService(serviceType), item.Lifetime));
+    //     }
+    // }
+
     private void AutoWire(ServiceDescriptor item)
     {
-        var type = item.ImplementationType ?? item.ImplementationInstance?.GetType() ?? null;
-
-        if (type is null)
+        var implType = item.ImplementationType ?? item.ImplementationInstance?.GetType();
+        if (implType is null)
         {
             return;
         }
 
         var serviceType = item.ServiceType;
 
-        foreach (var hook in HookInterfaces)
+        if (serviceType.IsGenericTypeDefinition || implType.IsGenericTypeDefinition)
         {
-            if (!hook.IsAssignableFrom(type))
+            return;
+        }
+
+        if (implType != serviceType && collection.All(d => d.ServiceType != implType))
+        {
+            collection.Add(new ServiceDescriptor(
+                implType,
+                sp => sp.GetRequiredService(serviceType),
+                item.Lifetime));
+        }
+
+        foreach (var hook in HookInterfaces.Distinct())
+        {
+            if (!hook.IsAssignableFrom(implType))
             {
                 continue;
             }
@@ -66,18 +108,36 @@ public sealed class OcelotServiceCollection : IServiceCollection
                 continue;
             }
 
-            if (!forwards.Add((hook, serviceType, item.Lifetime)))
+            if (!forwards.Add((hook, implType, item.Lifetime)))
             {
                 continue;
             }
 
-            collection.Add(new ServiceDescriptor(hook, sp => sp.GetRequiredService(serviceType), item.Lifetime));
+            collection.Add(new ServiceDescriptor(
+                hook,
+                sp =>
+                {
+                    var obj = sp.GetRequiredService(implType);
+                    if (!hook.IsInstanceOfType(obj))
+                    {
+                        throw new InvalidOperationException(
+                            $"AutoWire produced {obj.GetType().FullName} for hook {hook.FullName} via {implType.FullName}");
+                    }
+
+                    return obj;
+                },
+                item.Lifetime));
         }
     }
 
+
     internal ServiceProvider Build()
     {
-        return collection.BuildServiceProvider(true);
+        return collection.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateScopes = true,
+            ValidateOnBuild = true,
+        });
     }
 
     public IEnumerator<ServiceDescriptor> GetEnumerator()
