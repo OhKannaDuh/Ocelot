@@ -2,6 +2,8 @@
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Plugin.Services;
+using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using Lumina.Excel.Sheets;
 using Ocelot.Services.Data;
 
@@ -20,7 +22,7 @@ public class Client(
 
     public ushort CurrentTerritoryId
     {
-        get => clientState.TerritoryType;
+        get => (ushort)clientState.TerritoryType;
     }
 
     public TerritoryType? CurrentTerritory
@@ -40,12 +42,12 @@ public class Client(
 
     public IPlayerCharacter? Player
     {
-        get => clientState.LocalPlayer;
+        get => Svc.Objects.LocalPlayer;
     }
 
     public ulong LocalContentId
     {
-        get => clientState.LocalContentId;
+        get => Svc.ClientState.LocalContentId;
     }
 
     public bool IsLoggedIn
