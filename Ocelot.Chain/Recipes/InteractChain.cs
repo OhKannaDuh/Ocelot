@@ -13,7 +13,7 @@ using Ocelot.Services.Logger;
 
 namespace Ocelot.Chain.Recipes;
 
-public class InteractChain(IChainFactory chains, ITargetManager targets, ILogger<InteractChain> logger) : ChainRecipe<Func<IGameObject?>>(chains)
+public class InteractChain(IChainFactory chains, ITargetManager targets, ICondition conditions, ILogger<InteractChain> logger) : ChainRecipe<Func<IGameObject?>>(chains)
 {
     public override string Name { get; } = "Interact Chain";
 
@@ -77,6 +77,6 @@ public class InteractChain(IChainFactory chains, ITargetManager targets, ILogger
 
     private bool IsInteracting()
     {
-        return Svc.Condition.Any([ConditionFlag.OccupiedInEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.OccupiedInCutSceneEvent]);
+        return conditions.Any([ConditionFlag.OccupiedInEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.OccupiedInCutSceneEvent]);
     }
 }

@@ -2,4 +2,7 @@
     <PropertyGroup>
         <PackageId>FFXIVOcelot.Pathfinding</PackageId>
     </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
+    </ItemGroup>
 </Project>
