@@ -144,7 +144,7 @@ public class ModuleManager
         toUpdate.ForEach(m => m.OnChatMessage(type, timestamp, sender, message, isHandled));
     }
 
-    public void OnTerritoryChanged(ushort id)
+    public void OnTerritoryChanged(uint id)
     {
         toUpdate.ForEach(m => m.OnTerritoryChanged(id));
     }

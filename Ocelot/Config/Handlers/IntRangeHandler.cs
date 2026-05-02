@@ -34,7 +34,7 @@ public class IntRangeHandler : Handler
         var range = property.GetCustomAttribute<RangeIndicatorAttribute>();
         if (ImGui.IsItemHovered() && range != null)
         {
-            PictoService.VfxRenderer.AddCircle($"{property.Name}", Player.Position, value, range.color);
+            PctService.VfxRenderer.AddCircle($"{property.Name}", Player.Position, value, range.color);
         }
 
         return (true, false);

@@ -19,7 +19,7 @@
         <NoWarn>$(NoWarn);MSB3277</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Ecommons" Version="3.1.0.2" />
-        <PackageReference Include="Pictomancy" Version="0.0.2" />
+        <PackageReference Include="Ecommons" Version="3.2.0.13" />
+        <PackageReference Include="Pictomancy" Version="1.0.3" />
     </ItemGroup>
 </Project>

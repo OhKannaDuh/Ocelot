@@ -49,7 +49,7 @@ public interface IModule : IDisposable
     // Events
     void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message, bool isHandled);
 
-    void OnTerritoryChanged(ushort id);
+    void OnTerritoryChanged(uint id);
 
     void Debug(string log);
 

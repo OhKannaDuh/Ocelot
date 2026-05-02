@@ -15,7 +15,7 @@ public static class LgbHelper
         return Svc.Data.GetFile<LgbFile>(path);
     }
 
-    public static LgbFile? GetLgbFileForTerritory(ushort id, LgbType type)
+    public static LgbFile? GetLgbFileForTerritory(uint id, LgbType type)
     {
         if (id == 0)
         {

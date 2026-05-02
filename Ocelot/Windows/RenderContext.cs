@@ -14,7 +14,7 @@ public class RenderContext(OcelotPlugin plugin, IModule? module = null)
 
     public IModule? Module { get; private set; } = module;
 
-    public readonly PctDrawList Pictomancy = PictoService.GetDrawList();
+    public readonly PctDrawList Pictomancy = PctService.GetDrawList();
 
     public IOcelotConfig Config
     {

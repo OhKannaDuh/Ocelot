@@ -4,7 +4,7 @@ using Dalamud.Bindings.ImGui;
 
 namespace Ocelot.Windows;
 
-public class DynamicTitleBarButton : Window.TitleBarButton
+public class DynamicTitleBarButton : TitleBarButton
 {
     private Action<DynamicTitleBarButton, ImGuiMouseButton> OnClick;
 

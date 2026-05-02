@@ -11,7 +11,7 @@ public abstract partial class Module<P, C>
     {
     }
 
-    public virtual void OnTerritoryChanged(ushort id)
+    public virtual void OnTerritoryChanged(uint id)
     {
     }
 }

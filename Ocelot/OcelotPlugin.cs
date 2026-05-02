@@ -1,10 +1,10 @@
-using System;
-using Dalamud.Game.Text;
+using Dalamud.Game.Chat;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Plugin;
+using Dalamud.Game.Text;
 using Dalamud.Plugin.Services;
-using ECommons;
+using Dalamud.Plugin;
 using ECommons.DalamudServices;
+using ECommons;
 using Ocelot.Chain;
 using Ocelot.Commands;
 using Ocelot.Data;
@@ -13,6 +13,7 @@ using Ocelot.IPC;
 using Ocelot.Modules;
 using Ocelot.Windows;
 using Pictomancy;
+using System;
 
 namespace Ocelot;
 
@@ -44,7 +45,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
     protected OcelotPlugin(IDalamudPluginInterface plugin, params Module[] eModules)
     {
         ECommonsMain.Init(plugin, this, eModules);
-        PictoService.Initialize(plugin);
+        PctService.Initialize(plugin);
 
         Registry.RegisterAssemblies(typeof(OcelotPlugin).Assembly);
         Registry.RegisterAssemblies(GetType().Assembly);
@@ -145,19 +146,19 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Modules.Render(RenderContext);
     }
 
-    protected virtual void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    protected virtual void OnChatMessage(IHandleableChatMessage message)
     {
-        Modules.OnChatMessage(type, timestamp, sender, message, isHandled);
+        Modules.OnChatMessage(message.LogKind, message.Timestamp, message.Sender, message.Message, message.IsHandled);
     }
 
-    protected virtual void OnTerritoryChanged(ushort id)
+    protected virtual void OnTerritoryChanged(uint id)
     {
         Modules.OnTerritoryChanged(id);
     }
 
     private void PreRender()
     {
-        var draw = PictoService.Draw();
+        var draw = PctService.Draw();
         if (draw == null)
         {
             RenderContext = null;
@@ -176,7 +177,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         
         try
         {
-            PictoService.GetDrawList().Dispose();
+            PctService.GetDrawList().Dispose();
         }
         catch (InvalidOperationException)
         {
@@ -211,7 +212,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         Svc.Chat.ChatMessage -= OnChatMessage;
         Svc.ClientState.TerritoryChanged -= OnTerritoryChanged;
 
-        PictoService.Dispose();
+        PctService.Dispose();
         ECommonsMain.Dispose();
     }
 }
