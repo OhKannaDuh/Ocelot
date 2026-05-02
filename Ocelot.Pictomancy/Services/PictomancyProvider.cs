@@ -41,7 +41,7 @@ public class PictomancyProvider : IPictomancyProvider, IOnPreRender, IOnPostRend
             current = null;
         }
 
-        current = PictoService.Draw();
+        current = PctService.Draw();
     }
 
     public void PostRender()

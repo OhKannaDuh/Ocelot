@@ -8,11 +8,11 @@ public class Pictomancy(IDalamudPluginInterface plugin) : IOnStart, IOnStop
 {
     public void OnStart()
     {
-        PictoService.Initialize(plugin);
+        PctService.Initialize(plugin);
     }
 
     public void OnStop()
     {
-        PictoService.Dispose();
+        PctService.Dispose();
     }
 }

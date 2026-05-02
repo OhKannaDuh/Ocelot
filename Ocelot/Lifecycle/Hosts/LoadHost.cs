@@ -24,7 +24,7 @@ public class LoadHost(IEnumerable<IOnLoad> load, ILogger<LoadHost> logger) : Bas
             {
                 hook.OnLoad();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Logger not initialized on load
             }
