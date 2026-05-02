@@ -33,17 +33,9 @@ public abstract class OcelotPlugin : IDalamudPlugin
 
         Boostrap(collection);
 
-        logger.Debug("KA");
         services = collection.Build();
-        logger.Debug("KB");
-
-        logger.Debug("LA");
         host = services.GetRequiredService<EventManager>();
-        logger.Debug("LB");
-
-        logger.Debug("MA");
         host.Start();
-        logger.Debug("MB");
     }
 
     protected abstract void Boostrap(IServiceCollection collection);

@@ -1,4 +1,5 @@
 ﻿using Ocelot.Extensions;
+using Ocelot.Services.Logger;
 using Ocelot.Services.Translation;
 using IUIService = Ocelot.Services.UI.IUIService;
 
@@ -23,6 +24,8 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
 
     private readonly IReadOnlyDictionary<TState, IScoreStateHandler<TState, TScore>> handlers;
 
+    private readonly ILogger logger;
+
     private IScoreStateHandler<TState, TScore> Current
     {
         get => handlers.TryGetValue(State, out var h)
@@ -34,7 +37,8 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
         TState initial,
         ITranslator<ScoreStateMachine<TState, TScore>> translator,
         IUIService ui,
-        IEnumerable<IScoreStateHandler<TState, TScore>> handlers
+        IEnumerable<IScoreStateHandler<TState, TScore>> handlers,
+        ILogger logger
     )
     {
         this.initial = initial;
@@ -42,6 +46,7 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
 
         this.translator = translator;
         this.ui = ui;
+        this.logger = logger;
 
         var map = new Dictionary<TState, IScoreStateHandler<TState, TScore>>();
         foreach (var h in handlers)
@@ -71,15 +76,27 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
     {
         Current.Handle();
 
-        var next = handlers
+        var scores = handlers
             .ToDictionary(h => h.Key, h => h.Value.GetScore())
-            .OrderByDescending(h => h.Value)
-            .First();
+            .OrderByDescending(h => h.Value);
+
+            var next = scores.First();
+
 
         if (EqualityComparer<TState>.Default.Equals(next.Key, State))
         {
             return;
         }
+
+        // logger.Info("=================================");
+        // logger.Info("State machine scores:");
+        // logger.Info("=================================");
+        //
+        // foreach (var pair in scores)
+        // {
+        //     logger.Info($"{pair.Key}: {pair.Value}");
+        // }
+        // logger.Info("=================================");
 
         Current.Exit(next.Key);
         State = next.Key;

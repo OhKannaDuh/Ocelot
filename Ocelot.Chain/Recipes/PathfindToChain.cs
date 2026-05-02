@@ -15,10 +15,15 @@ public class
     IChainFactory chains,
     IPathfinder pathfinder,
     IObjectTable objects,
+    IFramework framework,
     ILogger<PathfindToChain> logger
 ) : ChainRecipe<PathfinderConfig>(chains)
 {
     public override string Name { get; } = "Pathfind to Chain";
+
+    private Task<Vector3>? getPlayerPositionTask = null;
+
+    private Vector3 lastPlayerPosition = Vector3.NaN;
 
     protected override IChain Compose(IChain chain, PathfinderConfig pathfinderConfig)
     {
@@ -57,6 +62,16 @@ public class
 
     private Vector3 PlayerPosition()
     {
-        return objects.LocalPlayer?.Position ?? Vector3.NaN;
+        if (getPlayerPositionTask == null)
+        {
+            getPlayerPositionTask = framework.RunOnFrameworkThread(() => objects.LocalPlayer?.Position ?? Vector3.NaN);
+        }
+        else if (getPlayerPositionTask.IsCompleted)
+        {
+            lastPlayerPosition = getPlayerPositionTask.Result;
+            getPlayerPositionTask = null;
+        }
+
+        return lastPlayerPosition;
     }
 }

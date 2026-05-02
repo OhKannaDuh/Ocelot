@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Ocelot.Services.Logger;
 using Ocelot.Services.Translation;
 using Ocelot.Services.UI;
 using Ocelot.States.Flow;
@@ -77,7 +78,8 @@ public static class StateMachineDiExtensions
                     initial,
                     c.GetRequiredService<ITranslator<ScoreStateMachine<TState, TScore>>>(),
                     c.GetRequiredService<IUIService>(),
-                    handlers
+                    handlers,
+                    c.GetRequiredService<ILogger>()
                 );
             },
             lifetime)
