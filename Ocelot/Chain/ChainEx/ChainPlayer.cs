@@ -12,7 +12,7 @@ public static class ChainPlayer
         {
             if (EzThrottler.Throttle($"ChainAddon.WaitUntilCasting", interval))
             {
-                return Svc.ClientState.LocalPlayer?.IsCasting == true;
+                return Svc.Objects.LocalPlayer?.IsCasting == true;
             }
 
             return false;
@@ -32,7 +32,7 @@ public static class ChainPlayer
         {
             if (EzThrottler.Throttle($"ChainAddon.WaitUntilNotCasting", interval))
             {
-                return Svc.ClientState.LocalPlayer?.IsCasting == false;
+                return Svc.Objects.LocalPlayer?.IsCasting == false;
             }
 
             return false;

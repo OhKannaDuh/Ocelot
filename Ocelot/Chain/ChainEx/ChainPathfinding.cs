@@ -64,7 +64,7 @@ public static class ChainPathfinding
     {
         return new TaskManagerTask(() =>
         {
-            var player = Svc.ClientState.LocalPlayer;
+            var player = Svc.Objects.LocalPlayer;
             if (player == null)
             {
                 return false;

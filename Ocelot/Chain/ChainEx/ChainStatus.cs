@@ -13,7 +13,7 @@ public static class ChainStatus
         {
             if (EzThrottler.Throttle($"ChainStatus.WaitUntilStatus({status})", interval))
             {
-                return Svc.ClientState.LocalPlayer?.StatusList.Any(s => s.StatusId == status) == true;
+                return Svc.Objects.LocalPlayer?.StatusList.Any(s => s.StatusId == status) == true;
             }
 
             return false;
@@ -33,7 +33,7 @@ public static class ChainStatus
         {
             if (EzThrottler.Throttle($"ChainStatus.WaitUntilNotStatus({status})", interval))
             {
-                return Svc.ClientState.LocalPlayer?.StatusList.Any(s => s.StatusId == status) == false;
+                return Svc.Objects.LocalPlayer?.StatusList.Any(s => s.StatusId == status) == false;
             }
 
             return false;
