@@ -2,7 +2,9 @@
 
 namespace Ocelot.Services.Data.Cache;
 
-public class GenericCache<TKey, TModel>(ICachePolicy? policy) : ICache<TKey, TModel> where TKey : notnull
+public class GenericCache<TKey, TModel>(ICachePolicy? policy) : ICache<TKey, TModel> 
+    where TKey : notnull 
+    where TModel : notnull
 {
     public ICachePolicy CachePolicy { get; } = policy ?? new NoExpirationPolicy();
 

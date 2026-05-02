@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <PackageId>FFXIVOcelot.Chain</PackageId>
     </PropertyGroup>
@@ -6,7 +6,6 @@
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
 
         <ProjectReference Include="..\Ocelot.Pathfinding\Ocelot.Pathfinding.csproj"/>
-        <Reference Include="FFXIVClientStructs" HintPath="$(DalamudLibPath)FFXIVClientStructs.dll" Private="False"/>
         <!-- Remove this depenedency to chain -->
         <PackageReference Include="ECommons" Version="3.2.0.11" />
     </ItemGroup>

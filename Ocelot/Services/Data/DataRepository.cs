@@ -34,7 +34,7 @@ public class DataRepository<TKey, TModel> : IDataRepository<TKey, TModel>
 
     public bool TryGet(TKey key, out TModel model)
     {
-        model = default;
+        model = default!;
         if (ContainsKey(key))
         {
             model = Get(key);

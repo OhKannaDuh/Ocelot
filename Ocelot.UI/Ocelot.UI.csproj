@@ -1,10 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
+﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">    <PropertyGroup>
         <PackageId>FFXIVOcelot.UI</PackageId>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
-        <Reference Include="Lumina.Excel" HintPath="$(DalamudLibPath)Lumina.Excel.dll" Private="False"/>
-        <Reference Include="Dalamud.Bindings.ImGui" HintPath="$(DalamudLibPath)Dalamud.Bindings.ImGui.dll" Private="False"/>
     </ItemGroup>
 </Project>

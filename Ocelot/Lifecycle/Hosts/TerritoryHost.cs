@@ -36,7 +36,7 @@ public class TerritoryHost(
         clientState.TerritoryChanged -= TerritoryChanged;
     }
 
-    private void TerritoryChanged(uint territory)
+    private void TerritoryChanged(ushort territory)
     {
         SafeEach(territoryChanged, h => h.OnTerritoryChanged(territory));
     }

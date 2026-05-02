@@ -12,7 +12,9 @@ namespace Ocelot.Services.ClientState;
 public class Client(
     IClientState clientState,
     IDataRepository<TerritoryType> territories,
-    IDataRepository<Map> maps
+    IDataRepository<Map> maps,
+    IObjectTable objects,
+    IPlayerState playerState
 ) : IClient
 {
     public ClientLanguage ClientLanguage
@@ -42,12 +44,12 @@ public class Client(
 
     public IPlayerCharacter? Player
     {
-        get => Svc.Objects.LocalPlayer;
+        get => objects.LocalPlayer;
     }
 
     public ulong LocalContentId
     {
-        get => Svc.ClientState.LocalContentId;
+        get => playerState.ContentId;
     }
 
     public bool IsLoggedIn

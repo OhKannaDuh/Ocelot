@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <PackageId>FFXIVOcelot.Pictomancy</PackageId>
     </PropertyGroup>
@@ -7,8 +7,5 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Pictomancy" Version="1.0.3" />
-    </ItemGroup>
-    <ItemGroup Condition="'$(DalamudLibPath)' != ''">
-        <Reference Include="Dalamud.Bindings.ImGui" HintPath="$(DalamudLibPath)Dalamud.Bindings.ImGui.dll" Private="False"/>
     </ItemGroup>
 </Project>

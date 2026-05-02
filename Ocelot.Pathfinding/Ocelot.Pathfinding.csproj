@@ -1,10 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <PackageId>FFXIVOcelot.Pathfinding</PackageId>
     </PropertyGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
-        <Reference Include="Lumina.Excel" HintPath="$(DalamudLibPath)Lumina.Excel.dll" Private="False"/>
-        <Reference Include="FFXIVClientStructs" HintPath="$(DalamudLibPath)FFXIVClientStructs.dll" Private="False"/>
-    </ItemGroup>
 </Project>
