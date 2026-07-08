@@ -4,6 +4,8 @@ namespace Ocelot.Ipc.VNavmesh;
 
 public interface IVNavmeshIpc
 {
+    bool IsReady();
+
     bool IsPathfinding();
 
     bool IsRunning();

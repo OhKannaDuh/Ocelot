@@ -15,6 +15,11 @@ public class NavmeshPathfinder(
 {
     public PathfindingState GetState()
     {
+        if (!nav.IsReady())
+        {
+            return PathfindingState.Idle;
+        }
+
         if (nav.IsPathfinding())
 
         {
@@ -31,6 +36,11 @@ public class NavmeshPathfinder(
 
     public void PathfindAndMoveTo(PathfinderConfig config)
     {
+        if (!nav.IsReady())
+        {
+            return;
+        }
+
         if (config.TerritoryType.HasValue && config.TerritoryType.Value.RowId != client.CurrentTerritoryId)
         {
             throw new InvalidOperationException("NavmeshPathfindingService does not support moving between territories");
@@ -54,6 +64,11 @@ public class NavmeshPathfinder(
 
     public async Task<Path> Pathfind(PathfinderConfig config)
     {
+        if (!nav.IsReady())
+        {
+            return new Path([], config, this);
+        }
+
         Task<List<Vector3>> task;
 
         var start = config.From ?? player.GetPosition();
@@ -73,6 +88,11 @@ public class NavmeshPathfinder(
 
     public void FollowPath(Path path)
     {
+        if (!nav.IsReady())
+        {
+            return;
+        }
+
         nav.FollowPath(path.Nodes.ToList(), path.ShouldFly);
     }
 
@@ -83,6 +103,11 @@ public class NavmeshPathfinder(
 
     public void Stop()
     {
+        if (!nav.IsReady())
+        {
+            return;
+        }
+
         nav.Stop();
     }
 }
