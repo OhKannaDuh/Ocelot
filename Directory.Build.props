@@ -13,6 +13,8 @@
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <DebugType>embedded</DebugType>
         <!-- There was a conflict between "WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" and "WindowsBase, Version=8.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" -->
+        <!-- NU1012: bare net10.0-windows + platform is valid via Dalamud SDK; suppress NuGet restore noise on SDK 10.0.200+ -->
+        <RestoreNoWarn>$(RestoreNoWarn);NU1012</RestoreNoWarn>
         <NoWarn>$(NoWarn);MSB3277</NoWarn>
     </PropertyGroup>
     <ItemGroup>

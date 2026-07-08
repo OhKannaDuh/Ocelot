@@ -1,9 +1,12 @@
 ﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <PackageId>FFXIVOcelot.ECommons</PackageId>
+        <!-- Local BOCCHI builds consume this as a project reference; packing triggers NU1012 on SDK 10.0.200+. -->
+        <IsPackable>false</IsPackable>
+        <RestoreNoWarn>$(RestoreNoWarn);NU1012</RestoreNoWarn>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
-        <PackageReference Include="ECommons" Version="3.2.0.11" />
+        <PackageReference Include="ECommons" Version="3.2.1.15" />
     </ItemGroup>
 </Project>
