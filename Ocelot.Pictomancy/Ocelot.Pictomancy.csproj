@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <PackageId>FFXIVOcelot.Pictomancy</PackageId>
-        <!-- Local BOCCHI builds consume this as a project reference; packing triggers NU1012 on SDK 10.0.200+. -->
         <IsPackable>false</IsPackable>
-        <RestoreNoWarn>$(RestoreNoWarn);NU1012</RestoreNoWarn>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
