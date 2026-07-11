@@ -6,7 +6,12 @@ namespace Ocelot.Ipc.VNavmesh;
 
 public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
 {
+    private readonly ICallGateSubscriber<bool> navIsReady = plugin.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
+
     private readonly ICallGateSubscriber<bool> isPathfinding = plugin.GetIpcSubscriber<bool>("vnavmesh.Nav.PathfindInProgress");
+
+    private readonly ICallGateSubscriber<bool> simpleMovePathfindInProgress =
+        plugin.GetIpcSubscriber<bool>("vnavmesh.SimpleMove.PathfindInProgress");
 
     private readonly ICallGateSubscriber<bool> isRunning = plugin.GetIpcSubscriber<bool>("vnavmesh.Path.IsRunning");
 
@@ -46,9 +51,24 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
                && stop.HasFunction;
     }
 
+    public bool IsNavmeshReady()
+    {
+        return IsReady() && navIsReady.HasFunction && navIsReady.InvokeFunc();
+    }
+
     public bool IsPathfinding()
     {
-        return IsReady() && isPathfinding.HasFunction && isPathfinding.InvokeFunc();
+        if (!IsReady())
+        {
+            return false;
+        }
+
+        if (simpleMovePathfindInProgress.HasFunction && simpleMovePathfindInProgress.InvokeFunc())
+        {
+            return true;
+        }
+
+        return isPathfinding.HasFunction && isPathfinding.InvokeFunc();
     }
 
     public bool IsRunning()

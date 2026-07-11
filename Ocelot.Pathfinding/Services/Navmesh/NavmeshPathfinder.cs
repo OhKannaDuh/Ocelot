@@ -36,7 +36,7 @@ public class NavmeshPathfinder(
 
     public void PathfindAndMoveTo(PathfinderConfig config)
     {
-        if (!nav.IsReady())
+        if (!nav.IsReady() || !nav.IsNavmeshReady())
         {
             return;
         }

@@ -1,53 +1,69 @@
-﻿using Dalamud.Plugin.Services;
+using Dalamud.Plugin.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Services.Gate;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 
 public class UpdateHost(
-    IEnumerable<IOnPreUpdate> preUpdate,
-    IEnumerable<IOnUpdate> update,
-    IEnumerable<IOnPostUpdate> postUpdate,
+    IServiceProvider services,
     IFramework framework,
     IGateService gate,
     ILogger<UpdateHost> logger
 ) : BaseEventHost(logger)
 {
-    private readonly IOnPreUpdate[] preUpdate = preUpdate.OrderByDescending(h => h.Order).ToArray();
+    private IOnPreUpdate[]? preUpdateHooks;
 
-    private readonly IOnUpdate[] update = update.OrderByDescending(h => h.Order).ToArray();
+    private IOnUpdate[]? updateHooks;
 
-    private readonly IOnPostUpdate[] postUpdate = postUpdate.OrderByDescending(h => h.Order).ToArray();
+    private IOnPostUpdate[]? postUpdateHooks;
+
+    private IOnPreUpdate[] PreUpdateHooks =>
+        preUpdateHooks ??= services.GetServices<IOnPreUpdate>().OrderByDescending(h => h.Order).ToArray();
+
+    private IOnUpdate[] UpdateHooks =>
+        updateHooks ??= services.GetServices<IOnUpdate>().OrderByDescending(h => h.Order).ToArray();
+
+    private IOnPostUpdate[] PostUpdateHooks =>
+        postUpdateHooks ??= services.GetServices<IOnPostUpdate>().OrderByDescending(h => h.Order).ToArray();
 
     public override int Count
     {
-        get => preUpdate.Length + update.Length + postUpdate.Length;
+        get => (preUpdateHooks?.Length ?? 0) + (updateHooks?.Length ?? 0) + (postUpdateHooks?.Length ?? 0);
     }
+
+    private bool subscribed;
 
     public override void Start()
     {
-        if (Count == 0)
+        var preUpdate = PreUpdateHooks;
+        var update = UpdateHooks;
+        var postUpdate = PostUpdateHooks;
+
+        if (preUpdate.Length + update.Length + postUpdate.Length == 0)
         {
             return;
         }
 
-        framework.Update += Update;
+        framework.Update += OnFrameworkUpdate;
+        subscribed = true;
     }
 
     public override void Stop()
     {
-        if (Count == 0)
+        if (!subscribed)
         {
             return;
         }
 
-        framework.Update -= Update;
+        framework.Update -= OnFrameworkUpdate;
+        subscribed = false;
     }
 
-    private void Update(IFramework _)
+    private void OnFrameworkUpdate(IFramework _)
     {
-        SafeEach(preUpdate.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "pre_update")), h => h.PreUpdate());
-        SafeEach(update.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "update")), h => h.Update());
-        SafeEach(postUpdate.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "post_update")), h => h.PostUpdate());
+        SafeEach(PreUpdateHooks.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "pre_update")), h => h.PreUpdate());
+        SafeEach(UpdateHooks.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "update")), h => h.Update());
+        SafeEach(PostUpdateHooks.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "post_update")), h => h.PostUpdate());
     }
 }

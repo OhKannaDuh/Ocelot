@@ -1,11 +1,11 @@
-﻿using Ocelot.Lifecycle.Hosts;
+using Ocelot.Lifecycle.Hosts;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle;
 
 public class EventManager(IEnumerable<IEventHost> hosts, ILogger<EventManager> logger) : IDisposable
 {
-    private readonly IEventHost[] hosts = hosts.Where(h => h.Count > 0).OrderByDescending(h => h.Order).ToArray();
+    private readonly IEventHost[] hosts = hosts.OrderByDescending(h => h.Order).ToArray();
 
     private bool disposed = false;
 

@@ -4,6 +4,7 @@ using Ocelot.Chain.Extensions;
 using Ocelot.Chain.Middleware.Chain;
 using Ocelot.Chain.Middleware.Step;
 using Ocelot.Chain.Steps;
+using Ocelot.Ipc.VNavmesh;
 using Ocelot.Services.Logger;
 using Ocelot.Services.Pathfinding;
 using Ocelot.Services.PlayerState;
@@ -14,10 +15,15 @@ public class
     PathfindToChain(
     IChainFactory chains,
     IPathfinder pathfinder,
+    IVNavmeshIpc vnav,
     IObjectTable objects,
     ILogger<PathfindToChain> logger
 ) : ChainRecipe<PathfinderConfig>(chains)
 {
+    private static readonly TimeSpan NavmeshReadyTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan MovementStartTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan MovementCompleteTimeout = TimeSpan.FromMinutes(5);
+
     public override string Name { get; } = "Pathfind to Chain";
 
     protected override IChain Compose(IChain chain, PathfinderConfig pathfinderConfig)
@@ -32,22 +38,40 @@ public class
             .UseStepMiddleware<RunOnMainThreadMiddleware>()
             .UseStepMiddleware<LogStepMiddleware>()
             .UseStepMiddleware<RunOnMainThreadMiddleware>()
+            .Then(new WaitUntilStep(_ => new ValueTask<bool>(vnav.IsNavmeshReady()), NavmeshReadyTimeout, name: "Wait for navmesh"))
             .Then(_ =>
             {
-                if (Vector3.Distance(PlayerPosition(), pathfinderConfig.To()) < pathfinderConfig.DistanceThreshold)
+                if (IsAtDestination(pathfinderConfig))
                 {
                     return new ValueTask<StepResult>(StepResult.Break());
                 }
 
                 return new ValueTask<StepResult>(StepResult.Success());
             }, "Distance Check")
-            .Then(_ => pathfinder.PathfindAndMoveTo(pathfinderConfig), "Start Pathfinder")
-            .Then(new WaitUntilStep(_ => new ValueTask<bool>(pathfinder.GetState() != PathfindingState.Idle), TimeSpan.MaxValue))
-            .Then(new WaitUntilStep(_ => new ValueTask<bool>(pathfinder.GetState() == PathfindingState.Idle), TimeSpan.MaxValue))
             .Then(_ =>
             {
-                if (Vector3.Distance(PlayerPosition(), pathfinderConfig.To()) > pathfinderConfig.DistanceThreshold)
+                pathfinder.Stop();
+                pathfinder.PathfindAndMoveTo(pathfinderConfig);
+                return StepResult.Success();
+            }, "Start Pathfinder")
+            .Then(new WaitUntilStep(_ => new ValueTask<bool>(IsAtDestination(pathfinderConfig) || pathfinder.GetState() != PathfindingState.Idle),
+                MovementStartTimeout,
+                name: "Wait for movement start"))
+            .Then(new WaitUntilStep(_ => new ValueTask<bool>(IsAtDestination(pathfinderConfig) || pathfinder.GetState() == PathfindingState.Idle),
+                MovementCompleteTimeout,
+                name: "Wait for movement complete"))
+            .Then(_ =>
+            {
+                if (!IsAtDestination(pathfinderConfig))
                 {
+                    logger.Warning(
+                        "Pathfind did not reach destination. Distance={Distance:F2}, State={State}, VnavRunning={Running}, VnavPathfinding={Pathfinding}, NavmeshReady={NavmeshReady}",
+                        DistanceToDestination(pathfinderConfig),
+                        pathfinder.GetState(),
+                        vnav.IsRunning(),
+                        vnav.IsPathfinding(),
+                        vnav.IsNavmeshReady());
+
                     return new ValueTask<StepResult>(StepResult.Failure("Did not reach destination"));
                 }
 
@@ -58,5 +82,20 @@ public class
     private Vector3 PlayerPosition()
     {
         return objects.LocalPlayer?.Position ?? Vector3.NaN;
+    }
+
+    private float ArrivalThreshold(PathfinderConfig config)
+    {
+        return config.DistanceThreshold > 0f ? config.DistanceThreshold : 2f;
+    }
+
+    private float DistanceToDestination(PathfinderConfig config)
+    {
+        return Vector3.Distance(PlayerPosition(), config.To());
+    }
+
+    private bool IsAtDestination(PathfinderConfig config)
+    {
+        return DistanceToDestination(config) <= ArrivalThreshold(config);
     }
 }

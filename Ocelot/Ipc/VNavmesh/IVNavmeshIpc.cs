@@ -6,6 +6,8 @@ public interface IVNavmeshIpc
 {
     bool IsReady();
 
+    bool IsNavmeshReady();
+
     bool IsPathfinding();
 
     bool IsRunning();

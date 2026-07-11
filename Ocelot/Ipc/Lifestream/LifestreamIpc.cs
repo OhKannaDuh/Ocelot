@@ -14,7 +14,14 @@ public class LifestreamIpc(IDalamudPluginInterface plugin) : ILifestreamIpc
 
     public bool IsBusy()
     {
-        return isBusy.InvokeFunc();
+        try
+        {
+            return isBusy.InvokeFunc();
+        }
+        catch
+        {
+            return true;
+        }
     }
 
     public uint GetActiveCustomAetheryte()
@@ -24,6 +31,13 @@ public class LifestreamIpc(IDalamudPluginInterface plugin) : ILifestreamIpc
 
     public bool AethernetTeleportByPlaceNameId(uint placeNameRowId)
     {
-        return aethernetTeleportByPlaceNameId.InvokeFunc(placeNameRowId);
+        try
+        {
+            return aethernetTeleportByPlaceNameId.InvokeFunc(placeNameRowId);
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
