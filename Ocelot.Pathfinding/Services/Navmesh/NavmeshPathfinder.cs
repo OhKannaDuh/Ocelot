@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Ocelot.Ipc.VNavmesh;
 using Ocelot.Services.ClientState;
 using Ocelot.Services.Pathfinding;
