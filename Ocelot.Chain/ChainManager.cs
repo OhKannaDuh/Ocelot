@@ -46,6 +46,20 @@ public class ChainManager(
         }
     }
 
+    public void CancelWhere(Func<string, bool> predicate)
+    {
+        foreach (var run in active.Values)
+        {
+            if (!predicate(run.Name))
+            {
+                continue;
+            }
+
+            logger.Debug("Cancelling task {0}", run.Name);
+            run.Cts.Cancel();
+        }
+    }
+
     public void Update()
     {
         foreach (var (id, run) in active.ToArray())
