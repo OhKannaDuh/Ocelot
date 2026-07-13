@@ -4,7 +4,7 @@ namespace Ocelot.Ipc.VNavmesh;
 
 public interface IVNavmeshIpc
 {
-    bool IsReady();
+    bool IsAvailable();
 
     bool IsNavmeshReady();
 

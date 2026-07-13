@@ -1,11 +1,13 @@
 using System.Numerics;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
+using Ocelot.Services.PluginStatus;
 
 namespace Ocelot.Ipc.VNavmesh;
 
-public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
+public class VNavmeshIpc(IPluginStatus pluginStatus, IDalamudPluginInterface plugin) : IVNavmeshIpc
 {
+    private const string PluginName = "vnavmesh";
     private readonly ICallGateSubscriber<bool> navIsReady = plugin.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
 
     private readonly ICallGateSubscriber<bool> isPathfinding = plugin.GetIpcSubscriber<bool>("vnavmesh.Nav.PathfindInProgress");
@@ -15,11 +17,11 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
 
     private readonly ICallGateSubscriber<bool> isRunning = plugin.GetIpcSubscriber<bool>("vnavmesh.Path.IsRunning");
 
-    private readonly ICallGateSubscriber<Vector3, bool, object> pathfindAndMoveTo =
-        plugin.GetIpcSubscriber<Vector3, bool, object>("vnavmesh.SimpleMove.PathfindAndMoveTo");
+    private readonly ICallGateSubscriber<Vector3, bool, bool> pathfindAndMoveTo =
+        plugin.GetIpcSubscriber<Vector3, bool, bool>("vnavmesh.SimpleMove.PathfindAndMoveTo");
 
-    private readonly ICallGateSubscriber<Vector3, bool, float, object> pathfindAndMoveCloseTo =
-        plugin.GetIpcSubscriber<Vector3, bool, float, object>("vnavmesh.SimpleMove.PathfindAndMoveCloseTo");
+    private readonly ICallGateSubscriber<Vector3, bool, float, bool> pathfindAndMoveCloseTo =
+        plugin.GetIpcSubscriber<Vector3, bool, float, bool>("vnavmesh.SimpleMove.PathfindAndMoveCloseTo");
 
     private readonly ICallGateSubscriber<Vector3, bool, float, Vector3?> findPointOnFloor =
         plugin.GetIpcSubscriber<Vector3, bool, float, Vector3?>("vnavmesh.Query.Mesh.PointOnFloor");
@@ -43,87 +45,152 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
     private readonly ICallGateSubscriber<List<Vector3>, bool, object> followPath =
         plugin.GetIpcSubscriber<List<Vector3>, bool, object>("vnavmesh.Path.MoveTo");
 
-    public bool IsReady()
+    public bool IsAvailable()
     {
-        return pathfind.HasFunction
-               && pathfindAndMoveTo.HasFunction
-               && pathfindCancelable.HasFunction
-               && stop.HasFunction;
+        return pluginStatus.IsLoaded(PluginName);
     }
 
     public bool IsNavmeshReady()
     {
-        return IsReady() && navIsReady.HasFunction && navIsReady.InvokeFunc();
-    }
-
-    public bool IsPathfinding()
-    {
-        if (!IsReady())
+        if (!IsAvailable() || !navIsReady.HasFunction)
         {
             return false;
         }
 
-        if (simpleMovePathfindInProgress.HasFunction && simpleMovePathfindInProgress.InvokeFunc())
+        try
         {
-            return true;
+            return navIsReady.InvokeFunc();
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public bool IsPathfinding()
+    {
+        if (!IsAvailable())
+        {
+            return false;
         }
 
-        return isPathfinding.HasFunction && isPathfinding.InvokeFunc();
+        try
+        {
+            if (simpleMovePathfindInProgress.HasFunction && simpleMovePathfindInProgress.InvokeFunc())
+            {
+                return true;
+            }
+
+            return isPathfinding.HasFunction && isPathfinding.InvokeFunc();
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public bool IsRunning()
     {
-        return IsReady() && isRunning.HasFunction && isRunning.InvokeFunc();
+        if (!IsAvailable())
+        {
+            return false;
+        }
+
+        try
+        {
+            return isRunning.HasFunction && isRunning.InvokeFunc();
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public Task<List<Vector3>> Pathfind(Vector3 start, Vector3 end, bool fly, CancellationToken? cancel = null)
     {
-        if (!IsReady())
+        if (!pathfind.HasFunction)
         {
             return Task.FromResult(new List<Vector3>());
         }
 
-        return cancel != null ? pathfindCancelable.InvokeFunc(start, end, fly, cancel.Value) : pathfind.InvokeFunc(start, end, fly);
+        try
+        {
+            return cancel != null
+                ? pathfindCancelable.InvokeFunc(start, end, fly, cancel.Value)
+                : pathfind.InvokeFunc(start, end, fly);
+        }
+        catch
+        {
+            return Task.FromResult(new List<Vector3>());
+        }
     }
 
     public Task<List<Vector3>> Pathfind(Vector3 start, Vector3 end, bool fly, float range)
     {
-        if (!IsReady())
+        if (!pathfindWithTolerance.HasFunction)
         {
             return Task.FromResult(new List<Vector3>());
         }
 
-        return pathfindWithTolerance.InvokeFunc(start, end, fly, range);
+        try
+        {
+            return pathfindWithTolerance.InvokeFunc(start, end, fly, range);
+        }
+        catch
+        {
+            return Task.FromResult(new List<Vector3>());
+        }
     }
 
     public void FollowPath(List<Vector3> path, bool fly)
     {
-        if (!IsReady())
+        if (!followPath.HasFunction)
         {
             return;
         }
 
-        followPath.InvokeAction(path, fly);
+        try
+        {
+            followPath.InvokeAction(path, fly);
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     public void PathfindAndMoveTo(Vector3 destination, bool shouldFly)
     {
-        if (!IsReady())
+        if (!pathfindAndMoveTo.HasFunction)
         {
             return;
         }
 
-        pathfindAndMoveTo.InvokeFunc(destination, shouldFly);
+        try
+        {
+            pathfindAndMoveTo.InvokeFunc(destination, shouldFly);
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     public void PathfindAndMoveCloseTo(Vector3 destination, bool shouldFly, float range)
     {
-        if (!IsReady())
+        if (!pathfindAndMoveCloseTo.HasFunction)
         {
             return;
         }
 
-        pathfindAndMoveCloseTo.InvokeFunc(destination, shouldFly, range);
+        try
+        {
+            pathfindAndMoveCloseTo.InvokeFunc(destination, shouldFly, range);
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     public Vector3 FindPointOnFloor(Vector3 origin, float halfExtentXZ)
@@ -133,7 +200,14 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
             return origin;
         }
 
-        return findPointOnFloor.InvokeFunc(origin, false, halfExtentXZ) ?? origin;
+        try
+        {
+            return findPointOnFloor.InvokeFunc(origin, false, halfExtentXZ) ?? origin;
+        }
+        catch
+        {
+            return origin;
+        }
     }
 
     public Vector3 FindPointOnMesh(Vector3 origin, float halfExtentXZ, float halfExtentY)
@@ -143,7 +217,14 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
             return origin;
         }
 
-        return findPointOnMesh.InvokeFunc(origin, halfExtentXZ, halfExtentY) ?? origin;
+        try
+        {
+            return findPointOnMesh.InvokeFunc(origin, halfExtentXZ, halfExtentY) ?? origin;
+        }
+        catch
+        {
+            return origin;
+        }
     }
 
     public List<Vector3> GetActiveNodes()
@@ -153,7 +234,14 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
             return [];
         }
 
-        return listWaypoints.InvokeFunc();
+        try
+        {
+            return listWaypoints.InvokeFunc();
+        }
+        catch
+        {
+            return [];
+        }
     }
 
     public void Stop()
@@ -163,6 +251,13 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
             return;
         }
 
-        stop.InvokeAction();
+        try
+        {
+            stop.InvokeAction();
+        }
+        catch
+        {
+            // ignored
+        }
     }
 }

@@ -15,13 +15,12 @@ public class NavmeshPathfinder(
 {
     public PathfindingState GetState()
     {
-        if (!nav.IsReady())
+        if (!nav.IsAvailable())
         {
             return PathfindingState.Idle;
         }
 
         if (nav.IsPathfinding())
-
         {
             return PathfindingState.Pathfinding;
         }
@@ -36,7 +35,7 @@ public class NavmeshPathfinder(
 
     public void PathfindAndMoveTo(PathfinderConfig config)
     {
-        if (!nav.IsReady() || !nav.IsNavmeshReady())
+        if (!nav.IsNavmeshReady())
         {
             return;
         }
@@ -64,7 +63,7 @@ public class NavmeshPathfinder(
 
     public async Task<Path> Pathfind(PathfinderConfig config)
     {
-        if (!nav.IsReady())
+        if (!nav.IsNavmeshReady())
         {
             return new Path([], config, this);
         }
@@ -88,7 +87,7 @@ public class NavmeshPathfinder(
 
     public void FollowPath(Path path)
     {
-        if (!nav.IsReady())
+        if (!nav.IsNavmeshReady())
         {
             return;
         }
@@ -103,7 +102,7 @@ public class NavmeshPathfinder(
 
     public void Stop()
     {
-        if (!nav.IsReady())
+        if (!nav.IsAvailable())
         {
             return;
         }
