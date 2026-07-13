@@ -31,7 +31,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         collection.LoadOcelotCore();
         collection.AutoDiscover();
 
-        Boostrap(collection);
+        Bootstrap(collection);
 
         logger.Debug("KA");
         services = collection.Build();
@@ -46,7 +46,7 @@ public abstract class OcelotPlugin : IDalamudPlugin
         logger.Debug("MB");
     }
 
-    protected abstract void Boostrap(IServiceCollection collection);
+    protected abstract void Bootstrap(IServiceCollection collection);
 
     public void Dispose()
     {

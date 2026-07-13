@@ -27,12 +27,12 @@ public sealed class Plugin(IDalamudPluginInterface plugin) : OcelotPlugin(plugin
 ...
 ```
 
-`OcelotPlugin` is where our DI container gets set up. Your plugin _should_ implement `void Boostrap(IServiceCollection services)` to register your own types and load any Ocelot modules you need (more on modules in the wiki).
+`OcelotPlugin` is where our DI container gets set up. Your plugin _should_ implement `void Bootstrap(IServiceCollection services)` to register your own types and load any Ocelot modules you need (more on modules in the wiki).
 
 ```cs
 using Microsoft.Extensions.DependencyInjection;
 ...
-protected override void Boostrap(IServiceCollection services)
+protected override void Bootstrap(IServiceCollection services)
 {
     services.AddSingleton<MyAwesomeService>();
     services.AddSingleton<ILoggerService, MyCustomLogger>();
