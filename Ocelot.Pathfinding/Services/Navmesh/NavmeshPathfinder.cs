@@ -71,13 +71,19 @@ public class NavmeshPathfinder(
         Task<List<Vector3>> task;
 
         var start = config.From ?? player.GetPosition();
+        var destination = config.To();
+        if (config.ShouldSnapToFloor)
+        {
+            destination = nav.FindPointOnFloor(destination, config.FloorSnapExtents);
+        }
+
         if (config.DistanceThreshold > 0f)
         {
-            task = nav.Pathfind(start, config.To(), config.AllowFlying, config.DistanceThreshold);
+            task = nav.Pathfind(start, destination, config.AllowFlying, config.DistanceThreshold);
         }
         else
         {
-            task = nav.Pathfind(start, config.To(), config.AllowFlying);
+            task = nav.Pathfind(start, destination, config.AllowFlying);
         }
 
         var points = await task.ConfigureAwait(false);

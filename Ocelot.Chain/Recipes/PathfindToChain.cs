@@ -4,10 +4,10 @@ using Ocelot.Chain.Extensions;
 using Ocelot.Chain.Middleware.Chain;
 using Ocelot.Chain.Middleware.Step;
 using Ocelot.Chain.Steps;
+using Ocelot.Extensions;
 using Ocelot.Ipc.VNavmesh;
 using Ocelot.Services.Logger;
 using Ocelot.Services.Pathfinding;
-using Ocelot.Services.PlayerState;
 
 namespace Ocelot.Chain.Recipes;
 
@@ -37,7 +37,6 @@ public class
             })
             .UseStepMiddleware<RunOnMainThreadMiddleware>()
             .UseStepMiddleware<LogStepMiddleware>()
-            .UseStepMiddleware<RunOnMainThreadMiddleware>()
             .Then(new WaitUntilStep(_ => new ValueTask<bool>(vnav.IsNavmeshReady()), NavmeshReadyTimeout, name: "Wait for navmesh"))
             .Then(_ =>
             {
@@ -57,7 +56,7 @@ public class
             .Then(new WaitUntilStep(_ => new ValueTask<bool>(IsAtDestination(pathfinderConfig) || pathfinder.GetState() != PathfindingState.Idle),
                 MovementStartTimeout,
                 name: "Wait for movement start"))
-            .Then(new WaitUntilStep(_ => new ValueTask<bool>(IsAtDestination(pathfinderConfig) || pathfinder.GetState() == PathfindingState.Idle),
+            .Then(new WaitUntilStep(_ => new ValueTask<bool>(IsAtDestination(pathfinderConfig)),
                 MovementCompleteTimeout,
                 name: "Wait for movement complete"))
             .Then(_ =>
@@ -89,9 +88,32 @@ public class
         return config.DistanceThreshold > 0f ? config.DistanceThreshold : 2f;
     }
 
+    /// <summary>
+    ///     Match the point PathfindAndMoveTo actually moves toward (including floor snap).
+    /// </summary>
+    private Vector3 ResolvedDestination(PathfinderConfig config)
+    {
+        Vector3 destination = config.To();
+        if (config.ShouldSnapToFloor)
+        {
+            destination = pathfinder.SnapToMesh(destination, config.FloorSnapExtents);
+        }
+
+        return destination;
+    }
+
     private float DistanceToDestination(PathfinderConfig config)
     {
-        return Vector3.Distance(PlayerPosition(), config.To());
+        Vector3 destination = ResolvedDestination(config);
+        Vector3 player = PlayerPosition();
+
+        // Ground movement: ignore bad destination Y (authored points are often slightly underground).
+        if (!config.AllowFlying)
+        {
+            return player.Distance2D(destination);
+        }
+
+        return Vector3.Distance(player, destination);
     }
 
     private bool IsAtDestination(PathfinderConfig config)

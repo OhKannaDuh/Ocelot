@@ -26,7 +26,10 @@ public class WaitUntilStep(
 
     public async Task<StepResult> ExecuteAsync(IChainContext context)
     {
-        var mainThread = context.ServiceProvider.GetService<IMainThread>();
+        context.CancellationToken.ThrowIfCancellationRequested();
+
+        IMainThread? mainThread = TryGetMainThread(context);
+
         DateTimeOffset? deadline = null;
         if (timeout > TimeSpan.Zero)
         {
@@ -50,6 +53,18 @@ public class WaitUntilStep(
             }
 
             await Task.Delay(poll, context.CancellationToken);
+        }
+    }
+
+    private static IMainThread? TryGetMainThread(IChainContext context)
+    {
+        try
+        {
+            return context.ServiceProvider.GetService<IMainThread>();
+        }
+        catch (ObjectDisposedException)
+        {
+            throw new OperationCanceledException("Service provider disposed.", context.CancellationToken);
         }
     }
 

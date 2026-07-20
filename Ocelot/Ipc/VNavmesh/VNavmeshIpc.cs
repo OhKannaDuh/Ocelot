@@ -246,7 +246,7 @@ public class VNavmeshIpc(IPluginStatus pluginStatus, IDalamudPluginInterface plu
 
     public void Stop()
     {
-        if (!stop.HasFunction)
+        if (!IsAvailable() || !stop.HasAction)
         {
             return;
         }
