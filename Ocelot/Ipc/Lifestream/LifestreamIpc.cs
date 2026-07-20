@@ -26,7 +26,14 @@ public class LifestreamIpc(IDalamudPluginInterface plugin) : ILifestreamIpc
 
     public uint GetActiveCustomAetheryte()
     {
-        return getActiveCustomAetheryte.InvokeFunc();
+        try
+        {
+            return getActiveCustomAetheryte.InvokeFunc();
+        }
+        catch
+        {
+            return 0;
+        }
     }
 
     public bool AethernetTeleportByPlaceNameId(uint placeNameRowId)
