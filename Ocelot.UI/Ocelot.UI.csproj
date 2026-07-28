@@ -1,4 +1,5 @@
-﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">    <PropertyGroup>
+﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+    <PropertyGroup>
         <PackageId>FFXIVOcelot.UI</PackageId>
     </PropertyGroup>
     <ItemGroup>
