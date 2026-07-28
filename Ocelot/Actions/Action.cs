@@ -11,24 +11,24 @@ public unsafe class Action(ActionType type, uint id)
     public float GetRecastTime()
     {
         var manager = ActionManager.Instance();
-        var recast = manager->GetRecastTime(type, id);
-        var elapsed = manager->GetRecastTimeElapsed(type, id);
+        var recast = manager->GetRecastTime(Type, Id);
+        var elapsed = manager->GetRecastTimeElapsed(Type, Id);
 
         return recast - elapsed;
     }
 
     public bool CanCast()
     {
-        return GetRecastTime() <= 0f && ActionManager.Instance()->GetActionStatus(type, id) <= 0f;
+        return GetRecastTime() <= 0f && ActionManager.Instance()->GetActionStatus(Type, Id) <= 0f;
     }
 
     public bool Cast()
     {
-        return ActionManager.Instance()->UseAction(type, id);
+        return ActionManager.Instance()->UseAction(Type, Id);
     }
 
     public bool IsValid()
     {
-        return id != 0 && type != ActionType.None;
+        return Id != 0 && Type != ActionType.None;
     }
 }

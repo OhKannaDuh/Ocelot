@@ -10,7 +10,7 @@ public class ChainManager(
     IChainFactory chains,
     IServiceProvider services,
     ILogger<ChainManager> logger
-) : IChainManager, IOnUpdate
+) : IChainManager, IOnUpdate, IOnStop
 {
     private readonly ConcurrentDictionary<Guid, ActiveChainRun> active = new();
 
@@ -41,6 +41,25 @@ public class ChainManager(
     {
         foreach (var run in active.Values)
         {
+            logger.Debug("Cancelling task {0}", run.Name);
+            run.Cts.Cancel();
+        }
+    }
+
+    public void OnStop()
+    {
+        CancelAll();
+    }
+
+    public void CancelWhere(Func<string, bool> predicate)
+    {
+        foreach (var run in active.Values)
+        {
+            if (!predicate(run.Name))
+            {
+                continue;
+            }
+
             logger.Debug("Cancelling task {0}", run.Name);
             run.Cts.Cancel();
         }

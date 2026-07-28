@@ -2,24 +2,28 @@
 
 public abstract class ChainRecipe<TArgs>(IChainFactory chains) : IChainRecipe<TArgs>
 {
+    protected IChainFactory Chains { get; } = chains;
+
     public abstract string Name { get; }
 
     protected abstract IChain Compose(IChain chain, TArgs path);
 
     public IChain Build(TArgs args)
     {
-        return Compose(chains.Create(Name), args);
+        return Compose(Chains.Create(Name), args);
     }
 }
 
 public abstract class ChainRecipe(IChainFactory chains) : IChainRecipe
 {
+    protected IChainFactory Chains { get; } = chains;
+
     public abstract string Name { get; }
 
     protected abstract IChain Compose(IChain chain);
 
     public IChain Build()
     {
-        return Compose(chains.Create(Name));
+        return Compose(Chains.Create(Name));
     }
 }

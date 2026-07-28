@@ -1,11 +1,13 @@
-﻿using Ocelot.Services.Logger;
+using Microsoft.Extensions.DependencyInjection;
+using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 
-public class StopHost(IEnumerable<IOnStop> stop, ILogger<StopHost> logger) : BaseEventHost(logger), IOrderedHook
+public class StopHost(IServiceProvider services, ILogger<StopHost> logger) : BaseEventHost(logger), IOrderedHook
 {
     // This is in opposite order, so teardown happens in reverse when compared to start up
-    private readonly IOnStop[] stop = stop.OrderBy(h => h.Order).ToArray();
+    private readonly Lazy<IOnStop[]> stopHooks = new(() =>
+        services.GetServices<IOnStop>().OrderBy(h => h.Order).ToArray());
 
     public int Order
     {
@@ -14,7 +16,7 @@ public class StopHost(IEnumerable<IOnStop> stop, ILogger<StopHost> logger) : Bas
 
     public override int Count
     {
-        get => stop.Length;
+        get => stopHooks.IsValueCreated ? stopHooks.Value.Length : 0;
     }
 
     public override void Start()
@@ -23,6 +25,6 @@ public class StopHost(IEnumerable<IOnStop> stop, ILogger<StopHost> logger) : Bas
 
     public override void Stop()
     {
-        SafeEach(stop, h => h.OnStop());
+        SafeEach(stopHooks.Value, h => h.OnStop());
     }
 }

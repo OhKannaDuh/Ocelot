@@ -1,4 +1,7 @@
-﻿namespace Ocelot.Chain.Steps;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Ocelot.Chain.Thread;
+
+namespace Ocelot.Chain.Steps;
 
 public class WaitUntilStep(
     Func<IChainContext, ValueTask<bool>> predicate,
@@ -23,6 +26,10 @@ public class WaitUntilStep(
 
     public async Task<StepResult> ExecuteAsync(IChainContext context)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
+
+        IMainThread? mainThread = TryGetMainThread(context);
+
         DateTimeOffset? deadline = null;
         if (timeout > TimeSpan.Zero)
         {
@@ -35,7 +42,7 @@ public class WaitUntilStep(
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            if (await predicate(context))
+            if (await EvaluateAsync(context, mainThread))
             {
                 return StepResult.Success();
             }
@@ -47,5 +54,27 @@ public class WaitUntilStep(
 
             await Task.Delay(poll, context.CancellationToken);
         }
+    }
+
+    private static IMainThread? TryGetMainThread(IChainContext context)
+    {
+        try
+        {
+            return context.ServiceProvider.GetService<IMainThread>();
+        }
+        catch (ObjectDisposedException)
+        {
+            throw new OperationCanceledException("Service provider disposed.", context.CancellationToken);
+        }
+    }
+
+    private async ValueTask<bool> EvaluateAsync(IChainContext context, IMainThread? mainThread)
+    {
+        if (mainThread is { IsMainThread: false })
+        {
+            return await mainThread.InvokeAsync(async () => await predicate(context), context.CancellationToken);
+        }
+
+        return await predicate(context);
     }
 }

@@ -3,6 +3,7 @@ using Dalamud.Plugin;
 using Ocelot.Lifecycle;
 using Ocelot.Services.Logger;
 using Ocelot.Windows;
+using IWindow = Ocelot.Windows.IWindow;
 
 namespace Ocelot.Services.WindowManager;
 

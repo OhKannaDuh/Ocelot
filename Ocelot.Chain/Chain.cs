@@ -82,6 +82,10 @@ public class Chain(string name, IServiceProvider services) : IChain
         {
             return ChainResult.Canceled();
         }
+        catch (ObjectDisposedException)
+        {
+            return ChainResult.Canceled();
+        }
         catch (Exception ex)
         {
             return ChainResult.Failure(ex);
@@ -144,6 +148,10 @@ public class Chain(string name, IServiceProvider services) : IChain
                 }
             }
             catch (OperationCanceledException)
+            {
+                return ChainResult.Canceled();
+            }
+            catch (ObjectDisposedException)
             {
                 return ChainResult.Canceled();
             }

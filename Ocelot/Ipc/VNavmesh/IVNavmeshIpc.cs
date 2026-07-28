@@ -1,9 +1,13 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 namespace Ocelot.Ipc.VNavmesh;
 
 public interface IVNavmeshIpc
 {
+    bool IsAvailable();
+
+    bool IsNavmeshReady();
+
     bool IsPathfinding();
 
     bool IsRunning();

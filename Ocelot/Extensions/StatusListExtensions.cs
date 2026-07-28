@@ -6,16 +6,11 @@ public static class StatusListExtensions
 {
     extension(StatusList self)
     {
-        public bool HasAny(params uint[] ids)
+        public bool HasAny(uint id)
         {
             foreach (var s in self)
             {
-                if (s.StatusId == 0)
-                {
-                    continue;
-                }
-
-                if (ids.Contains(s.StatusId))
+                if (s.StatusId != 0 && s.StatusId == id)
                 {
                     return true;
                 }
@@ -23,6 +18,20 @@ public static class StatusListExtensions
 
             return false;
         }
+
+        public bool HasAny(params uint[] ids)
+        {
+            foreach (var s in self)
+            {
+                if (s.StatusId != 0 && ids.Contains(s.StatusId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
 
         public bool Has(uint id)
         {

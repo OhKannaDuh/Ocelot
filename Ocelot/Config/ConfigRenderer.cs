@@ -105,7 +105,12 @@ public class ConfigRenderer : IConfigRenderer
                 uConfig.Tooltip(translator);
             }
 
-            foreach (var (key, gConfigs) in grouped)
+            foreach (var (key, gConfigs) in grouped.OrderBy(kvp =>
+                         kvp.Value
+                             .Select(c => c.GetType().GetCustomAttribute<ConfigGroupAttribute>()?.GroupOrder ?? 0)
+                             .DefaultIfEmpty(0)
+                             .Min())
+                     .ThenBy(kvp => kvp.Key))
             {
                 ImGui.Text(translator.T($"config_group.{key}.label"));
                 ImGui.Indent(16);

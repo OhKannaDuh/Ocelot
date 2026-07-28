@@ -1,10 +1,12 @@
-﻿using Ocelot.Services.Logger;
+using Microsoft.Extensions.DependencyInjection;
+using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 
-public class LoadHost(IEnumerable<IOnLoad> load, ILogger<LoadHost> logger) : BaseEventHost(logger), IOrderedHook
+public class LoadHost(IServiceProvider services, ILogger<LoadHost> logger) : BaseEventHost(logger), IOrderedHook
 {
-    private readonly IOnLoad[] load = load.OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnLoad[]> loadHooks = new(() =>
+        services.GetServices<IOnLoad>().OrderByDescending(h => h.Order).ToArray());
 
     public int Order
     {
@@ -13,18 +15,18 @@ public class LoadHost(IEnumerable<IOnLoad> load, ILogger<LoadHost> logger) : Bas
 
     public override int Count
     {
-        get => load.Length;
+        get => loadHooks.IsValueCreated ? loadHooks.Value.Length : 0;
     }
 
     public override void Start()
     {
-        foreach (var hook in load)
+        foreach (var hook in loadHooks.Value)
         {
             try
             {
                 hook.OnLoad();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Logger not initialized on load
             }

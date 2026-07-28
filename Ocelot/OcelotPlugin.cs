@@ -31,14 +31,14 @@ public abstract class OcelotPlugin : IDalamudPlugin
         collection.LoadOcelotCore();
         collection.AutoDiscover();
 
-        Boostrap(collection);
+        Bootstrap(collection);
 
         services = collection.Build();
         host = services.GetRequiredService<EventManager>();
         host.Start();
     }
 
-    protected abstract void Boostrap(IServiceCollection collection);
+    protected abstract void Bootstrap(IServiceCollection collection);
 
     public void Dispose()
     {

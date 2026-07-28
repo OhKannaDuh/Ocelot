@@ -1,12 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <PackageId>FFXIVOcelot.ECommons</PackageId>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
-        <PackageReference Include="ECommons" Version="3.1.0.10"/>
-    </ItemGroup>
-    <ItemGroup Condition="'$(DalamudLibPath)' != ''">
-        <Reference Include="Dalamud" HintPath="$(DalamudLibPath)Dalamud.dll" Private="False"/>
+        <PackageReference Include="ECommons" Version="3.2.1.16" />
     </ItemGroup>
 </Project>

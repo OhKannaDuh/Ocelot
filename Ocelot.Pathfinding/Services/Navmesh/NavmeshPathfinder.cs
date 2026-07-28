@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Ocelot.Ipc.VNavmesh;
 using Ocelot.Services.ClientState;
 using Ocelot.Services.Pathfinding;
@@ -15,8 +15,12 @@ public class NavmeshPathfinder(
 {
     public PathfindingState GetState()
     {
-        if (nav.IsPathfinding())
+        if (!nav.IsAvailable())
+        {
+            return PathfindingState.Idle;
+        }
 
+        if (nav.IsPathfinding())
         {
             return PathfindingState.Pathfinding;
         }
@@ -31,6 +35,11 @@ public class NavmeshPathfinder(
 
     public void PathfindAndMoveTo(PathfinderConfig config)
     {
+        if (!nav.IsNavmeshReady())
+        {
+            return;
+        }
+
         if (config.TerritoryType.HasValue && config.TerritoryType.Value.RowId != client.CurrentTerritoryId)
         {
             throw new InvalidOperationException("NavmeshPathfindingService does not support moving between territories");
@@ -54,16 +63,27 @@ public class NavmeshPathfinder(
 
     public async Task<Path> Pathfind(PathfinderConfig config)
     {
+        if (!nav.IsNavmeshReady())
+        {
+            return new Path([], config, this);
+        }
+
         Task<List<Vector3>> task;
 
         var start = config.From ?? player.GetPosition();
+        var destination = config.To();
+        if (config.ShouldSnapToFloor)
+        {
+            destination = nav.FindPointOnFloor(destination, config.FloorSnapExtents);
+        }
+
         if (config.DistanceThreshold > 0f)
         {
-            task = nav.Pathfind(start, config.To(), config.AllowFlying, config.DistanceThreshold);
+            task = nav.Pathfind(start, destination, config.AllowFlying, config.DistanceThreshold);
         }
         else
         {
-            task = nav.Pathfind(start, config.To(), config.AllowFlying);
+            task = nav.Pathfind(start, destination, config.AllowFlying);
         }
 
         var points = await task.ConfigureAwait(false);
@@ -73,6 +93,11 @@ public class NavmeshPathfinder(
 
     public void FollowPath(Path path)
     {
+        if (!nav.IsNavmeshReady())
+        {
+            return;
+        }
+
         nav.FollowPath(path.Nodes.ToList(), path.ShouldFly);
     }
 
@@ -83,6 +108,11 @@ public class NavmeshPathfinder(
 
     public void Stop()
     {
+        if (!nav.IsAvailable())
+        {
+            return;
+        }
+
         nav.Stop();
     }
 }

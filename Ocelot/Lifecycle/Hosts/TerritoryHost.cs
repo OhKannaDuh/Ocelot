@@ -1,24 +1,26 @@
-﻿using Dalamud.Plugin.Services;
+using Dalamud.Plugin.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 
 public class TerritoryHost(
-    IEnumerable<IOnTerritoryChanged> territoryChanged,
+    IServiceProvider services,
     IClientState clientState,
     ILogger<TerritoryHost> logger
 ) : BaseEventHost(logger)
 {
-    private readonly IOnTerritoryChanged[] territoryChanged = territoryChanged.OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnTerritoryChanged[]> territoryHooks = new(() =>
+        services.GetServices<IOnTerritoryChanged>().OrderByDescending(h => h.Order).ToArray());
 
     public override int Count
     {
-        get => territoryChanged.Length;
+        get => territoryHooks.IsValueCreated ? territoryHooks.Value.Length : 0;
     }
 
     public override void Start()
     {
-        if (Count == 0)
+        if (territoryHooks.Value.Length == 0)
         {
             return;
         }
@@ -28,7 +30,7 @@ public class TerritoryHost(
 
     public override void Stop()
     {
-        if (Count == 0)
+        if (!territoryHooks.IsValueCreated || territoryHooks.Value.Length == 0)
         {
             return;
         }
@@ -36,8 +38,8 @@ public class TerritoryHost(
         clientState.TerritoryChanged -= TerritoryChanged;
     }
 
-    private void TerritoryChanged(ushort territory)
+    private void TerritoryChanged(uint territory)
     {
-        SafeEach(territoryChanged, h => h.OnTerritoryChanged(territory));
+        SafeEach(territoryHooks.Value, h => h.OnTerritoryChanged(territory));
     }
 }

@@ -1,10 +1,12 @@
-﻿using Ocelot.Services.Logger;
+using Microsoft.Extensions.DependencyInjection;
+using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 
-public class StartHost(IEnumerable<IOnStart> start, ILogger<StartHost> logger) : BaseEventHost(logger), IOrderedHook
+public class StartHost(IServiceProvider services, ILogger<StartHost> logger) : BaseEventHost(logger), IOrderedHook
 {
-    private readonly IOnStart[] start = start.OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnStart[]> startHooks = new(() =>
+        services.GetServices<IOnStart>().OrderByDescending(h => h.Order).ToArray());
 
     public int Order
     {
@@ -13,12 +15,12 @@ public class StartHost(IEnumerable<IOnStart> start, ILogger<StartHost> logger) :
 
     public override int Count
     {
-        get => start.Length;
+        get => startHooks.IsValueCreated ? startHooks.Value.Length : 0;
     }
 
     public override void Start()
     {
-        SafeEach(start, h => h.OnStart());
+        SafeEach(startHooks.Value, h => h.OnStart());
     }
 
     public override void Stop()
