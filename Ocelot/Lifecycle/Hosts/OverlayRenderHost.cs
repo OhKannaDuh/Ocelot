@@ -10,35 +10,44 @@ public class OverlayRenderHost(
     ILogger<OverlayRenderHost> logger
 ) : BaseEventHost(logger)
 {
-    private IOnPreRender[]? preRenderHooks;
+    private readonly Lazy<IOnPreRender[]> preRenderHooks = new(() =>
+        services.GetServices<IOnPreRender>().OrderByDescending(h => h.Order).ToArray());
 
-    private IOnRender[]? renderHooks;
+    private readonly Lazy<IOnRender[]> renderHooks = new(() =>
+        services.GetServices<IOnRender>().OrderByDescending(h => h.Order).ToArray());
 
-    private IOnPostRender[]? postRenderHooks;
-
-    private IOnPreRender[] PreRenderHooks =>
-        preRenderHooks ??= services.GetServices<IOnPreRender>().OrderByDescending(h => h.Order).ToArray();
-
-    private IOnRender[] RenderHooks =>
-        renderHooks ??= services.GetServices<IOnRender>().OrderByDescending(h => h.Order).ToArray();
-
-    private IOnPostRender[] PostRenderHooks =>
-        postRenderHooks ??= services.GetServices<IOnPostRender>().OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnPostRender[]> postRenderHooks = new(() =>
+        services.GetServices<IOnPostRender>().OrderByDescending(h => h.Order).ToArray());
 
     public override int Count
     {
-        get => (preRenderHooks?.Length ?? 0) + (renderHooks?.Length ?? 0) + (postRenderHooks?.Length ?? 0);
+        get
+        {
+            var count = 0;
+            if (preRenderHooks.IsValueCreated)
+            {
+                count += preRenderHooks.Value.Length;
+            }
+
+            if (renderHooks.IsValueCreated)
+            {
+                count += renderHooks.Value.Length;
+            }
+
+            if (postRenderHooks.IsValueCreated)
+            {
+                count += postRenderHooks.Value.Length;
+            }
+
+            return count;
+        }
     }
 
     private bool subscribed;
 
     public override void Start()
     {
-        var preRender = PreRenderHooks;
-        var render = RenderHooks;
-        var postRender = PostRenderHooks;
-
-        if (preRender.Length + render.Length + postRender.Length == 0)
+        if (preRenderHooks.Value.Length + renderHooks.Value.Length + postRenderHooks.Value.Length == 0)
         {
             return;
         }
@@ -60,8 +69,8 @@ public class OverlayRenderHost(
 
     private void OnDraw()
     {
-        SafeEach(PreRenderHooks, h => h.PreRender());
-        SafeEach(RenderHooks, h => h.Render());
-        SafeEach(PostRenderHooks, h => h.PostRender());
+        SafeEach(preRenderHooks.Value, h => h.PreRender());
+        SafeEach(renderHooks.Value, h => h.Render());
+        SafeEach(postRenderHooks.Value, h => h.PostRender());
     }
 }

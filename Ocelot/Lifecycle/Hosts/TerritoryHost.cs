@@ -10,19 +10,17 @@ public class TerritoryHost(
     ILogger<TerritoryHost> logger
 ) : BaseEventHost(logger)
 {
-    private IOnTerritoryChanged[]? territoryHooks;
-
-    private IOnTerritoryChanged[] TerritoryHooks =>
-        territoryHooks ??= services.GetServices<IOnTerritoryChanged>().OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnTerritoryChanged[]> territoryHooks = new(() =>
+        services.GetServices<IOnTerritoryChanged>().OrderByDescending(h => h.Order).ToArray());
 
     public override int Count
     {
-        get => territoryHooks?.Length ?? 0;
+        get => territoryHooks.IsValueCreated ? territoryHooks.Value.Length : 0;
     }
 
     public override void Start()
     {
-        if (TerritoryHooks.Length == 0)
+        if (territoryHooks.Value.Length == 0)
         {
             return;
         }
@@ -32,7 +30,7 @@ public class TerritoryHost(
 
     public override void Stop()
     {
-        if (territoryHooks == null || territoryHooks.Length == 0)
+        if (!territoryHooks.IsValueCreated || territoryHooks.Value.Length == 0)
         {
             return;
         }
@@ -42,6 +40,6 @@ public class TerritoryHost(
 
     private void TerritoryChanged(uint territory)
     {
-        SafeEach(TerritoryHooks, h => h.OnTerritoryChanged(territory));
+        SafeEach(territoryHooks.Value, h => h.OnTerritoryChanged(territory));
     }
 }

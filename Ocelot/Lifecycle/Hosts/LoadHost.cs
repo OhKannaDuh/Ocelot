@@ -5,10 +5,8 @@ namespace Ocelot.Lifecycle.Hosts;
 
 public class LoadHost(IServiceProvider services, ILogger<LoadHost> logger) : BaseEventHost(logger), IOrderedHook
 {
-    private IOnLoad[]? loadHooks;
-
-    private IOnLoad[] LoadHooks =>
-        loadHooks ??= services.GetServices<IOnLoad>().OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnLoad[]> loadHooks = new(() =>
+        services.GetServices<IOnLoad>().OrderByDescending(h => h.Order).ToArray());
 
     public int Order
     {
@@ -17,12 +15,12 @@ public class LoadHost(IServiceProvider services, ILogger<LoadHost> logger) : Bas
 
     public override int Count
     {
-        get => loadHooks?.Length ?? 0;
+        get => loadHooks.IsValueCreated ? loadHooks.Value.Length : 0;
     }
 
     public override void Start()
     {
-        foreach (var hook in LoadHooks)
+        foreach (var hook in loadHooks.Value)
         {
             try
             {

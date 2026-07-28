@@ -12,35 +12,44 @@ public class UpdateHost(
     ILogger<UpdateHost> logger
 ) : BaseEventHost(logger)
 {
-    private IOnPreUpdate[]? preUpdateHooks;
+    private readonly Lazy<IOnPreUpdate[]> preUpdateHooks = new(() =>
+        services.GetServices<IOnPreUpdate>().OrderByDescending(h => h.Order).ToArray());
 
-    private IOnUpdate[]? updateHooks;
+    private readonly Lazy<IOnUpdate[]> updateHooks = new(() =>
+        services.GetServices<IOnUpdate>().OrderByDescending(h => h.Order).ToArray());
 
-    private IOnPostUpdate[]? postUpdateHooks;
-
-    private IOnPreUpdate[] PreUpdateHooks =>
-        preUpdateHooks ??= services.GetServices<IOnPreUpdate>().OrderByDescending(h => h.Order).ToArray();
-
-    private IOnUpdate[] UpdateHooks =>
-        updateHooks ??= services.GetServices<IOnUpdate>().OrderByDescending(h => h.Order).ToArray();
-
-    private IOnPostUpdate[] PostUpdateHooks =>
-        postUpdateHooks ??= services.GetServices<IOnPostUpdate>().OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnPostUpdate[]> postUpdateHooks = new(() =>
+        services.GetServices<IOnPostUpdate>().OrderByDescending(h => h.Order).ToArray());
 
     public override int Count
     {
-        get => (preUpdateHooks?.Length ?? 0) + (updateHooks?.Length ?? 0) + (postUpdateHooks?.Length ?? 0);
+        get
+        {
+            var count = 0;
+            if (preUpdateHooks.IsValueCreated)
+            {
+                count += preUpdateHooks.Value.Length;
+            }
+
+            if (updateHooks.IsValueCreated)
+            {
+                count += updateHooks.Value.Length;
+            }
+
+            if (postUpdateHooks.IsValueCreated)
+            {
+                count += postUpdateHooks.Value.Length;
+            }
+
+            return count;
+        }
     }
 
     private bool subscribed;
 
     public override void Start()
     {
-        var preUpdate = PreUpdateHooks;
-        var update = UpdateHooks;
-        var postUpdate = PostUpdateHooks;
-
-        if (preUpdate.Length + update.Length + postUpdate.Length == 0)
+        if (preUpdateHooks.Value.Length + updateHooks.Value.Length + postUpdateHooks.Value.Length == 0)
         {
             return;
         }
@@ -62,8 +71,8 @@ public class UpdateHost(
 
     private void OnFrameworkUpdate(IFramework _)
     {
-        SafeEach(PreUpdateHooks.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "pre_update")), h => h.PreUpdate());
-        SafeEach(UpdateHooks.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "update")), h => h.Update());
-        SafeEach(PostUpdateHooks.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "post_update")), h => h.PostUpdate());
+        SafeEach(preUpdateHooks.Value.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "pre_update")), h => h.PreUpdate());
+        SafeEach(updateHooks.Value.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "update")), h => h.Update());
+        SafeEach(postUpdateHooks.Value.Where(h => h.UpdateLimit.ShouldUpdate(gate, h, "post_update")), h => h.PostUpdate());
     }
 }
