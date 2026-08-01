@@ -171,5 +171,21 @@ public class CommandManager : IOnStart, IDisposable
     {
         translator.LanguageChanged -= ReloadCommands;
         translator.TranslationsChanged -= ReloadCommands;
+
+        foreach (var cmd in commands)
+        {
+            try
+            {
+                manager.RemoveHandler(GetCommand(cmd.Command));
+                foreach (var alias in cmd.Aliases)
+                {
+                    manager.RemoveHandler(GetCommand(alias));
+                }
+            }
+            catch
+            {
+                // ignored — Dalamud may already have torn handlers down
+            }
+        }
     }
 }

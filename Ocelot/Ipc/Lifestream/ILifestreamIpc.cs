@@ -7,4 +7,6 @@ public interface ILifestreamIpc
     uint GetActiveCustomAetheryte();
 
     bool AethernetTeleportByPlaceNameId(uint placeNameRowId);
+
+    void Abort();
 }

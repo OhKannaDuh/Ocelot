@@ -2,6 +2,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
+using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Services.Translation;
 using Ocelot.Services.Translation.Extensions;
 using Ocelot.Services.WindowManager;
@@ -16,7 +17,11 @@ public sealed class MainWindow : OcelotWindow, IMainWindow, IDisposable
 
     private readonly IConfigWindow configWindow;
 
-    public MainWindow(IMainRenderer renderer, ITranslator<MainWindow> translator, IConfigWindow configWindow)
+    public MainWindow(
+        IMainRenderer renderer,
+        ITranslator<MainWindow> translator,
+        IConfigWindow configWindow,
+        IEnumerable<IMainWindowTitleBarContributor> titleBarContributors)
         : base(translator.T("windows.main.title"))
     {
         this.renderer = renderer;
@@ -38,6 +43,11 @@ public sealed class MainWindow : OcelotWindow, IMainWindow, IDisposable
             IconOffset = new Vector2(2, 2),
             ShowTooltip = () => ImGui.SetTooltip(translator.ToggleConfigWindow()),
         });
+
+        foreach (IMainWindowTitleBarContributor contributor in titleBarContributors)
+        {
+            contributor.Contribute(TitleBarButtons);
+        }
 
         translator.LanguageChanged += UpdateWindowTitle;
         translator.TranslationsChanged += UpdateWindowTitle;

@@ -54,7 +54,7 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
         {
             if (!roots.Add(config))
             {
-                return;
+                continue;
             }
 
             BuildIndex(config, config, "", new Stack<PropertyInfo>(),
