@@ -1,4 +1,4 @@
-﻿namespace Ocelot.Ipc.BossMod;
+namespace Ocelot.Ipc.BossMod;
 
 public interface ILifestreamIpc
 {

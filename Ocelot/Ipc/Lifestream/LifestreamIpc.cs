@@ -1,4 +1,4 @@
-﻿using Dalamud.Plugin;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Ocelot.Ipc.BossMod;
 

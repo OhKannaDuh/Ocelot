@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Reflection;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
@@ -38,6 +38,11 @@ public class ConfigRenderer : IConfigRenderer
 
         foreach (var config in configs)
         {
+            if (config.GetType().GetCustomAttribute<ConfigHiddenAttribute>() != null)
+            {
+                continue;
+            }
+
             var attr = config.GetType().GetCustomAttribute<ConfigGroupAttribute>();
             if (attr == null)
             {

@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Dalamud.Game.Command;
 using Dalamud.Plugin.Services;
 using Ocelot.Extensions;
