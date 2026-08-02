@@ -103,6 +103,16 @@ public class
                 {
                     pathfinder.Stop();
                     vnav.Stop();
+
+                    // User / emergency stop left pathfinder idle — do not retry-spam.
+                    if (HasStoppedMoving())
+                    {
+                        logger.Info(
+                            "Pathfind stopped before destination (Distance={Distance:F2}) — treating as cancel",
+                            DistanceToDestination(pathfinderConfig));
+                        return new ValueTask<StepResult>(StepResult.Canceled());
+                    }
+
                     logger.Warning(
                         "Pathfind did not reach destination. Distance={Distance:F2}, State={State}, VnavRunning={Running}, VnavPathfinding={Pathfinding}, NavmeshReady={NavmeshReady}",
                         DistanceToDestination(pathfinderConfig),
