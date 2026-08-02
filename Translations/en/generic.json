@@ -6,6 +6,7 @@
   "toggle": "Toggle",
   "toggle_config_window": "Toggle Config Window",
   "emergency_stop": "Emergency Stop",
+  "toggle_illegal_mode": "Toggle Illegal Mode",
   "yes": "Yes",
   "no": "No",
   "state": "State",

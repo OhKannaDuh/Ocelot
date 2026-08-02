@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -54,7 +54,7 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
         {
             if (!roots.Add(config))
             {
-                return;
+                continue;
             }
 
             BuildIndex(config, config, "", new Stack<PropertyInfo>(),

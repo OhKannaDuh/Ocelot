@@ -1,4 +1,4 @@
-﻿namespace Ocelot.Ipc.BossMod;
+namespace Ocelot.Ipc.BossMod;
 
 public interface ILifestreamIpc
 {
@@ -7,4 +7,6 @@ public interface ILifestreamIpc
     uint GetActiveCustomAetheryte();
 
     bool AethernetTeleportByPlaceNameId(uint placeNameRowId);
+
+    void Abort();
 }

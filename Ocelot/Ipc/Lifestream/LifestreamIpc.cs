@@ -1,4 +1,4 @@
-﻿using Dalamud.Plugin;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Ocelot.Ipc.BossMod;
 
@@ -12,6 +12,8 @@ public class LifestreamIpc(IDalamudPluginInterface plugin) : ILifestreamIpc
 
     private readonly ICallGateSubscriber<uint, bool> aethernetTeleportByPlaceNameId = plugin.GetIpcSubscriber<uint, bool>("Lifestream.AethernetTeleportByPlaceNameId");
 
+    private readonly ICallGateSubscriber<object> abort = plugin.GetIpcSubscriber<object>("Lifestream.Abort");
+
     public bool IsBusy()
     {
         try
@@ -20,7 +22,8 @@ public class LifestreamIpc(IDalamudPluginInterface plugin) : ILifestreamIpc
         }
         catch
         {
-            return true;
+            // Missing/broken IPC must not look "busy" or pathing waits forever.
+            return false;
         }
     }
 
@@ -45,6 +48,18 @@ public class LifestreamIpc(IDalamudPluginInterface plugin) : ILifestreamIpc
         catch
         {
             return false;
+        }
+    }
+
+    public void Abort()
+    {
+        try
+        {
+            abort.InvokeAction();
+        }
+        catch
+        {
+            // optional
         }
     }
 }

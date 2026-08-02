@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Dalamud.Plugin.Services;
 using Ocelot.Chain.Extensions;
 using Ocelot.Chain.Middleware.Chain;
@@ -17,28 +17,28 @@ public class
     IPathfinder pathfinder,
     IVNavmeshIpc vnav,
     IObjectTable objects,
-    IFramework framework,
     ILogger<PathfindToChain> logger
 ) : ChainRecipe<PathfinderConfig>(chains)
 {
     private static readonly TimeSpan NavmeshReadyTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan MovementStartTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan MovementCompleteTimeout = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan StuckTimeout = TimeSpan.FromSeconds(20);
 
     public override string Name { get; } = "Pathfind to Chain";
 
-    private Task<Vector3>? getPlayerPositionTask = null;
-
-    private Vector3 lastPlayerPosition = Vector3.NaN;
-
     protected override IChain Compose(IChain chain, PathfinderConfig pathfinderConfig)
     {
+        DateTime lastProgressAt = DateTime.UtcNow;
+        Vector3 lastProgressPos = Vector3.NaN;
+
         return chain
             .UseMiddleware<LogChainMiddleware>()
             .UseMiddleware(new RetryChainMiddleware(logger)
             {
                 DelayMs = 500,
-                MaxAttempts = 5,
+                // Was 5 — retries after a 5m hang felt like "randomly fires again".
+                MaxAttempts = 2,
             })
             .UseStepMiddleware<RunOnMainThreadMiddleware>()
             .UseStepMiddleware<LogStepMiddleware>()
@@ -56,18 +56,63 @@ public class
             {
                 pathfinder.Stop();
                 pathfinder.PathfindAndMoveTo(pathfinderConfig);
+                lastProgressAt = DateTime.UtcNow;
+                lastProgressPos = PlayerPosition();
                 return StepResult.Success();
             }, "Start Pathfinder")
             .Then(new WaitUntilStep(_ => new ValueTask<bool>(IsAtDestination(pathfinderConfig) || pathfinder.GetState() != PathfindingState.Idle),
                 MovementStartTimeout,
                 name: "Wait for movement start"))
-            .Then(new WaitUntilStep(_ => new ValueTask<bool>(IsAtDestination(pathfinderConfig)),
+            .Then(new WaitUntilStep(_ =>
+                {
+                    if (IsAtDestination(pathfinderConfig))
+                    {
+                        return new ValueTask<bool>(true);
+                    }
+
+                    // Pathfinder/vnav finished without arriving — leave the wait so Destination Check fails
+                    // instead of sitting on the full 5 minute timeout.
+                    if (HasStoppedMoving())
+                    {
+                        return new ValueTask<bool>(true);
+                    }
+
+                    Vector3 pos = PlayerPosition();
+                    if (!float.IsNaN(pos.X))
+                    {
+                        if (float.IsNaN(lastProgressPos.X) || pos.Distance2D(lastProgressPos) > 1f)
+                        {
+                            lastProgressPos = pos;
+                            lastProgressAt = DateTime.UtcNow;
+                        }
+                        else if (DateTime.UtcNow - lastProgressAt >= StuckTimeout)
+                        {
+                            logger.Warning("Pathfind appears stuck (no movement for {Seconds}s). Dist={Distance:F2}",
+                                StuckTimeout.TotalSeconds, DistanceToDestination(pathfinderConfig));
+                            return new ValueTask<bool>(true);
+                        }
+                    }
+
+                    return new ValueTask<bool>(false);
+                },
                 MovementCompleteTimeout,
                 name: "Wait for movement complete"))
             .Then(_ =>
             {
                 if (!IsAtDestination(pathfinderConfig))
                 {
+                    pathfinder.Stop();
+                    vnav.Stop();
+
+                    // User / emergency stop left pathfinder idle — do not retry-spam.
+                    if (HasStoppedMoving())
+                    {
+                        logger.Info(
+                            "Pathfind stopped before destination (Distance={Distance:F2}) — treating as cancel",
+                            DistanceToDestination(pathfinderConfig));
+                        return new ValueTask<StepResult>(StepResult.Canceled());
+                    }
+
                     logger.Warning(
                         "Pathfind did not reach destination. Distance={Distance:F2}, State={State}, VnavRunning={Running}, VnavPathfinding={Pathfinding}, NavmeshReady={NavmeshReady}",
                         DistanceToDestination(pathfinderConfig),
@@ -83,20 +128,10 @@ public class
             }, "Destination Check");
     }
 
-    private Vector3 PlayerPosition()
-    {
-        if (getPlayerPositionTask == null)
-        {
-            getPlayerPositionTask = framework.RunOnFrameworkThread(() => objects.LocalPlayer?.Position ?? Vector3.NaN);
-        }
-        else if (getPlayerPositionTask.IsCompleted)
-        {
-            lastPlayerPosition = getPlayerPositionTask.Result;
-            getPlayerPositionTask = null;
-        }
+    private bool HasStoppedMoving() =>
+        pathfinder.GetState() == PathfindingState.Idle && !vnav.IsRunning() && !vnav.IsPathfinding();
 
-        return lastPlayerPosition;
-    }
+    private Vector3 PlayerPosition() => objects.LocalPlayer?.Position ?? Vector3.NaN;
 
     private float ArrivalThreshold(PathfinderConfig config)
     {
@@ -121,6 +156,10 @@ public class
     {
         Vector3 destination = ResolvedDestination(config);
         Vector3 player = PlayerPosition();
+        if (float.IsNaN(player.X))
+        {
+            return float.MaxValue;
+        }
 
         // Ground movement: ignore bad destination Y (authored points are often slightly underground).
         if (!config.AllowFlying)
