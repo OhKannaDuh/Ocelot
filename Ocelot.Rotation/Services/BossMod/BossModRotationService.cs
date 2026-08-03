@@ -9,9 +9,28 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
 
     public const string AiPresetName = "BOCCHI AI";
 
-    // NormalMovement only — Destination: Pathfind.
+    // Automatic movement + targeting for Illegal Mode FATE/CE (matches BossMod MiscAI option InternalNames).
     private const string BocchiAiPresetJson =
-        """{"Name":"BOCCHI AI","Modules":{"BossMod.Autorotation.MiscAI.NormalMovement":[{"Track":"Destination","Option":"Pathfind"}]}}""";
+        """
+        {
+          "Name": "BOCCHI AI",
+          "Modules": {
+            "BossMod.Autorotation.MiscAI.AutoTarget": [
+              { "Track": "General", "Option": "Aggressive" },
+              { "Track": "Retarget", "Option": "Always" },
+              { "Track": "Treasure", "Option": "Disabled" },
+              { "Track": "FATE", "Option": "Enabled" }
+            ],
+            "BossMod.Autorotation.MiscAI.NormalMovement": [
+              { "Track": "Destination", "Option": "Pathfind" },
+              { "Track": "ForbiddenZoneCushion", "Option": "Small" },
+              { "Track": "Range", "Option": "MaxRange" },
+              { "Track": "Cast", "Option": "Leeway" },
+              { "Track": "DelayMovement", "Option": "None" }
+            ]
+          }
+        }
+        """;
 
     private const string SINGLE_TARGET_PRESET =
         "eyJOYW1lIjoiT2NlbG90IFNpbmdsZSBUYXJnZXQiLCJNb2R1bGVzIjp7IkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CTE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5SRE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5QQ1QiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TTU4iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5EUkciOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5NTksiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5OSU4iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5SUFIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TQU0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5WUFIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5BU1QiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TQ0giOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5XSE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TR0UiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CUkQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5ETkMiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5NQ0giOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5EUksiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5HTkIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5QTEQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CTFUiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLlZleW5CUkQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLlZleW5XQVIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV19fQ==";
@@ -62,6 +81,21 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
         }
 
         ipc.Deactivate(SINGLE_TARGET_PRESET_NAME);
+    }
+
+    /// <summary>
+    ///     Create/overwrite <see cref="AiPresetName"/> and return the preset JSON BossMod stored (for debug).
+    /// </summary>
+    public bool TryEnsureBocchiAiPreset(out string? storedJson)
+    {
+        storedJson = null;
+        if (!EnsureBocchiAiPreset())
+        {
+            return false;
+        }
+
+        storedJson = ipc.Get(AiPresetName);
+        return true;
     }
 
     private bool EnsureBocchiAiPreset()
