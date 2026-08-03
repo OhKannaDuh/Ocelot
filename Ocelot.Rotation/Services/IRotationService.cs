@@ -17,4 +17,9 @@ public interface IRotationService
     void EnableSingleTarget();
 
     void DisableSingleTarget();
+
+    /// <summary>Optional keep-alive (e.g. retry BossMod preset IPC once the plugin is ready).</summary>
+    void Refresh()
+    {
+    }
 }

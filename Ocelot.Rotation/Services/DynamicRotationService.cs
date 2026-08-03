@@ -30,6 +30,8 @@ public class DynamicRotationService(
 
         if ((bestMatch?.InternalName ?? "") == currentInternalName)
         {
+            // BossMod/BMR IPC may not be ready on the first Load after plugin start.
+            current?.Refresh();
             return;
         }
 

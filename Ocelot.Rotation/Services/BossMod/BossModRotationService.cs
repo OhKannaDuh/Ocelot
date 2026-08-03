@@ -9,7 +9,10 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
 
     public const string AiPresetName = "BOCCHI AI";
 
-    // Automatic movement + targeting for Illegal Mode FATE/CE (matches BossMod MiscAI option InternalNames).
+    // Soft AI for Illegal Mode FATEs/CEs:
+    // - AutoTarget FATE mobs without Always-retarget yanking after FATE knockbacks
+    // - Pathfind movement only (no MaxRange leash back onto the boss)
+    // - Leylines helpers for BLM
     private const string BocchiAiPresetJson =
         """
         {
@@ -17,16 +20,16 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
           "Modules": {
             "BossMod.Autorotation.MiscAI.AutoTarget": [
               { "Track": "General", "Option": "Aggressive" },
-              { "Track": "Retarget", "Option": "Always" },
+              { "Track": "Retarget", "Option": "NoTarget" },
               { "Track": "Treasure", "Option": "Disabled" },
               { "Track": "FATE", "Option": "Enabled" }
             ],
+            "BossMod.Autorotation.MiscAI.StayWithinLeylines": [
+              { "Track": "Use Between The Lines", "Option": "Yes" },
+              { "Track": "Use Retrace", "Option": "Yes" }
+            ],
             "BossMod.Autorotation.MiscAI.NormalMovement": [
-              { "Track": "Destination", "Option": "Pathfind" },
-              { "Track": "ForbiddenZoneCushion", "Option": "Small" },
-              { "Track": "Range", "Option": "MaxRange" },
-              { "Track": "Cast", "Option": "Leeway" },
-              { "Track": "DelayMovement", "Option": "None" }
+              { "Track": "Destination", "Option": "Pathfind" }
             ]
           }
         }
@@ -35,17 +38,39 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
     private const string SINGLE_TARGET_PRESET =
         "eyJOYW1lIjoiT2NlbG90IFNpbmdsZSBUYXJnZXQiLCJNb2R1bGVzIjp7IkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CTE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5SRE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5QQ1QiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TTU4iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5EUkciOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5NTksiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5OSU4iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5SUFIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TQU0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5WUFIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5BU1QiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TQ0giOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5XSE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TR0UiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CUkQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5ETkMiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5NQ0giOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5EUksiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5HTkIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5QTEQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CTFUiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLlZleW5CUkQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLlZleW5XQVIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV19fQ==";
 
+    private bool bocchiAiReady;
+
+    private bool singleTargetReady;
+
     public void Load()
     {
-        EnsureBocchiAiPreset();
+        Refresh();
+    }
 
-        var data = Convert.FromBase64String(SINGLE_TARGET_PRESET);
-        ipc.Create(Encoding.UTF8.GetString(data), overwrite: true);
+    public void Refresh()
+    {
+        if (!bocchiAiReady)
+        {
+            bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
+        }
+
+        if (!singleTargetReady && ipc.IsAvailable)
+        {
+            var data = Convert.FromBase64String(SINGLE_TARGET_PRESET);
+            singleTargetReady = ipc.Create(Encoding.UTF8.GetString(data), overwrite: true);
+        }
     }
 
     public void EnableAutoRotation()
     {
-        if (!ipc.IsAvailable || !EnsureBocchiAiPreset())
+        if (!ipc.IsAvailable)
+        {
+            return;
+        }
+
+        // Force recreate so an older BOCCHI AI definition is replaced, then activate.
+        bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
+        if (!bocchiAiReady)
         {
             return;
         }
@@ -89,7 +114,8 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
     public bool TryEnsureBocchiAiPreset(out string? storedJson)
     {
         storedJson = null;
-        if (!EnsureBocchiAiPreset())
+        bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
+        if (!bocchiAiReady)
         {
             return false;
         }
@@ -98,11 +124,16 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
         return true;
     }
 
-    private bool EnsureBocchiAiPreset()
+    private bool EnsureBocchiAiPreset(bool overwrite)
     {
         if (!ipc.IsAvailable)
         {
             return false;
+        }
+
+        if (!overwrite && ipc.Get(AiPresetName) != null)
+        {
+            return true;
         }
 
         return ipc.Create(BocchiAiPresetJson, overwrite: true) || ipc.Get(AiPresetName) != null;
