@@ -102,11 +102,6 @@ public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposabl
         SetState(initial);
     }
 
-    public TimeSpan GetTimeInCurrentState()
-    {
-        return Current.TimeInState;
-    }
-
     public void Dispose()
     {
     }

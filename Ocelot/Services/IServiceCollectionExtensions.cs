@@ -150,33 +150,5 @@ public static class IServiceCollectionExtensions
                 });
             }
         }
-
-        // var cfg = plugin.GetPluginConfig() as TConcrete ?? new TConcrete();
-        // services.AddSingleton<TConcrete>(cfg);
-        //
-        // services.AddSingleton<TInterface>(sp => sp.GetRequiredService<TConcrete>());
-        // services.AddSingleton<IPluginConfiguration>(sp => sp.GetRequiredService<TConcrete>());
-        //
-        // var properties = typeof(TInterface).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-        //
-        // foreach (var prop in properties)
-        // {
-        //     var propType = prop.PropertyType;
-        //
-        //     services.AddSingleton(propType, sp =>
-        //     {
-        //         var conf = sp.GetRequiredService<TInterface>();
-        //         return prop.GetValue(conf)!;
-        //     });
-        //
-        //     if (typeof(IAutoConfig).IsAssignableFrom(propType))
-        //     {
-        //         services.AddSingleton(typeof(IAutoConfig), sp =>
-        //         {
-        //             var conf = sp.GetRequiredService<TInterface>();
-        //             return prop.GetValue(conf)!;
-        //         });
-        //     }
-        // }
     }
 }

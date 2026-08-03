@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Services.PluginStatus;
 
 namespace Ocelot.Rotation.Services.BossMod;

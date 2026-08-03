@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Ocelot.Ipc.BossMod;
 
 namespace Ocelot.Rotation.Services.BossMod;

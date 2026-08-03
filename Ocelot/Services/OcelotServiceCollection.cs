@@ -41,38 +41,6 @@ public sealed class OcelotServiceCollection : IServiceCollection
         }
     }
 
-    // private void AutoWire(ServiceDescriptor item)
-    // {
-    //     var type = item.ImplementationType ?? item.ImplementationInstance?.GetType() ?? null;
-    //
-    //     if (type is null)
-    //     {
-    //         return;
-    //     }
-    //
-    //     var serviceType = item.ServiceType;
-    //
-    //     foreach (var hook in HookInterfaces)
-    //     {
-    //         if (!hook.IsAssignableFrom(type))
-    //         {
-    //             continue;
-    //         }
-    //
-    //         if (hook == serviceType)
-    //         {
-    //             continue;
-    //         }
-    //
-    //         if (!forwards.Add((hook, serviceType, item.Lifetime)))
-    //         {
-    //             continue;
-    //         }
-    //
-    //         collection.Add(new ServiceDescriptor(hook, sp => sp.GetRequiredService(serviceType), item.Lifetime));
-    //     }
-    // }
-
     private void AutoWire(ServiceDescriptor item)
     {
         var implType = item.ImplementationType ?? item.ImplementationInstance?.GetType();

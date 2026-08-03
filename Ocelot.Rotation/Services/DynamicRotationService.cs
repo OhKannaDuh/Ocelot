@@ -1,4 +1,4 @@
-﻿using Ocelot.Lifecycle;
+using Ocelot.Lifecycle;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Rotation.Services;

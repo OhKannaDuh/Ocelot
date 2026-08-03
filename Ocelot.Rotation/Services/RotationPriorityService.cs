@@ -1,4 +1,4 @@
-﻿using Ocelot.Rotation.Services.BossMod;
+using Ocelot.Rotation.Services.BossMod;
 
 namespace Ocelot.Rotation.Services;
 

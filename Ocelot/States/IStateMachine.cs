@@ -1,4 +1,4 @@
-﻿namespace Ocelot.States;
+namespace Ocelot.States;
 
 public interface IStateMachine<TState>
     where TState : struct, Enum

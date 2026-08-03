@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Ocelot.Services.PluginStatus;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ocelot.Rotation.Services.Wrath;
 
-public class WrathRotationProvider(IPluginStatus pluginStatus, IServiceProvider services) : IRotationProvider
+public class WrathRotationProvider(IServiceProvider services) : IRotationProvider
 {
     public const string Key = "WrathCombo";
 

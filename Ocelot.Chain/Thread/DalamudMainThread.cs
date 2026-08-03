@@ -32,7 +32,7 @@ public sealed class DalamudMainThread(IFramework framework) : IMainThread, IOnSt
             return func();
         }
 
-        return framework.RunOnFrameworkThread(func);
+        return framework.RunOnTick(func, cancellationToken: ct);
     }
 
     public Task InvokeAsync(Func<Task> func, CancellationToken ct = default)
@@ -42,7 +42,7 @@ public sealed class DalamudMainThread(IFramework framework) : IMainThread, IOnSt
             return func();
         }
 
-        return framework.RunOnFrameworkThread(func);
+        return framework.RunOnTick(func, cancellationToken: ct);
     }
 
     public void Post(Action action)
