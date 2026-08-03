@@ -7,6 +7,8 @@ public class BossModRotationProvider(IPluginStatus pluginStatus, IServiceProvide
 {
     public const string Key = "BossMod";
 
+    private const string BossModRebornInternalName = "BossModReborn";
+
     public string InternalName
     {
         get => Key;
@@ -14,12 +16,13 @@ public class BossModRotationProvider(IPluginStatus pluginStatus, IServiceProvide
 
     public string DisplayName
     {
-        get => "Boss Mod";
+        get => "Boss Mod / BossMod Reborn";
     }
 
     public bool IsAvailable()
     {
-        return pluginStatus.IsLoaded(InternalName);
+        // Both plugins expose BossMod.Presets.* IPC (same prefix).
+        return pluginStatus.IsLoaded(Key) || pluginStatus.IsLoaded(BossModRebornInternalName);
     }
 
     public IRotationService Create()
