@@ -1,4 +1,4 @@
-﻿using Dalamud.Plugin.Services;
+using Dalamud.Plugin.Services;
 using Ocelot.Lifecycle;
 
 namespace Ocelot.Chain.Thread;

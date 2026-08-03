@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.DependencyInjection;
 

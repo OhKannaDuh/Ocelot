@@ -1,4 +1,4 @@
-﻿using Ocelot.Extensions;
+using Ocelot.Extensions;
 using Ocelot.Services.Translation;
 using IUIService = Ocelot.Services.UI.IUIService;
 
