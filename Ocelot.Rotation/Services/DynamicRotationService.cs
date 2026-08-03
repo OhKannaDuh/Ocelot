@@ -23,8 +23,8 @@ public class DynamicRotationService(
         }
 
         var bestMatch = providers
-            .Where(p => p.IsAvailable())
-            .OrderBy(p => rank.GetValueOrDefault(p.InternalName, int.MaxValue))
+            .Where(p => p.IsAvailable() && rank.ContainsKey(p.InternalName))
+            .OrderBy(p => rank[p.InternalName])
             .ThenBy(p => p.InternalName, StringComparer.Ordinal)
             .FirstOrDefault();
 
@@ -33,10 +33,10 @@ public class DynamicRotationService(
             return;
         }
 
-        // current?.Unload();
+        current?.Unload();
         currentInternalName = bestMatch?.InternalName ?? "";
         current = bestMatch?.Create();
-        // current?.Load();
+        current?.Load();
 
         logger.Info("Dynamic rotation service has been updated to {name}", currentInternalName);
     }

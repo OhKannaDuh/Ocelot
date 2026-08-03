@@ -19,7 +19,8 @@ public class WrathRotationProvider(IPluginStatus pluginStatus, IServiceProvider 
 
     public bool IsAvailable()
     {
-        return pluginStatus.IsLoaded(InternalName);
+        // Disabled — Wrath IPC leases lock the user's auto-rotation UI.
+        return false;
     }
 
     public IRotationService Create()

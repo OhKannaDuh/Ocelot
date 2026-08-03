@@ -21,7 +21,6 @@ public class BossModRotationProvider(IPluginStatus pluginStatus, IServiceProvide
 
     public bool IsAvailable()
     {
-        // Both plugins expose BossMod.Presets.* IPC (same prefix).
         return pluginStatus.IsLoaded(Key) || pluginStatus.IsLoaded(BossModRebornInternalName);
     }
 

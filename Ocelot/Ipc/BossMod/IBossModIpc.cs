@@ -2,17 +2,19 @@
 
 public interface IBossModIpc
 {
-    void Create(string presetSerialized, bool overwrite = false);
+    bool IsAvailable { get; }
 
-    /// <summary>Clear active presets and activate <paramref name="name"/> (VBM + BMR).</summary>
+    bool Create(string presetSerialized, bool overwrite = false);
+
+    string? Get(string name);
+
     bool SetActive(string name);
 
-    /// <summary>Clear all active presets (VBM + BMR).</summary>
     bool ClearActive();
 
-    /// <summary>Add a preset to the active set. VBM only — BMR does not expose this.</summary>
+    /// <summary>VBM-only; BMR falls back to <see cref="SetActive"/>.</summary>
     bool Activate(string name);
 
-    /// <summary>Remove a preset from the active set. VBM only — BMR does not expose this.</summary>
+    /// <summary>VBM-only; BMR falls back to <see cref="ClearActive"/>.</summary>
     bool Deactivate(string name);
 }

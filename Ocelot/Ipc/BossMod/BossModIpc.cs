@@ -3,14 +3,14 @@ using Dalamud.Plugin.Ipc;
 
 namespace Ocelot.Ipc.BossMod;
 
-/// <summary>
-///     BossMod / BossMod Reborn share the <c>BossMod.Presets.*</c> IPC prefix.
-///     Prefer <see cref="SetActive"/> / <see cref="ClearActive"/> — those exist on both.
-/// </summary>
+/// <summary>BossMod / BossMod Reborn shared <c>BossMod.Presets.*</c> IPC.</summary>
 public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
 {
-    private readonly ICallGateSubscriber<string, bool, object> create =
-        plugin.GetIpcSubscriber<string, bool, object>("BossMod.Presets.Create");
+    private readonly ICallGateSubscriber<string, bool, bool> create =
+        plugin.GetIpcSubscriber<string, bool, bool>("BossMod.Presets.Create");
+
+    private readonly ICallGateSubscriber<string, string?> get =
+        plugin.GetIpcSubscriber<string, string?>("BossMod.Presets.Get");
 
     private readonly ICallGateSubscriber<string, bool> setActive =
         plugin.GetIpcSubscriber<string, bool>("BossMod.Presets.SetActive");
@@ -24,44 +24,100 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
     private readonly ICallGateSubscriber<string, bool> deactivate =
         plugin.GetIpcSubscriber<string, bool>("BossMod.Presets.Deactivate");
 
-    public void Create(string presetSerialized, bool overwrite = false)
+    public bool IsAvailable
     {
-        create.InvokeAction(presetSerialized, overwrite);
+        get
+        {
+            try
+            {
+                return create.HasFunction && setActive.HasFunction && clearActive.HasFunction;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    public bool Create(string presetSerialized, bool overwrite = false)
+    {
+        try
+        {
+            return create.HasFunction && create.InvokeFunc(presetSerialized, overwrite);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public string? Get(string name)
+    {
+        try
+        {
+            return get.HasFunction ? get.InvokeFunc(name) : null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public bool SetActive(string name)
     {
-        return setActive.InvokeFunc(name);
+        try
+        {
+            return setActive.HasFunction && setActive.InvokeFunc(name);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public bool ClearActive()
     {
-        return clearActive.InvokeFunc();
+        try
+        {
+            return clearActive.HasFunction && clearActive.InvokeFunc();
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public bool Activate(string name)
     {
         try
         {
-            return activate.InvokeFunc(name);
+            if (activate.HasFunction)
+            {
+                return activate.InvokeFunc(name);
+            }
         }
         catch
         {
-            // BMR does not register Activate — fall back to exclusive SetActive.
-            return SetActive(name);
+            // BMR: Activate not registered.
         }
+
+        return SetActive(name);
     }
 
     public bool Deactivate(string name)
     {
         try
         {
-            return deactivate.InvokeFunc(name);
+            if (deactivate.HasFunction)
+            {
+                return deactivate.InvokeFunc(name);
+            }
         }
         catch
         {
-            // BMR does not register Deactivate — clear whatever is active.
-            return ClearActive();
+            // BMR: Deactivate not registered.
         }
+
+        return ClearActive();
     }
 }
