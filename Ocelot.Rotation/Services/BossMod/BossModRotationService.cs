@@ -15,10 +15,10 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
     // - Pathfind + StayCloseToTarget (hitbox edge for melee, 15y for ranged)
     // - GoToPositional for melee (works with rotation plugins / RSR desired positional)
     // - Leylines helpers for BLM
-    private static string BuildBocchiAiPresetJson(bool isMelee)
+    private static string BuildBocchiAiPresetJson(bool isMelee, bool includeGoToPositional)
     {
         string rangeOption = isMelee ? "OnHitbox" : "15";
-        string goToPositional = isMelee
+        string goToPositional = isMelee && includeGoToPositional
             ? """
                 "BossMod.Autorotation.MiscAI.GoToPositional": [
                   { "Track": "Positional", "Option": "Any" }
@@ -56,6 +56,9 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
     private const string SINGLE_TARGET_PRESET =
         "eyJOYW1lIjoiT2NlbG90IFNpbmdsZSBUYXJnZXQiLCJNb2R1bGVzIjp7IkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CTE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5SRE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5QQ1QiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TTU4iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5EUkciOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5NTksiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5OSU4iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5SUFIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TQU0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5WUFIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5BU1QiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TQ0giOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5XSE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TR0UiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CUkQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5ETkMiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5NQ0giOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5EUksiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5HTkIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5QTEQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CTFUiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLlZleW5CUkQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLlZleW5XQVIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV19fQ==";
 
+    /// <summary>Illegal Mode asked us to keep BOCCHI AI around (create/retry until teardown).</summary>
+    private bool wantBocchiAi;
+
     private bool bocchiAiReady;
 
     private bool singleTargetReady;
@@ -67,36 +70,50 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
 
     public void Unload()
     {
-        DestroyAutoRotationPreset();
+        // Illegal Mode owns create/delete via Ensure/Destroy. Provider flicker must not wipe the preset.
+        if (ipc.IsAvailable)
+        {
+            ipc.Deactivate(AiPresetName);
+        }
+
+        bocchiAiReady = false;
+        singleTargetReady = false;
     }
 
     public void Refresh()
     {
-        // BOCCHI AI is ephemeral — only created while Illegal Mode is on.
-        if (!singleTargetReady && ipc.IsAvailable)
+        if (!ipc.IsAvailable)
         {
-            var data = Convert.FromBase64String(SINGLE_TARGET_PRESET);
-            singleTargetReady = ipc.Create(Encoding.UTF8.GetString(data), overwrite: true);
+            return;
+        }
+
+        // BMR IPC is often not ready on the first Illegal Mode prepare — keep retrying.
+        // Do this before any other Presets.Create so we don't lose the race to unrelated presets.
+        if (wantBocchiAi && (ipc.Get(AiPresetName) == null || !bocchiAiReady))
+        {
+            bocchiAiReady = EnsureBocchiAiPreset(overwrite: ipc.Get(AiPresetName) == null);
         }
     }
 
     public void EnsureAutoRotationPreset()
     {
+        wantBocchiAi = true;
         bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
     }
 
     public void DestroyAutoRotationPreset()
     {
+        wantBocchiAi = false;
+        bocchiAiReady = false;
+
         if (!ipc.IsAvailable)
         {
-            bocchiAiReady = false;
             return;
         }
 
         // Only drop BOCCHI AI — leave the user's other active presets alone.
         ipc.Deactivate(AiPresetName);
         ipc.Delete(AiPresetName);
-        bocchiAiReady = false;
     }
 
     public void EnableAutoRotation()
@@ -106,8 +123,10 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
             return;
         }
 
-        // Recreate so role-specific StayCloseToTarget matches the current job, then activate
-        // alongside any other presets the user already has on (Activate ≠ SetActive).
+        wantBocchiAi = true;
+
+        // Recreate so role-specific StayCloseToTarget matches the current job, then activate.
+        // VBM: Activate stacks with other presets. BMR: SetActive replaces the single slot.
         bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
         if (!bocchiAiReady)
         {
@@ -135,7 +154,17 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
             return;
         }
 
-        ipc.Activate(SINGLE_TARGET_PRESET_NAME);
+        // Lazy-create — do not inject this preset on every Refresh (confused BMR testers; unused by Illegal Mode).
+        if (!singleTargetReady)
+        {
+            var data = Convert.FromBase64String(SINGLE_TARGET_PRESET);
+            singleTargetReady = ipc.Create(Encoding.UTF8.GetString(data), overwrite: true);
+        }
+
+        if (singleTargetReady)
+        {
+            ipc.Activate(SINGLE_TARGET_PRESET_NAME);
+        }
     }
 
     public void DisableSingleTarget()
@@ -154,6 +183,7 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
     public bool TryEnsureBocchiAiPreset(out string? storedJson)
     {
         storedJson = null;
+        wantBocchiAi = true;
         bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
         if (!bocchiAiReady)
         {
@@ -176,7 +206,30 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
             return true;
         }
 
-        string json = BuildBocchiAiPresetJson(player.IsMelee());
-        return ipc.Create(json, overwrite: true) || ipc.Get(AiPresetName) != null;
+        bool isMelee = player.IsMelee();
+
+        // Full preset first; if Create/Get fails (seen more on BMR), retry without GoToPositional.
+        if (TryCreateAndVerify(BuildBocchiAiPresetJson(isMelee, includeGoToPositional: true)))
+        {
+            return true;
+        }
+
+        if (isMelee && TryCreateAndVerify(BuildBocchiAiPresetJson(isMelee, includeGoToPositional: false)))
+        {
+            return true;
+        }
+
+        return ipc.Get(AiPresetName) != null;
+    }
+
+    private bool TryCreateAndVerify(string json)
+    {
+        if (!ipc.Create(json, overwrite: true))
+        {
+            // Create can return false even when Modify applied — trust Get.
+            return ipc.Get(AiPresetName) != null;
+        }
+
+        return ipc.Get(AiPresetName) != null;
     }
 }

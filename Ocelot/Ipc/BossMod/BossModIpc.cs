@@ -21,6 +21,9 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
     private readonly ICallGateSubscriber<bool> clearActive =
         plugin.GetIpcSubscriber<bool>("BossMod.Presets.ClearActive");
 
+    private readonly ICallGateSubscriber<string?> getActive =
+        plugin.GetIpcSubscriber<string?>("BossMod.Presets.GetActive");
+
     private readonly ICallGateSubscriber<string, bool> activate =
         plugin.GetIpcSubscriber<string, bool>("BossMod.Presets.Activate");
 
@@ -102,6 +105,18 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
         }
     }
 
+    public string? GetActive()
+    {
+        try
+        {
+            return getActive.HasFunction ? getActive.InvokeFunc() : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public bool Activate(string name)
     {
         try
@@ -131,6 +146,19 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
         catch
         {
             // BMR: Deactivate not registered.
+        }
+
+        // BMR only has a single active preset slot — clear only if BOCCHI AI is the one active.
+        // Blind ClearActive() was wiping whatever the user had selected after travel.
+        string? active = GetActive();
+        if (active == null)
+        {
+            return true;
+        }
+
+        if (!string.Equals(active, name, StringComparison.Ordinal))
+        {
+            return true;
         }
 
         return ClearActive();

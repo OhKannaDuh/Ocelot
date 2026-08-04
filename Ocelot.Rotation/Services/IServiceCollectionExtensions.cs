@@ -12,7 +12,7 @@ public static class IServiceCollectionExtensions
         services.AddTransient<WrathRotationService>();
         services.AddSingleton<IRotationProvider, WrathRotationProvider>();
 
-        services.AddTransient<BossModRotationService>();
+        services.AddSingleton<BossModRotationService>();
         services.AddSingleton<IRotationProvider, BossModRotationProvider>();
 
         services.AddTransient<RotationSolverRebornRotationService>();
