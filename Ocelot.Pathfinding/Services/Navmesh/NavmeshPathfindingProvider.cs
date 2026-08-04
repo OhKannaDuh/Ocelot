@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Ocelot.Ipc.VNavmesh;
 using Ocelot.Services.Pathfinding;
-using Ocelot.Services.PluginStatus;
 
 namespace Ocelot.Pathfinding.Services.Navmesh;
 
-public class NavmeshPathfindingProvider(IPluginStatus pluginStatus, IServiceProvider services) : IPathfindingProvider
+public class NavmeshPathfindingProvider(IVNavmeshIpc vnav, IServiceProvider services) : IPathfindingProvider
 {
     public const string Key = "vnavmesh";
 
@@ -20,7 +20,7 @@ public class NavmeshPathfindingProvider(IPluginStatus pluginStatus, IServiceProv
 
     public bool IsAvailable()
     {
-        return pluginStatus.IsLoaded(InternalName);
+        return vnav.IsAvailable();
     }
 
     public IPathfinder Create()

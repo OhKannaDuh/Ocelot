@@ -1,13 +1,11 @@
 using System.Numerics;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
-using Ocelot.Services.PluginStatus;
 
 namespace Ocelot.Ipc.VNavmesh;
 
-public class VNavmeshIpc(IPluginStatus pluginStatus, IDalamudPluginInterface plugin) : IVNavmeshIpc
+public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
 {
-    private const string PluginName = "vnavmesh";
     private readonly ICallGateSubscriber<bool> navIsReady = plugin.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
 
     private readonly ICallGateSubscriber<bool> isPathfinding = plugin.GetIpcSubscriber<bool>("vnavmesh.Nav.PathfindInProgress");
@@ -45,9 +43,19 @@ public class VNavmeshIpc(IPluginStatus pluginStatus, IDalamudPluginInterface plu
     private readonly ICallGateSubscriber<List<Vector3>, bool, object> followPath =
         plugin.GetIpcSubscriber<List<Vector3>, bool, object>("vnavmesh.Path.MoveTo");
 
+    /// <summary>
+    ///     IPC-based detection (not InstalledPlugins) so Dev Mode / sideloaded vnavmesh still works.
+    /// </summary>
     public bool IsAvailable()
     {
-        return pluginStatus.IsLoaded(PluginName);
+        try
+        {
+            return navIsReady.HasFunction && pathfindAndMoveTo.HasFunction;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public bool IsNavmeshReady()
