@@ -80,12 +80,10 @@ public static class IServiceCollectionExtensions
 
         services.AddSingleton<CommandManager>();
 
-        // These commands don't get registered by ocelot as an IOcelotCommand, so CommandManager doesn't auto register them
-        // But they this allows them to be DId into a main command delegate
+        // Subcommands of /bocchi (or plugin InternalName) — not registered as their own slash commands.
         services.AddSingleton<ReloadTranslationsCommand>();
 
         services.AddSingleton<IConfigCommand, ConfigCommand>();
-        services.AddSingleton<IOcelotCommand>(container => container.GetRequiredService<IConfigCommand>());
 
         services.AddSingleton<IMainCommand, MainCommand>();
         services.AddSingleton<IOcelotCommand>(container => container.GetRequiredService<IMainCommand>());

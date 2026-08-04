@@ -51,7 +51,19 @@ public class MainCommand : OcelotCommand, IMainCommand
 
     private string FormatDelegateTrigger(string trigger)
     {
-        return trigger.StartsWith($"{Command}-") ? trigger.Replace($"{Command}-", "") : trigger;
+        // "bocchi-config" / "bocchiconfig" → "config" when main command is "bocchi".
+        if (trigger.StartsWith($"{Command}-", StringComparison.OrdinalIgnoreCase))
+        {
+            return trigger[(Command.Length + 1)..];
+        }
+
+        if (trigger.StartsWith(Command, StringComparison.OrdinalIgnoreCase)
+            && trigger.Length > Command.Length)
+        {
+            return trigger[Command.Length..].TrimStart('-');
+        }
+
+        return trigger;
     }
 
     public override (string help, bool show) BuildHelp()

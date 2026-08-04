@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Dalamud.Configuration;
-using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Ocelot.Config;
 using Ocelot.Config.Fields;
@@ -32,7 +31,6 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
     private readonly ILogger logger;
 
     public ConfigCommand(
-        IDalamudPluginInterface plugin,
         IConfigWindow window,
         IChatGui chat,
         ILogger<ConfigCommand> logger,
@@ -43,12 +41,8 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
         this.window = window;
         this.chat = chat;
         this.logger = logger;
-        Command = plugin.InternalName.ToKebabCase().WithSuffix("-config");
-        Aliases =
-        [
-            plugin.InternalName.ToKebabCase().WithSuffix("-cfg"),
-            plugin.InternalName.ToKebabCase().WithSuffix("-c"),
-        ];
+        Command = "config";
+        Aliases = ["cfg", "c"];
 
         foreach (var config in pluginConfigurations)
         {

@@ -13,10 +13,19 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
     // Ephemeral soft AI for Illegal Mode FATEs/CEs (created on mode start, deleted on stop):
     // - AutoTarget FATE mobs without Always-retarget yanking after FATE knockbacks
     // - Pathfind + StayCloseToTarget (hitbox edge for melee, 15y for ranged)
+    // - GoToPositional for melee (works with rotation plugins / RSR desired positional)
     // - Leylines helpers for BLM
     private static string BuildBocchiAiPresetJson(bool isMelee)
     {
         string rangeOption = isMelee ? "OnHitbox" : "15";
+        string goToPositional = isMelee
+            ? """
+                "BossMod.Autorotation.MiscAI.GoToPositional": [
+                  { "Track": "Positional", "Option": "Any" }
+                ],
+                """
+            : string.Empty;
+
         return
             $$"""
             {
@@ -35,6 +44,7 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
                 "BossMod.Autorotation.MiscAI.NormalMovement": [
                   { "Track": "Destination", "Option": "Pathfind" }
                 ],
+                {{goToPositional}}
                 "BossMod.Autorotation.MiscAI.StayCloseToTarget": [
                   { "Track": "range", "Option": "{{rangeOption}}" }
                 ]
@@ -83,7 +93,8 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
             return;
         }
 
-        ipc.ClearActive();
+        // Only drop BOCCHI AI — leave the user's other active presets alone.
+        ipc.Deactivate(AiPresetName);
         ipc.Delete(AiPresetName);
         bocchiAiReady = false;
     }
@@ -95,14 +106,15 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
             return;
         }
 
-        // Recreate so role-specific StayCloseToTarget matches the current job, then activate.
+        // Recreate so role-specific StayCloseToTarget matches the current job, then activate
+        // alongside any other presets the user already has on (Activate ≠ SetActive).
         bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
         if (!bocchiAiReady)
         {
             return;
         }
 
-        ipc.SetActive(AiPresetName);
+        ipc.Activate(AiPresetName);
     }
 
     public void DisableAutoRotation()
@@ -112,8 +124,8 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
             return;
         }
 
-        // Travel/pause: deactivate only — preset stays until Illegal Mode tears down.
-        ipc.ClearActive();
+        // Travel/pause: deactivate BOCCHI AI only — preset stays until Illegal Mode tears down.
+        ipc.Deactivate(AiPresetName);
     }
 
     public void EnableSingleTarget()
