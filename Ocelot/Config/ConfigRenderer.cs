@@ -15,8 +15,6 @@ public class ConfigRenderer : IConfigRenderer
 {
     private readonly ITranslator translator;
 
-    private readonly Dictionary<Type, object> renderers = [];
-
     private readonly IServiceProvider services;
 
     private readonly IConfigSaver saver;
@@ -71,9 +69,8 @@ public class ConfigRenderer : IConfigRenderer
             });
         }
 
-        current = configs.FirstOrDefault();
+        current = configs.FirstOrDefault(c => c.GetType().GetCustomAttribute<ConfigHiddenAttribute>() == null);
     }
-
 
     private object GetRenderer(UIFieldAttribute attr)
     {
@@ -117,7 +114,27 @@ public class ConfigRenderer : IConfigRenderer
                              .Min())
                      .ThenBy(kvp => kvp.Key))
             {
+                // Single-page groups: show one top-level entry (avoid "Mob Farmer → Mob Farmer").
+                if (gConfigs.Count == 1)
+                {
+                    var only = gConfigs[0];
+                    var selected = current == only;
+                    if (ImGui.Selectable(only.Label(translator), selected))
+                    {
+                        current = only;
+                    }
+
+                    only.Tooltip(translator);
+                    continue;
+                }
+
                 ImGui.Text(translator.T($"config_group.{key}.label"));
+                var tooltipKey = $"config_group.{key}.tooltip";
+                if (translator.Has(tooltipKey) && ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(translator.T(tooltipKey));
+                }
+
                 ImGui.Indent(16);
                 foreach (var gConfig in gConfigs)
                 {
@@ -147,18 +164,29 @@ public class ConfigRenderer : IConfigRenderer
         {
             var type = current.GetType();
 
-            foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            // Page blurb when present (mirrors main-window mode descriptions).
+            var descKey = current.GetTooltipKey();
+            if (translator.Has(descKey))
             {
-                var attr = prop.GetCustomAttributes().OfType<UIFieldAttribute>().SingleOrDefault();
-                if (attr is null)
-                {
-                    continue;
-                }
+                ImGui.TextWrapped(translator.T(descKey));
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+            }
 
+            var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Select(prop => (prop, attr: prop.GetCustomAttributes().OfType<UIFieldAttribute>().SingleOrDefault()))
+                .Where(x => x.attr is not null)
+                .OrderBy(x => x.attr!.Order)
+                .ThenBy(x => x.prop.Name, StringComparer.Ordinal)
+                .ToList();
+
+            foreach (var (prop, attr) in props)
+            {
                 ImGui.PushID(prop.Name);
 
-                var renderer = GetRenderer(attr);
-                var changed = InvokeRenderer(renderer, current, prop, attr, type);
+                var renderer = GetRenderer(attr!);
+                var changed = InvokeRenderer(renderer, current, prop, attr!, type);
 
                 if (changed)
                 {
