@@ -12,6 +12,9 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
     private readonly ICallGateSubscriber<string, string?> get =
         plugin.GetIpcSubscriber<string, string?>("BossMod.Presets.Get");
 
+    private readonly ICallGateSubscriber<string, bool> delete =
+        plugin.GetIpcSubscriber<string, bool>("BossMod.Presets.Delete");
+
     private readonly ICallGateSubscriber<string, bool> setActive =
         plugin.GetIpcSubscriber<string, bool>("BossMod.Presets.SetActive");
 
@@ -60,6 +63,18 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
         catch
         {
             return null;
+        }
+    }
+
+    public bool Delete(string name)
+    {
+        try
+        {
+            return delete.HasFunction && delete.InvokeFunc(name);
+        }
+        catch
+        {
+            return false;
         }
     }
 

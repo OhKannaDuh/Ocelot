@@ -72,4 +72,14 @@ public class DynamicRotationService(
     {
         current?.DisableSingleTarget();
     }
+
+    public void EnsureAutoRotationPreset()
+    {
+        current?.EnsureAutoRotationPreset();
+    }
+
+    public void DestroyAutoRotationPreset()
+    {
+        current?.DestroyAutoRotationPreset();
+    }
 }

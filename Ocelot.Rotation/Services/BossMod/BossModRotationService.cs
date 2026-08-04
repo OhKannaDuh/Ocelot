@@ -1,39 +1,47 @@
 using System.Text;
 using Ocelot.Ipc.BossMod;
+using Ocelot.Services.PlayerState;
 
 namespace Ocelot.Rotation.Services.BossMod;
 
-public class BossModRotationService(IBossModIpc ipc) : IRotationService
+public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotationService
 {
     private const string SINGLE_TARGET_PRESET_NAME = "Ocelot Single Target";
 
     public const string AiPresetName = "BOCCHI AI";
 
-    // Soft AI for Illegal Mode FATEs/CEs:
+    // Ephemeral soft AI for Illegal Mode FATEs/CEs (created on mode start, deleted on stop):
     // - AutoTarget FATE mobs without Always-retarget yanking after FATE knockbacks
-    // - Pathfind movement only (no MaxRange leash back onto the boss)
+    // - Pathfind + StayCloseToTarget (hitbox edge for melee, 15y for ranged)
     // - Leylines helpers for BLM
-    private const string BocchiAiPresetJson =
-        """
-        {
-          "Name": "BOCCHI AI",
-          "Modules": {
-            "BossMod.Autorotation.MiscAI.AutoTarget": [
-              { "Track": "General", "Option": "Aggressive" },
-              { "Track": "Retarget", "Option": "NoTarget" },
-              { "Track": "Treasure", "Option": "Disabled" },
-              { "Track": "FATE", "Option": "Enabled" }
-            ],
-            "BossMod.Autorotation.MiscAI.StayWithinLeylines": [
-              { "Track": "Use Between The Lines", "Option": "Yes" },
-              { "Track": "Use Retrace", "Option": "Yes" }
-            ],
-            "BossMod.Autorotation.MiscAI.NormalMovement": [
-              { "Track": "Destination", "Option": "Pathfind" }
-            ]
-          }
-        }
-        """;
+    private static string BuildBocchiAiPresetJson(bool isMelee)
+    {
+        string rangeOption = isMelee ? "OnHitbox" : "15";
+        return
+            $$"""
+            {
+              "Name": "BOCCHI AI",
+              "Modules": {
+                "BossMod.Autorotation.MiscAI.AutoTarget": [
+                  { "Track": "General", "Option": "Aggressive" },
+                  { "Track": "Retarget", "Option": "NoTarget" },
+                  { "Track": "Treasure", "Option": "Disabled" },
+                  { "Track": "FATE", "Option": "Enabled" }
+                ],
+                "BossMod.Autorotation.MiscAI.StayWithinLeylines": [
+                  { "Track": "Use Between The Lines", "Option": "Yes" },
+                  { "Track": "Use Retrace", "Option": "Yes" }
+                ],
+                "BossMod.Autorotation.MiscAI.NormalMovement": [
+                  { "Track": "Destination", "Option": "Pathfind" }
+                ],
+                "BossMod.Autorotation.MiscAI.StayCloseToTarget": [
+                  { "Track": "range", "Option": "{{rangeOption}}" }
+                ]
+              }
+            }
+            """;
+    }
 
     private const string SINGLE_TARGET_PRESET =
         "eyJOYW1lIjoiT2NlbG90IFNpbmdsZSBUYXJnZXQiLCJNb2R1bGVzIjp7IkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CTE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5SRE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5QQ1QiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TTU4iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5EUkciOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5NTksiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5OSU4iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5SUFIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TQU0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5WUFIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5BU1QiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TQ0giOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5XSE0iOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5TR0UiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CUkQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5ETkMiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5NQ0giOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5EUksiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5HTkIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5QTEQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLnhhbi5CTFUiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLlZleW5CUkQiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV0sIkJvc3NNb2QuQXV0b3JvdGF0aW9uLlZleW5XQVIiOlt7IlRyYWNrIjoiQU9FIiwiT3B0aW9uIjoiU1QifV19fQ==";
@@ -47,18 +55,37 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
         Refresh();
     }
 
+    public void Unload()
+    {
+        DestroyAutoRotationPreset();
+    }
+
     public void Refresh()
     {
-        if (!bocchiAiReady)
-        {
-            bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
-        }
-
+        // BOCCHI AI is ephemeral — only created while Illegal Mode is on.
         if (!singleTargetReady && ipc.IsAvailable)
         {
             var data = Convert.FromBase64String(SINGLE_TARGET_PRESET);
             singleTargetReady = ipc.Create(Encoding.UTF8.GetString(data), overwrite: true);
         }
+    }
+
+    public void EnsureAutoRotationPreset()
+    {
+        bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
+    }
+
+    public void DestroyAutoRotationPreset()
+    {
+        if (!ipc.IsAvailable)
+        {
+            bocchiAiReady = false;
+            return;
+        }
+
+        ipc.ClearActive();
+        ipc.Delete(AiPresetName);
+        bocchiAiReady = false;
     }
 
     public void EnableAutoRotation()
@@ -68,7 +95,7 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
             return;
         }
 
-        // Force recreate so an older BOCCHI AI definition is replaced, then activate.
+        // Recreate so role-specific StayCloseToTarget matches the current job, then activate.
         bocchiAiReady = EnsureBocchiAiPreset(overwrite: true);
         if (!bocchiAiReady)
         {
@@ -85,6 +112,7 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
             return;
         }
 
+        // Travel/pause: deactivate only — preset stays until Illegal Mode tears down.
         ipc.ClearActive();
     }
 
@@ -136,6 +164,7 @@ public class BossModRotationService(IBossModIpc ipc) : IRotationService
             return true;
         }
 
-        return ipc.Create(BocchiAiPresetJson, overwrite: true) || ipc.Get(AiPresetName) != null;
+        string json = BuildBocchiAiPresetJson(player.IsMelee());
+        return ipc.Create(json, overwrite: true) || ipc.Get(AiPresetName) != null;
     }
 }

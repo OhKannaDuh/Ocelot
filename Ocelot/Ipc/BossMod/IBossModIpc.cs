@@ -8,6 +8,8 @@ public interface IBossModIpc
 
     string? Get(string name);
 
+    bool Delete(string name);
+
     bool SetActive(string name);
 
     bool ClearActive();
