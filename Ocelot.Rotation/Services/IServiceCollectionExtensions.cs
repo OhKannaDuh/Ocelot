@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Rotation.Services.BossMod;
 using Ocelot.Rotation.Services.RotationSolverReborn;
 using Ocelot.Rotation.Services.Wrath;

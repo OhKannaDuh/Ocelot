@@ -30,7 +30,6 @@ public class DynamicRotationService(
 
         if ((bestMatch?.InternalName ?? "") == currentInternalName)
         {
-            // BossMod/BMR IPC may not be ready on the first Load after plugin start.
             current?.Refresh();
             return;
         }
@@ -43,43 +42,19 @@ public class DynamicRotationService(
         logger.Info("Dynamic rotation service has been updated to {name}", currentInternalName);
     }
 
-    public void Load()
-    {
-        current?.Load();
-    }
+    public void Load() => current?.Load();
 
-    public void Unload()
-    {
-        current?.Unload();
-    }
+    public void Unload() => current?.Unload();
 
-    public void EnableAutoRotation()
-    {
-        current?.EnableAutoRotation();
-    }
+    public void EnableAutoRotation() => current?.EnableAutoRotation();
 
-    public void DisableAutoRotation()
-    {
-        current?.DisableAutoRotation();
-    }
+    public void DisableAutoRotation() => current?.DisableAutoRotation();
 
-    public void EnableSingleTarget()
-    {
-        current?.EnableSingleTarget();
-    }
+    public void EnableSingleTarget() => current?.EnableSingleTarget();
 
-    public void DisableSingleTarget()
-    {
-        current?.DisableSingleTarget();
-    }
+    public void DisableSingleTarget() => current?.DisableSingleTarget();
 
-    public void EnsureAutoRotationPreset()
-    {
-        current?.EnsureAutoRotationPreset();
-    }
+    public void EnsureAutoRotationPreset() => current?.EnsureAutoRotationPreset();
 
-    public void DestroyAutoRotationPreset()
-    {
-        current?.DestroyAutoRotationPreset();
-    }
+    public void DestroyAutoRotationPreset() => current?.DestroyAutoRotationPreset();
 }

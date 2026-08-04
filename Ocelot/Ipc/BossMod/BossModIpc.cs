@@ -128,7 +128,7 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
         }
         catch
         {
-            // BMR: Activate not registered.
+            // BMR has no Activate.
         }
 
         return SetActive(name);
@@ -145,18 +145,11 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
         }
         catch
         {
-            // BMR: Deactivate not registered.
+            // BMR has no Deactivate.
         }
 
-        // BMR only has a single active preset slot — clear only if BOCCHI AI is the one active.
-        // Blind ClearActive() was wiping whatever the user had selected after travel.
         string? active = GetActive();
-        if (active == null)
-        {
-            return true;
-        }
-
-        if (!string.Equals(active, name, StringComparison.Ordinal))
+        if (active == null || !string.Equals(active, name, StringComparison.Ordinal))
         {
             return true;
         }

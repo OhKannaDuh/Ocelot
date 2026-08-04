@@ -16,9 +16,9 @@ public interface IBossModIpc
 
     string? GetActive();
 
-    /// <summary>VBM-only; BMR falls back to <see cref="SetActive"/>.</summary>
+    /// <summary>VBM Activate, or SetActive on BMR.</summary>
     bool Activate(string name);
 
-    /// <summary>VBM-only; BMR clears active only when <paramref name="name"/> is the active preset.</summary>
+    /// <summary>VBM Deactivate, or ClearActive on BMR only when <paramref name="name"/> is active.</summary>
     bool Deactivate(string name);
 }
