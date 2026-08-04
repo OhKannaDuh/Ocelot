@@ -10,7 +10,7 @@ public sealed class ConfigWindow : OcelotWindow, IConfigWindow, IDisposable
     private readonly ITranslator translator;
 
     public ConfigWindow(IConfigRenderer renderer, ITranslator<ConfigWindow> translator)
-        : base(translator.T("windows.config.title"))
+        : base(translator.T("windows.config.title") + "###ocelot.config")
     {
         this.renderer = renderer;
         this.translator = translator;
@@ -26,7 +26,7 @@ public sealed class ConfigWindow : OcelotWindow, IConfigWindow, IDisposable
 
     private void UpdateWindowTitle()
     {
-        WindowName = translator.T(".title");
+        WindowName = translator.T(".title") + "###ocelot.config";
     }
 
     public void Dispose()
