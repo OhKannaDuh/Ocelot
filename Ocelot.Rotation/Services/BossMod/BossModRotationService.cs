@@ -200,7 +200,8 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
                   { "Track": "General", "Option": "Aggressive" },
                   { "Track": "Retarget", "Option": "NoTarget" },
                   { "Track": "Treasure", "Option": "Disabled" },
-                  { "Track": "FATE", "Option": "Enabled" }
+                  { "Track": "FATE", "Option": "Disabled" },
+                  { "Track": "Everything", "Option": "Enabled" }
                 ],
                 "BossMod.Autorotation.MiscAI.StayWithinLeylines": [
                   { "Track": "Use Between The Lines", "Option": "Yes" },
