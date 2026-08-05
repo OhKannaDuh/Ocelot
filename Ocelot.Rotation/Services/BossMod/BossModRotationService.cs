@@ -207,16 +207,16 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
                   { "Track": "Use Between The Lines", "Option": "Yes" },
                   { "Track": "Use Retrace", "Option": "Yes" }
                 ],
+                "BossMod.Autorotation.MiscAI.GoToPositional": [],
+                "BossMod.Autorotation.MiscAI.StayCloseToTarget": [
+                  { "Track": "range", "Option": "{{rangeOption}}" }
+                ],
                 "BossMod.Autorotation.MiscAI.NormalMovement": [
                   { "Track": "Destination", "Option": "Pathfind" },
                   { "Track": "ForbiddenZoneCushion", "Option": "None" },
                   { "Track": "Range", "Option": "Any" },
-                  { "Track": "Cast", "Option": "DropInstants" },
-                  { "Track": "DelayMovement", "Option": "None" }
-                ],
-                "BossMod.Autorotation.MiscAI.GoToPositional": [],
-                "BossMod.Autorotation.MiscAI.StayCloseToTarget": [
-                  { "Track": "range", "Option": "{{rangeOption}}" }
+                  { "Track": "DelayMovement", "Option": "None" },
+                  { "Track": "Cast", "Option": "Leeway" }
                 ]
               }
             }
