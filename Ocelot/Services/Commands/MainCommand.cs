@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Lumina.Extensions;

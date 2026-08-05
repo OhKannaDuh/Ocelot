@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Ipc.VNavmesh;
 using Ocelot.Services.Pathfinding;
 

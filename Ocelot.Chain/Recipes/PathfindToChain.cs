@@ -56,6 +56,7 @@ public class
             {
                 pathfinder.Stop();
                 pathfinder.PathfindAndMoveTo(pathfinderConfig);
+                pathfinderConfig.WhileMoving?.Invoke();
                 lastProgressAt = DateTime.UtcNow;
                 lastProgressPos = PlayerPosition();
                 return StepResult.Success();
@@ -78,6 +79,7 @@ public class
                     }
 
                     Vector3 pos = PlayerPosition();
+                    pathfinderConfig.WhileMoving?.Invoke();
                     if (!float.IsNaN(pos.X))
                     {
                         if (float.IsNaN(lastProgressPos.X) || pos.Distance2D(lastProgressPos) > 1f)

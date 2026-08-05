@@ -1,4 +1,4 @@
-﻿namespace Ocelot.Rotation.Services;
+namespace Ocelot.Rotation.Services;
 
 public interface IRotationService
 {

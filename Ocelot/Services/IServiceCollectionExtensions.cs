@@ -47,6 +47,7 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<IFieldRenderer<CheckboxAttribute>, CheckboxRenderer>();
         services.AddSingleton<IFieldRenderer<FloatRangeAttribute>, FloatRangeRenderer>();
         services.AddSingleton<IFieldRenderer<IntRangeAttribute>, IntRangeRenderer>();
+        services.AddSingleton<IFieldRenderer<StringInputAttribute>, StringInputRenderer>();
 
         services.AddSingleton<ITranslationRepository, TranslationRepository>();
         services.AddSingleton<ITranslator, Translator>();
