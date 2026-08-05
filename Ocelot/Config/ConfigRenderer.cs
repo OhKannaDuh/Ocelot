@@ -104,8 +104,6 @@ public class ConfigRenderer : IConfigRenderer
                 {
                     current = uConfig;
                 }
-
-                uConfig.Tooltip(translator);
             }
 
             foreach (var (key, gConfigs) in grouped.OrderBy(kvp =>
@@ -125,16 +123,10 @@ public class ConfigRenderer : IConfigRenderer
                         current = only;
                     }
 
-                    only.Tooltip(translator);
                     continue;
                 }
 
                 ImGui.Text(translator.T($"config_group.{key}.label"));
-                var tooltipKey = $"config_group.{key}.tooltip";
-                if (translator.Has(tooltipKey) && ImGui.IsItemHovered())
-                {
-                    ImGui.SetTooltip(translator.T(tooltipKey));
-                }
 
                 ImGui.Indent(16);
                 foreach (var gConfig in gConfigs)
@@ -144,8 +136,6 @@ public class ConfigRenderer : IConfigRenderer
                     {
                         current = gConfig;
                     }
-
-                    gConfig.Tooltip(translator);
                 }
 
                 ImGui.Unindent(16);

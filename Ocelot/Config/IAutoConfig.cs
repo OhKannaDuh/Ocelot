@@ -30,7 +30,7 @@ public interface IAutoConfig
         var key = GetTooltipKey();
         if (translator.Has(key) && ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip(translator.T(key));
+            PropertyInfoExtensions.DrawWrappedTooltip(translator.T(key));
         }
     }
 }

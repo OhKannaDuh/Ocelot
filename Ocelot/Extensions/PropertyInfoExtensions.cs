@@ -33,9 +33,26 @@ public static class PropertyInfoExtensions
     public static void Tooltip(this PropertyInfo prop, Type owner, ITranslator translator)
     {
         var tooltipKey = prop.GetFieldTooltipKey(owner);
-        if (translator.Has(tooltipKey) && ImGui.IsItemHovered())
+        if (!translator.Has(tooltipKey) || !ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip(translator.T(tooltipKey));
+            return;
         }
+
+        DrawWrappedTooltip(translator.T(tooltipKey));
+    }
+
+    /// <summary>Hover help with word wrap — ImGui.SetTooltip is one long line and hard to read.</summary>
+    public static void DrawWrappedTooltip(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        ImGui.BeginTooltip();
+        ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35f);
+        ImGui.TextUnformatted(text);
+        ImGui.PopTextWrapPos();
+        ImGui.EndTooltip();
     }
 }

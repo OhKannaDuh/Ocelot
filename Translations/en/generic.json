@@ -1,13 +1,13 @@
 {
   "start": "Start",
   "stop": "Stop",
-  "enabled": "Enabled",
-  "disabled": "Disabled",
+  "enabled": "On",
+  "disabled": "Off",
   "toggle": "Toggle",
-  "toggle_config_window": "Toggle Config Window",
+  "toggle_config_window": "Open / close Config",
   "emergency_stop": "Emergency Stop",
   "yes": "Yes",
   "no": "No",
-  "state": "State",
-  "substate": "Substate"
+  "state": "Status",
+  "substate": "Detail"
 }
