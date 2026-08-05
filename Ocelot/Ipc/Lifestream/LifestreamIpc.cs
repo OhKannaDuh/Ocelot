@@ -14,6 +14,21 @@ public class LifestreamIpc(IDalamudPluginInterface plugin) : ILifestreamIpc
 
     private readonly ICallGateSubscriber<object> abort = plugin.GetIpcSubscriber<object>("Lifestream.Abort");
 
+    public bool IsAvailable
+    {
+        get
+        {
+            try
+            {
+                return aethernetTeleportByPlaceNameId.HasFunction && isBusy.HasFunction;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
     public bool IsBusy()
     {
         try

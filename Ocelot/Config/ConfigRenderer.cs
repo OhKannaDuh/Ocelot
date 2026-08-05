@@ -36,7 +36,7 @@ public class ConfigRenderer : IConfigRenderer
 
         foreach (var config in configs)
         {
-            if (config.GetType().GetCustomAttribute<ConfigHiddenAttribute>() != null)
+            if (config is null || config.GetType().GetCustomAttribute<ConfigHiddenAttribute>() != null)
             {
                 continue;
             }
@@ -69,7 +69,8 @@ public class ConfigRenderer : IConfigRenderer
             });
         }
 
-        current = configs.FirstOrDefault(c => c.GetType().GetCustomAttribute<ConfigHiddenAttribute>() == null);
+        current = configs.FirstOrDefault(c =>
+            c is not null && c.GetType().GetCustomAttribute<ConfigHiddenAttribute>() == null);
     }
 
     private object GetRenderer(UIFieldAttribute attr)

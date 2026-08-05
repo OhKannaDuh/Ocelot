@@ -2,6 +2,8 @@ namespace Ocelot.Ipc.BossMod;
 
 public interface ILifestreamIpc
 {
+    bool IsAvailable { get; }
+
     bool IsBusy();
 
     uint GetActiveCustomAetheryte();
