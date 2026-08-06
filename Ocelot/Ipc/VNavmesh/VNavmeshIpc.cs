@@ -174,6 +174,13 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
             return;
         }
 
+        // AsyncMoveRequest rejects stacked SimpleMove calls with ERR "Pathfinding task is in progress...".
+        // Path.Stop does not clear that pending task — skip until the current one finishes.
+        if (IsPathfinding())
+        {
+            return;
+        }
+
         try
         {
             pathfindAndMoveTo.InvokeFunc(destination, shouldFly);
@@ -187,6 +194,11 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
     public void PathfindAndMoveCloseTo(Vector3 destination, bool shouldFly, float range)
     {
         if (!pathfindAndMoveCloseTo.HasFunction)
+        {
+            return;
+        }
+
+        if (IsPathfinding())
         {
             return;
         }

@@ -4,9 +4,20 @@ using Ocelot.Services.PlayerState;
 
 namespace Ocelot.Rotation.Services.BossMod;
 
+public enum BocchiAiActivity
+{
+    Fate,
+    CriticalEncounter,
+}
+
 public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotationService, IOnPreUpdate
 {
-    public const string AiPresetName = "BOCCHI AI";
+    public const string FatePresetName = "BOCCHI AI FATE";
+
+    public const string CePresetName = "BOCCHI AI CE";
+
+    /// <summary>Pre-split single preset — deleted on ensure/teardown.</summary>
+    private const string LegacyAiPresetName = "BOCCHI AI";
 
     private const string LegacySingleTargetPresetName = "Ocelot Single Target";
 
@@ -15,6 +26,8 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
     private bool wantActive;
 
     private bool bocchiAiReady;
+
+    private BocchiAiActivity activeActivity = BocchiAiActivity.Fate;
 
     private bool? bakedAsMelee;
 
@@ -26,7 +39,7 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
 
     public void Unload()
     {
-        // Illegal Mode owns the ephemeral preset — ignore DynamicRotation provider churn.
+        // Illegal Mode owns the ephemeral presets — ignore DynamicRotation provider churn.
         if (wantBocchiAi)
         {
             return;
@@ -34,7 +47,7 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
 
         if (ipc.IsAvailable)
         {
-            ipc.Deactivate(AiPresetName);
+            DeactivateAllBocchiPresets();
         }
 
         ClearBakeState();
@@ -55,21 +68,20 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
 
         uint jobId = CurrentJobId();
         bool isMelee = player.IsMelee();
-        string? stored = ipc.Get(AiPresetName);
-        bool missing = stored == null;
+        bool missing = ipc.Get(FatePresetName) == null || ipc.Get(CePresetName) == null;
         bool jobChanged = bakedJobId is not null && bakedJobId.Value != jobId;
         bool roleChanged = bakedAsMelee is not null && bakedAsMelee.Value != isMelee;
-        bool staleRange = stored != null && isMelee != stored.Contains("OnHitbox", StringComparison.Ordinal);
+        string? fateStored = ipc.Get(FatePresetName);
+        bool staleRange = fateStored != null && isMelee != fateStored.Contains("OnHitbox", StringComparison.Ordinal);
 
         if (!bocchiAiReady || missing || jobChanged || roleChanged || staleRange)
         {
-            bool wasActive = wantActive
-                || string.Equals(ipc.GetActive(), AiPresetName, StringComparison.Ordinal);
-            bocchiAiReady = RecreateBocchiAiPreset(isMelee, jobId);
+            bool wasActive = wantActive || IsAnyBocchiPresetActive();
+            bocchiAiReady = RecreateBocchiAiPresets(isMelee, jobId);
             if (bocchiAiReady && wasActive)
             {
                 wantActive = true;
-                ipc.Activate(AiPresetName);
+                ActivateCurrent();
             }
         }
     }
@@ -77,8 +89,8 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
     public void EnsureAutoRotationPreset()
     {
         wantBocchiAi = true;
-        DeleteLegacySingleTargetPreset();
-        bocchiAiReady = RecreateBocchiAiPreset(player.IsMelee(), CurrentJobId());
+        DeleteLegacyPresets();
+        bocchiAiReady = RecreateBocchiAiPresets(player.IsMelee(), CurrentJobId());
     }
 
     public void DestroyAutoRotationPreset()
@@ -92,19 +104,23 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
             return;
         }
 
-        ipc.Deactivate(AiPresetName);
-        ipc.Delete(AiPresetName);
-        DeleteLegacySingleTargetPreset();
+        DeactivateAllBocchiPresets();
+        DeletePresetIfPresent(FatePresetName);
+        DeletePresetIfPresent(CePresetName);
+        DeleteLegacyPresets();
     }
 
-    public void EnableAutoRotation()
+    public void EnableAutoRotation() => EnableForActivity(BocchiAiActivity.Fate);
+
+    public void EnableForActivity(BocchiAiActivity activity)
     {
         wantBocchiAi = true;
         wantActive = true;
+        activeActivity = activity;
         Refresh();
         if (bocchiAiReady && ipc.IsAvailable)
         {
-            ipc.Activate(AiPresetName);
+            ActivateCurrent();
         }
     }
 
@@ -113,7 +129,7 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
         wantActive = false;
         if (ipc.IsAvailable)
         {
-            ipc.Deactivate(AiPresetName);
+            DeactivateAllBocchiPresets();
         }
     }
 
@@ -129,15 +145,20 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
     {
         storedJson = null;
         wantBocchiAi = true;
-        bocchiAiReady = RecreateBocchiAiPreset(player.IsMelee(), CurrentJobId());
+        DeleteLegacyPresets();
+        bocchiAiReady = RecreateBocchiAiPresets(player.IsMelee(), CurrentJobId());
         if (!bocchiAiReady)
         {
             return false;
         }
 
-        storedJson = ipc.Get(AiPresetName);
+        storedJson =
+            $"=== {FatePresetName} ===\n{ipc.Get(FatePresetName)}\n\n=== {CePresetName} ===\n{ipc.Get(CePresetName)}";
         return true;
     }
+
+    public static string PresetNameFor(BocchiAiActivity activity) =>
+        activity == BocchiAiActivity.CriticalEncounter ? CePresetName : FatePresetName;
 
     private uint CurrentJobId() => player.GetClassJob()?.RowId ?? 0;
 
@@ -148,32 +169,58 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
         bakedJobId = null;
     }
 
-    private void DeleteLegacySingleTargetPreset()
+    private void DeleteLegacyPresets()
     {
-        if (!ipc.IsAvailable || ipc.Get(LegacySingleTargetPresetName) == null)
+        DeletePresetIfPresent(LegacyAiPresetName);
+        DeletePresetIfPresent(LegacySingleTargetPresetName);
+    }
+
+    private void DeletePresetIfPresent(string name)
+    {
+        if (!ipc.IsAvailable || ipc.Get(name) == null)
         {
             return;
         }
 
-        ipc.Deactivate(LegacySingleTargetPresetName);
-        ipc.Delete(LegacySingleTargetPresetName);
+        ipc.Deactivate(name);
+        ipc.Delete(name);
     }
 
-    private bool RecreateBocchiAiPreset(bool isMelee, uint jobId)
+    private void DeactivateAllBocchiPresets()
+    {
+        ipc.Deactivate(FatePresetName);
+        ipc.Deactivate(CePresetName);
+        ipc.Deactivate(LegacyAiPresetName);
+    }
+
+    private bool IsAnyBocchiPresetActive()
+    {
+        string? active = ipc.GetActive();
+        return string.Equals(active, FatePresetName, StringComparison.Ordinal)
+               || string.Equals(active, CePresetName, StringComparison.Ordinal)
+               || string.Equals(active, LegacyAiPresetName, StringComparison.Ordinal);
+    }
+
+    private void ActivateCurrent()
+    {
+        string wanted = PresetNameFor(activeActivity);
+        string other = activeActivity == BocchiAiActivity.Fate ? CePresetName : FatePresetName;
+        ipc.Deactivate(other);
+        ipc.Deactivate(LegacyAiPresetName);
+        ipc.Activate(wanted);
+    }
+
+    private bool RecreateBocchiAiPresets(bool isMelee, uint jobId)
     {
         if (!ipc.IsAvailable)
         {
             return false;
         }
 
-        if (ipc.Get(AiPresetName) != null)
-        {
-            ipc.Deactivate(AiPresetName);
-            ipc.Delete(AiPresetName);
-        }
-
-        ipc.Create(BuildBocchiAiPresetJson(isMelee), overwrite: true);
-        bool ok = ipc.Get(AiPresetName) != null;
+        DeleteLegacyPresets();
+        bool fateOk = UpsertPreset(FatePresetName, BuildBocchiAiPresetJson(FatePresetName, isMelee, forFate: true));
+        bool ceOk = UpsertPreset(CePresetName, BuildBocchiAiPresetJson(CePresetName, isMelee, forFate: false));
+        bool ok = fateOk && ceOk;
         if (ok)
         {
             bakedAsMelee = isMelee;
@@ -187,21 +234,35 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
         return ok;
     }
 
-    private static string BuildBocchiAiPresetJson(bool isMelee)
+    private bool UpsertPreset(string name, string json)
+    {
+        if (ipc.Get(name) != null)
+        {
+            ipc.Deactivate(name);
+            ipc.Delete(name);
+        }
+
+        ipc.Create(json, overwrite: true);
+        return ipc.Get(name) != null;
+    }
+
+    private static string BuildBocchiAiPresetJson(string name, bool isMelee, bool forFate)
     {
         string rangeOption = isMelee ? "OnHitbox" : "15";
+        string fateOption = forFate ? "Enabled" : "Disabled";
+        string everythingOption = forFate ? "Disabled" : "Enabled";
 
         return
             $$"""
             {
-              "Name": "BOCCHI AI",
+              "Name": "{{name}}",
               "Modules": {
                 "BossMod.Autorotation.MiscAI.AutoTarget": [
                   { "Track": "General", "Option": "Aggressive" },
-                  { "Track": "Retarget", "Option": "NoTarget" },
+                  { "Track": "Retarget", "Option": "Always" },
                   { "Track": "Treasure", "Option": "Disabled" },
-                  { "Track": "FATE", "Option": "Disabled" },
-                  { "Track": "Everything", "Option": "Enabled" }
+                  { "Track": "FATE", "Option": "{{fateOption}}" },
+                  { "Track": "Everything", "Option": "{{everythingOption}}" }
                 ],
                 "BossMod.Autorotation.MiscAI.StayWithinLeylines": [
                   { "Track": "Use Between The Lines", "Option": "Yes" },

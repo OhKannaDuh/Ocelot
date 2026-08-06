@@ -54,7 +54,30 @@ public class
             }, "Distance Check")
             .Then(_ =>
             {
+                // Path.Stop does not cancel SimpleMove's pending pathfind task.
                 pathfinder.Stop();
+                vnav.Stop();
+                return StepResult.Success();
+            }, "Stop prior movement")
+            .Then(new WaitUntilStep(
+                _ =>
+                {
+                    // A completing pending task may refill waypoints — keep clearing until the slot frees.
+                    if (vnav.IsPathfinding())
+                    {
+                        pathfinder.Stop();
+                        vnav.Stop();
+                        return new ValueTask<bool>(false);
+                    }
+
+                    return new ValueTask<bool>(true);
+                },
+                MovementStartTimeout,
+                name: "Wait for pathfind slot"))
+            .Then(_ =>
+            {
+                pathfinder.Stop();
+                vnav.Stop();
                 pathfinder.PathfindAndMoveTo(pathfinderConfig);
                 pathfinderConfig.WhileMoving?.Invoke();
                 lastProgressAt = DateTime.UtcNow;

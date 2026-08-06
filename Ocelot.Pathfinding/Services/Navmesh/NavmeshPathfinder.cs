@@ -40,6 +40,12 @@ public class NavmeshPathfinder(
             return;
         }
 
+        // Don't stack SimpleMove requests — vnavmesh logs ERR and drops the new destination.
+        if (nav.IsPathfinding())
+        {
+            return;
+        }
+
         if (config.TerritoryType.HasValue && config.TerritoryType.Value.RowId != client.CurrentTerritoryId)
         {
             throw new InvalidOperationException("NavmeshPathfindingService does not support moving between territories");
