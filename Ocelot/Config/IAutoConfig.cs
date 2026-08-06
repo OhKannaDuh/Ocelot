@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Ocelot.Extensions;
 using Ocelot.Services.Translation;
 

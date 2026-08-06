@@ -1,4 +1,4 @@
-﻿using ECommons;
+using ECommons;
 
 namespace Ocelot.ECommons.Services;
 

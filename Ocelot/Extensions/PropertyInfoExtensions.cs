@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Dalamud.Bindings.ImGui;
 using Ocelot.Services.Translation;
 
