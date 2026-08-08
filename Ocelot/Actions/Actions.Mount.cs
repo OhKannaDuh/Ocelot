@@ -17,9 +17,10 @@ public partial class Actions
         return Mount(MountId);
     }
 
+    /// <param name="id">Mount sheet row ID; 0 = Mount Roulette.</param>
     public static Action Mount(uint id)
     {
-        return new Action(ActionType.Mount, id);
+        return id == 0 ? MountRoulette : new Action(ActionType.Mount, id);
     }
 
     public static Action Unmount
