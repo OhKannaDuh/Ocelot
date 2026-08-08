@@ -24,7 +24,10 @@ public unsafe class Action(ActionType type, uint id)
 
     public bool Cast()
     {
-        return ActionManager.Instance()->UseAction(Type, Id);
+        using (ActionCastScope.SuppressPathfindCancel())
+        {
+            return ActionManager.Instance()->UseAction(Type, Id);
+        }
     }
 
     public bool IsValid()
