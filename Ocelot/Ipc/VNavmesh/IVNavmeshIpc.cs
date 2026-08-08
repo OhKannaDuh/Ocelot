@@ -26,11 +26,6 @@ public interface IVNavmeshIpc
 
     Vector3 FindPointOnMesh(Vector3 origin, float halfExtentXZ, float halfExtentY);
 
-    /// <summary>
-    ///     Resolve the current map flag to a navmesh floor point (same as <c>/vnav moveflag</c>).
-    /// </summary>
-    Vector3? FlagToPoint();
-
     List<Vector3> GetActiveNodes();
 
     void Stop();

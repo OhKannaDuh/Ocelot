@@ -27,9 +27,6 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
     private readonly ICallGateSubscriber<Vector3, float, float, Vector3?> findPointOnMesh =
         plugin.GetIpcSubscriber<Vector3, float, float, Vector3?>("vnavmesh.Query.Mesh.NearestPoint");
 
-    private readonly ICallGateSubscriber<Vector3?> flagToPoint =
-        plugin.GetIpcSubscriber<Vector3?>("vnavmesh.Query.Mesh.FlagToPoint");
-
     private readonly ICallGateSubscriber<List<Vector3>> listWaypoints = plugin.GetIpcSubscriber<List<Vector3>>("vnavmesh.Path.ListWaypoints");
 
     private readonly ICallGateSubscriber<object> stop = plugin.GetIpcSubscriber<object>("vnavmesh.Path.Stop");
@@ -247,23 +244,6 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
         catch
         {
             return origin;
-        }
-    }
-
-    public Vector3? FlagToPoint()
-    {
-        if (!flagToPoint.HasFunction)
-        {
-            return null;
-        }
-
-        try
-        {
-            return flagToPoint.InvokeFunc();
-        }
-        catch
-        {
-            return null;
         }
     }
 
