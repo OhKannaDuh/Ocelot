@@ -5,6 +5,7 @@ using Dalamud.Interface.Utility.Raii;
 using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Config.Fields;
 using Ocelot.Config.Renderers;
+using Ocelot.Extensions;
 using Ocelot.Graphics;
 using Ocelot.Services.Translation;
 using Ocelot.Services.WindowManager;
@@ -172,12 +173,64 @@ public class ConfigRenderer : IConfigRenderer
                 .ThenBy(x => x.prop.Name, StringComparer.Ordinal)
                 .ToList();
 
+            var configSnake = type.Name.Replace("Config", "").ToSnakeCase();
+            string? lastSection = null;
+
             foreach (var (prop, attr) in props)
             {
                 ImGui.PushID(prop.Name);
 
-                var renderer = GetRenderer(attr!);
-                var changed = InvokeRenderer(renderer, current, prop, attr!, type);
+                var fieldAttr = attr!;
+                if (!string.IsNullOrEmpty(fieldAttr.Section) && fieldAttr.Section != lastSection)
+                {
+                    if (lastSection != null)
+                    {
+                        ImGui.Spacing();
+                        ImGui.Separator();
+                        ImGui.Spacing();
+                    }
+
+                    var sectionKey = $"config.{configSnake}.sections.{fieldAttr.Section}";
+                    ImGui.TextUnformatted(translator.Has(sectionKey) ? translator.T(sectionKey) : fieldAttr.Section);
+                    ImGui.Spacing();
+                    lastSection = fieldAttr.Section;
+                }
+
+                var indentPx = fieldAttr.Indent > 0 ? fieldAttr.Indent * 16f : 0f;
+                if (indentPx > 0f)
+                {
+                    ImGui.Indent(indentPx);
+                }
+
+                var requiresDisabled = false;
+                if (!string.IsNullOrEmpty(fieldAttr.Requires))
+                {
+                    var required = type.GetProperty(fieldAttr.Requires, BindingFlags.Instance | BindingFlags.Public);
+                    if (required?.PropertyType == typeof(bool) && required.GetValue(current) is false)
+                    {
+                        requiresDisabled = true;
+                    }
+                }
+
+                bool changed;
+                if (requiresDisabled)
+                {
+                    using (ImRaii.Disabled())
+                    {
+                        var renderer = GetRenderer(fieldAttr);
+                        changed = InvokeRenderer(renderer, current, prop, fieldAttr, type);
+                    }
+                }
+                else
+                {
+                    var renderer = GetRenderer(fieldAttr);
+                    changed = InvokeRenderer(renderer, current, prop, fieldAttr, type);
+                }
+
+                if (indentPx > 0f)
+                {
+                    ImGui.Unindent(indentPx);
+                }
 
                 if (changed)
                 {
