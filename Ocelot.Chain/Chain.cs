@@ -139,6 +139,11 @@ public class Chain(string name, IServiceProvider services) : IChain
 
                 var result = await pipeline();
 
+                if (result.IsCanceled || context.CancellationToken.IsCancellationRequested)
+                {
+                    return ChainResult.Canceled();
+                }
+
                 switch (result.IsSuccess)
                 {
                     case true when result.ShouldBreak:

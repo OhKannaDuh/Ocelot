@@ -126,11 +126,13 @@ public class
             {
                 if (!IsAtDestination(pathfinderConfig))
                 {
+                    // Check before Stop() — Stop always leaves Idle, which used to make every
+                    // shortfall look like a user cancel (no retries, soft-pause Illegal Mode).
+                    bool stoppedEarly = HasStoppedMoving();
                     pathfinder.Stop();
                     vnav.Stop();
 
-                    // User / emergency stop left pathfinder idle — do not retry-spam.
-                    if (HasStoppedMoving())
+                    if (stoppedEarly)
                     {
                         logger.Info(
                             "Pathfind stopped before destination (Distance={Distance:F2}) — treating as cancel",
