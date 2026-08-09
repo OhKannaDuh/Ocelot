@@ -16,11 +16,9 @@ public class RotationSolverRebornRotationService(IRotationSolverRebornIpc ipc) :
 
     public void EnableSingleTarget()
     {
-        // I should ask LTS or whoever about this
     }
 
     public void DisableSingleTarget()
     {
-        // I should ask LTS or whoever about this
     }
 }
