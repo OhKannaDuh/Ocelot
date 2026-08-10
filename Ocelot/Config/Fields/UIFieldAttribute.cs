@@ -1,4 +1,4 @@
-﻿namespace Ocelot.Config.Fields;
+namespace Ocelot.Config.Fields;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class UIFieldAttribute(Type rendererType) : Attribute

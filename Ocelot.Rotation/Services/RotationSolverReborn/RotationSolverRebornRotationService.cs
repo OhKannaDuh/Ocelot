@@ -1,4 +1,4 @@
-﻿using Ocelot.Ipc.RotationSolverReborn;
+using Ocelot.Ipc.RotationSolverReborn;
 
 namespace Ocelot.Rotation.Services.RotationSolverReborn;
 

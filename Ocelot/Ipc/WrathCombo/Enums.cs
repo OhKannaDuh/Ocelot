@@ -1,4 +1,4 @@
-﻿namespace Ocelot.Ipc.WrathCombo;
+namespace Ocelot.Ipc.WrathCombo;
 
 public enum WrathSetResult
 {

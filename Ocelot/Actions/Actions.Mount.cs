@@ -1,4 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using Ocelot.Services.PlayerState;
 
 namespace Ocelot.Actions;
