@@ -207,7 +207,13 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
         string other = activeActivity == BocchiAiActivity.Fate ? CePresetName : FatePresetName;
         ipc.Deactivate(other);
         ipc.Deactivate(LegacyAiPresetName);
-        ipc.Activate(wanted);
+        if (ipc.Activate(wanted))
+        {
+            return;
+        }
+
+        // Activate/SetActive returned false — one more SetActive attempt for BMR/VBM drift (#182).
+        ipc.SetActive(wanted);
     }
 
     private bool RecreateBocchiAiPresets(bool isMelee, uint jobId)
