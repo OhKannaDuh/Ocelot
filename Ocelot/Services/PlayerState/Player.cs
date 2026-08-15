@@ -19,14 +19,14 @@ public class Player(
     private const float RangedRange = 25f;
 
     // Tank + melee DPS ClassJob RowIds (base classes + jobs).
-    // Dancer (38): treated as melee so Illegal Mode closes to hitbox — Standard/Technical
-    // Finish is a 15y PBAoE around you; standing on the ranged ring leaves Steps out of range.
+    // Dancer (38): Standard/Technical Finish is a 15y PBAoE; ranged standoff leaves Steps out of range.
+    // Sage (40): Phlegma / Dyskrasia need ≤6y — use OnHitbox AI instead of the 15y healer ring.
     private static readonly HashSet<uint> MeleeJobIds =
     [
         1, 2, 3, 4, // GLA, PUG, MRD, LNC
         19, 20, 21, 22, // PLD, MNK, WAR, DRG
         29, 30, 32, 34, // ROG, NIN, DRK, SAM
-        37, 38, 39, 41, // GNB, DNC, RPR, VPR
+        37, 38, 39, 40, 41, // GNB, DNC, RPR, SGE, VPR
     ];
 
     private static readonly HashSet<uint> MeleeDpsJobIds =

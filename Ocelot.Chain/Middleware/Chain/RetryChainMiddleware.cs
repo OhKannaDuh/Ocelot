@@ -25,13 +25,13 @@ public sealed class RetryChainMiddleware(ILogger logger) : IChainMiddleware
 
             try
             {
-                logger.Info("Chain attempt {Attempt} starting (RunId={RunId})", attempt, context.RunId);
+                logger.Debug("Chain attempt {Attempt} starting (RunId={RunId})", attempt, context.RunId);
 
                 var result = await next();
 
                 if (result.IsSuccess)
                 {
-                    logger.Info("Chain attempt {Attempt} succeeded (RunId={RunId})", attempt, context.RunId);
+                    logger.Debug("Chain attempt {Attempt} succeeded (RunId={RunId})", attempt, context.RunId);
                     return result;
                 }
 
