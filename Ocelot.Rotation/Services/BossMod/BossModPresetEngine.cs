@@ -53,6 +53,14 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
 
     private CombatActivity activeActivity = CombatActivity.Fate;
 
+    /// <summary>
+    ///     Activity the active preset is already armed for. Activation is edge-triggered: callers
+    ///     poll Enable() every tick, and re-Activating each time restarts the preset in BossMod,
+    ///     which throws away NormalMovement's in-flight NavigationDecision — the AI never gets far
+    ///     enough through a dodge to execute it.
+    /// </summary>
+    private CombatActivity? armedActivity;
+
     private BossModPresetKind presetKind = BossModPresetKind.MiscAi;
 
     private bool? bakedAsMelee;
@@ -78,18 +86,23 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     public void Enable(CombatActivity activity)
     {
         wantOwned = true;
+        bool alreadyArmed = wantActive && armedActivity == activity && presetsReady;
         wantActive = true;
         activeActivity = activity;
         Refresh();
-        if (presetsReady && ipc.IsAvailable)
+        if (!presetsReady || !ipc.IsAvailable || alreadyArmed)
         {
-            ActivateCurrent();
+            return;
         }
+
+        ActivateCurrent();
+        armedActivity = activity;
     }
 
     public void Disable()
     {
         wantActive = false;
+        armedActivity = null;
         if (ipc.IsAvailable)
         {
             DeactivateAllOwnedPresets();
@@ -122,11 +135,13 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         if (!presetsReady || missing || jobChanged || roleChanged || staleRange)
         {
             bool wasActive = wantActive || IsAnyOwnedPresetActive();
+            armedActivity = null;
             presetsReady = RecreatePresets(isMelee, jobId);
             if (presetsReady && wasActive)
             {
                 wantActive = true;
                 ActivateCurrent();
+                armedActivity = activeActivity;
             }
         }
     }
@@ -171,6 +186,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     private void ClearBakeState()
     {
         presetsReady = false;
+        armedActivity = null;
         bakedAsMelee = null;
         bakedJobId = null;
     }
