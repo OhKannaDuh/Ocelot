@@ -22,7 +22,7 @@ public sealed class MainWindow : OcelotWindow, IMainWindow, IDisposable
         ITranslator<MainWindow> translator,
         IConfigWindow configWindow,
         IEnumerable<IMainWindowTitleBarContributor> titleBarContributors)
-        : base(translator.T("windows.main.title"))
+        : base(translator.T("windows.main.title") + "###ocelot.main")
     {
         this.renderer = renderer;
         this.translator = translator;
@@ -60,7 +60,7 @@ public sealed class MainWindow : OcelotWindow, IMainWindow, IDisposable
 
     private void UpdateWindowTitle()
     {
-        WindowName = translator.T(".title");
+        WindowName = translator.T(".title") + "###ocelot.main";
     }
 
     public void Dispose()
