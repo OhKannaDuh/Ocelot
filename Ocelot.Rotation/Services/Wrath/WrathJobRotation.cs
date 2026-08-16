@@ -171,20 +171,36 @@ public sealed class WrathJobRotation(
         }
 
         var id = Lease.Value;
+
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.InCombatOnly, true);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.FATEPriority, true);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.IncludeNPCs, true);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.OnlyAttackInCombat, true);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRez, true);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRezDPSJobs, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.BypassQuest, false);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.BypassFATE, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.UnTargetAndDisableForPenalty, true);
+
         WrathIPCWrapper.SetAutoRotationConfigState(
             id,
             AutoRotationConfigOption.DPSRotationMode,
             manualTargeting ? DPSRotationMode.Manual : DPSRotationMode.Nearest);
-        WrathIPCWrapper.SetAutoRotationConfigState(
-            id,
-            AutoRotationConfigOption.HealerRotationMode,
-            manualTargeting ? HealerRotationMode.Manual : HealerRotationMode.Lowest_Current);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.DPSAoETargets, 3);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.IgnoreRangeInBoss, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.FATEPriority, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.QuestPriority, false);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.OnlyAttackInCombat, false);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.DPSAlwaysHardTarget, true);
+
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.HealerRotationMode, HealerRotationMode.Lowest_Current);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.SingleTargetHPP, 70);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.SingleTargetRegenHPP, 60);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.SingleTargetExcogHPP, 50);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AoETargetHPP, 80);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRez, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRezOutOfParty, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRezDPSJobs, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRezDPSJobsHealersOnly, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoCleanse, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.ManageKardia, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.IncludeNPCs, false);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.HealerAlwaysHardTarget, false);
 
         farmingDefaultsApplied = true;
     }
