@@ -63,3 +63,11 @@ public enum WrathAutoRotationConfigOption
 
     SingleTargetExcogHPP = 17,
 }
+
+/// <summary>Matches WrathCombo.API.Enum.ComboStateKeys.</summary>
+public enum WrathComboStateKeys
+{
+    Enabled = 0,
+
+    AutoMode = 1,
+}

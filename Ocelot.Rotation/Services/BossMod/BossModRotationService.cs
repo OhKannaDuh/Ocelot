@@ -29,6 +29,8 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
 
     private BocchiAiActivity activeActivity = BocchiAiActivity.Fate;
 
+    private BocchiAiActivity? armedActivity;
+
     private bool? bakedAsMelee;
 
     private uint? bakedJobId;
@@ -82,6 +84,7 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
             {
                 wantActive = true;
                 ActivateCurrent();
+                armedActivity = activeActivity;
             }
         }
     }
@@ -97,6 +100,7 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
     {
         wantBocchiAi = false;
         wantActive = false;
+        armedActivity = null;
         ClearBakeState();
 
         if (!ipc.IsAvailable)
@@ -115,18 +119,28 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
     public void EnableForActivity(BocchiAiActivity activity)
     {
         wantBocchiAi = true;
+        bool alreadyArmed = wantActive && armedActivity == activity && bocchiAiReady;
         wantActive = true;
         activeActivity = activity;
         Refresh();
-        if (bocchiAiReady && ipc.IsAvailable)
+        if (!bocchiAiReady || !ipc.IsAvailable || alreadyArmed)
         {
-            ActivateCurrent();
+            return;
         }
+
+        ActivateCurrent();
+        armedActivity = activity;
     }
 
     public void DisableAutoRotation()
     {
+        if (!wantActive)
+        {
+            return;
+        }
+
         wantActive = false;
+        armedActivity = null;
         if (ipc.IsAvailable)
         {
             DeactivateAllBocchiPresets();
@@ -207,7 +221,13 @@ public class BossModRotationService(IBossModIpc ipc, IPlayer player) : IRotation
         string other = activeActivity == BocchiAiActivity.Fate ? CePresetName : FatePresetName;
         ipc.Deactivate(other);
         ipc.Deactivate(LegacyAiPresetName);
-        ipc.Activate(wanted);
+        if (ipc.Activate(wanted))
+        {
+            return;
+        }
+
+        // Activate/SetActive returned false — one more SetActive attempt for BMR/VBM drift (#182).
+        ipc.SetActive(wanted);
     }
 
     private bool RecreateBocchiAiPresets(bool isMelee, uint jobId)

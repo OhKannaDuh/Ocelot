@@ -9,16 +9,19 @@ public static class IServiceCollectionExtensions
 {
     public static void LoadRotations(this IServiceCollection services)
     {
-        services.AddTransient<WrathRotationService>();
-        services.AddSingleton<IRotationProvider, WrathRotationProvider>();
+        services.AddSingleton<CombatAiPresetNaming>();
+        services.AddSingleton<BossModPresetEngine>();
+        services.AddSingleton<BossModMiscAiBackend>();
 
-        services.AddSingleton<BossModRotationService>();
-        services.AddSingleton<IRotationProvider, BossModRotationProvider>();
+        services.AddSingleton<ICombatAiBackend>(sp => sp.GetRequiredService<BossModMiscAiBackend>());
 
-        services.AddTransient<RotationSolverRebornRotationService>();
-        services.AddSingleton<IRotationProvider, RotationSolverRebornRotationProvider>();
+        services.AddSingleton<IJobRotationBackend, WrathJobRotation>();
+        services.AddSingleton<IJobRotationBackend, RsrJobRotation>();
+        services.AddSingleton<IJobRotationBackend>(sp =>
+            new BossModFullArJobRotation(sp.GetRequiredService<BossModPresetEngine>(), JobRotationBackendKind.BossMod));
+        services.AddSingleton<IJobRotationBackend>(sp =>
+            new BossModFullArJobRotation(sp.GetRequiredService<BossModPresetEngine>(), JobRotationBackendKind.BossModReborn));
 
-        services.AddSingleton<IRotationService, DynamicRotationService>();
-        services.AddSingleton<IRotationPriorityService, RotationPriorityService>();
+        services.AddSingleton<ICombatRotationSession, CombatRotationSession>();
     }
 }

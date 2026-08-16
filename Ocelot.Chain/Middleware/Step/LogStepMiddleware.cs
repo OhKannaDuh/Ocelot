@@ -8,7 +8,7 @@ public class LogStepMiddleware(ILogger logger) : IStepMiddleware
     public async Task<StepResult> InvokeAsync(IChainContext context, IStep step, StepMiddlewareDelegate next)
     {
         var stopwatch = Stopwatch.StartNew();
-        logger.Info("Step {Step} started (RunId={RunId})", step.GetType().Name, context.RunId);
+        logger.Debug("Step {Step} started (RunId={RunId})", step.GetType().Name, context.RunId);
 
         try
         {
@@ -17,7 +17,7 @@ public class LogStepMiddleware(ILogger logger) : IStepMiddleware
 
             if (result.IsSuccess)
             {
-                logger.Info("Step {Step} succeeded in {Elapsed} ms", step.GetType().Name, stopwatch.ElapsedMilliseconds);
+                logger.Debug("Step {Step} succeeded in {Elapsed} ms", step.GetType().Name, stopwatch.ElapsedMilliseconds);
             }
             else
             {

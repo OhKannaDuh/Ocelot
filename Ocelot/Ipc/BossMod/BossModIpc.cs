@@ -119,11 +119,13 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
 
     public bool Activate(string name)
     {
+        // Prefer Activate when present, but fall through to SetActive when it fails —
+        // some BossMod builds expose Activate that returns false without enabling AI (#182).
         try
         {
-            if (activate.HasFunction)
+            if (activate.HasFunction && activate.InvokeFunc(name))
             {
-                return activate.InvokeFunc(name);
+                return true;
             }
         }
         catch
@@ -138,9 +140,9 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
     {
         try
         {
-            if (deactivate.HasFunction)
+            if (deactivate.HasFunction && deactivate.InvokeFunc(name))
             {
-                return deactivate.InvokeFunc(name);
+                return true;
             }
         }
         catch

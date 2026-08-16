@@ -22,6 +22,33 @@ public class WrathComboIpc(IDalamudPluginInterface plugin) : IWrathComboIpc
     private readonly ICallGateSubscriber<bool> getAutoRotationState = plugin
         .GetIpcSubscriber<bool>("WrathCombo.GetAutoRotationState");
 
+    private readonly ICallGateSubscriber<bool> isCurrentJobAutoRotationReady = plugin
+        .GetIpcSubscriber<bool>("WrathCombo.IsCurrentJobAutoRotationReady");
+
+    private readonly ICallGateSubscriber<Guid, WrathSetResult> setCurrentJobAutoRotationReady = plugin
+        .GetIpcSubscriber<Guid, WrathSetResult>("WrathCombo.SetCurrentJobAutoRotationReady");
+
+    private readonly ICallGateSubscriber<string, Dictionary<WrathComboStateKeys, bool>?> getComboState = plugin
+        .GetIpcSubscriber<string, Dictionary<WrathComboStateKeys, bool>?>("WrathCombo.GetComboState");
+
+    private readonly ICallGateSubscriber<Guid, string, bool, bool, WrathSetResult> setComboState = plugin
+        .GetIpcSubscriber<Guid, string, bool, bool, WrathSetResult>("WrathCombo.SetComboState");
+
+    private readonly ICallGateSubscriber<string, bool> getComboOptionState = plugin
+        .GetIpcSubscriber<string, bool>("WrathCombo.GetComboOptionState");
+
+    private readonly ICallGateSubscriber<Guid, string, bool, WrathSetResult> setComboOptionState = plugin
+        .GetIpcSubscriber<Guid, string, bool, WrathSetResult>("WrathCombo.SetComboOptionState");
+
+    private readonly ICallGateSubscriber<uint, string?> getOccultParentComboName = plugin
+        .GetIpcSubscriber<uint, string?>("WrathCombo.GetOccultParentComboName");
+
+    private readonly ICallGateSubscriber<uint, List<string>?> getOccultOptionNames = plugin
+        .GetIpcSubscriber<uint, List<string>?>("WrathCombo.GetOccultOptionNames");
+
+    private readonly ICallGateSubscriber<Guid, uint, bool, WrathSetResult> setOccultReadyForPhantomJob = plugin
+        .GetIpcSubscriber<Guid, uint, bool, WrathSetResult>("WrathCombo.SetOccultReadyForPhantomJob");
+
     public Guid? RegisterForLease(string internalPluginName, string pluginName)
     {
         return registerForLease.InvokeFunc(internalPluginName, pluginName);
@@ -29,12 +56,25 @@ public class WrathComboIpc(IDalamudPluginInterface plugin) : IWrathComboIpc
 
     public void ReleaseControl(Guid lease)
     {
-        releaseControl.InvokeAction(lease);
+        try
+        {
+            releaseControl.InvokeAction(lease);
+        }
+        catch
+        {
+        }
     }
 
     public WrathSetResult SetAutoRotationConfigState(Guid lease, WrathAutoRotationConfigOption option, object value)
     {
-        return setAutoRotationConfigState.InvokeFunc(lease, option, value);
+        try
+        {
+            return setAutoRotationConfigState.InvokeFunc(lease, option, value);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
     }
 
     public object? GetAutoRotationConfigState(WrathAutoRotationConfigOption option)
@@ -44,11 +84,91 @@ public class WrathComboIpc(IDalamudPluginInterface plugin) : IWrathComboIpc
 
     public WrathSetResult SetAutoRotationState(Guid lease, bool enabled = true)
     {
-        return setAutoRotationState.InvokeFunc(lease, enabled);
+        try
+        {
+            return setAutoRotationState.InvokeFunc(lease, enabled);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
     }
 
     public bool GetAutoRotationState()
     {
         return getAutoRotationState.InvokeFunc();
+    }
+
+    public bool IsCurrentJobAutoRotationReady()
+    {
+        return isCurrentJobAutoRotationReady.InvokeFunc();
+    }
+
+    public WrathSetResult SetCurrentJobAutoRotationReady(Guid lease)
+    {
+        try
+        {
+            return setCurrentJobAutoRotationReady.InvokeFunc(lease);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
+    }
+
+    public Dictionary<WrathComboStateKeys, bool>? GetComboState(string comboInternalName)
+    {
+        return getComboState.InvokeFunc(comboInternalName);
+    }
+
+    public WrathSetResult SetComboState(Guid lease, string comboInternalName, bool comboState = true, bool autoState = true)
+    {
+        try
+        {
+            return setComboState.InvokeFunc(lease, comboInternalName, comboState, autoState);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
+    }
+
+    public bool GetComboOptionState(string optionName)
+    {
+        return getComboOptionState.InvokeFunc(optionName);
+    }
+
+    public WrathSetResult SetComboOptionState(Guid lease, string optionName, bool state = true)
+    {
+        try
+        {
+            return setComboOptionState.InvokeFunc(lease, optionName, state);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
+    }
+
+    public string? GetOccultParentComboName(uint phantomJobId)
+    {
+        return getOccultParentComboName.InvokeFunc(phantomJobId);
+    }
+
+    public List<string>? GetOccultOptionNames(uint phantomJobId)
+    {
+        return getOccultOptionNames.InvokeFunc(phantomJobId);
+    }
+
+    public WrathSetResult SetOccultReadyForPhantomJob(Guid lease, uint phantomJobId, bool enabled = true)
+    {
+        try
+        {
+            return setOccultReadyForPhantomJob.InvokeFunc(lease, phantomJobId, enabled);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
     }
 }

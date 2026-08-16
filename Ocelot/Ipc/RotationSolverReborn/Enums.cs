@@ -11,4 +11,9 @@ public enum RSRStateCommandType : byte
     Manual,
 
     AutoDuty,
+
+    /// <summary>IPC-managed: rotation only, no targeting (Henchman / BOCCHI + BossMod AI).</summary>
+    Henched,
+
+    PvP,
 }
