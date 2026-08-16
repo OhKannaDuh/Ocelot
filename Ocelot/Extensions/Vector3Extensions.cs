@@ -25,21 +25,31 @@ public static class Vector3Extensions
         return Vector2.Distance(vector.Truncate(), other.Truncate());
     }
 
+    /// <summary>
+    ///     A point <paramref name="range"/> short of <paramref name="to"/>, on the horizontal ray
+    ///     back toward <paramref name="from"/>.
+    ///     The offset is deliberately flat. Stepping back along the full 3D ray also descends by
+    ///     range * direction.Y, which for an elevated target (a CE on a tower, say) puts the
+    ///     stand-off under the platform — and the caller's floor snap then resolves it to the
+    ///     ground below. Keeping <c>to.Y</c> leaves the point on the target's own level.
+    /// </summary>
     public static Vector3 GetApproachPosition(this Vector3 to, Vector3 from, float range = 3f, float angularJitter = 0f)
     {
-        var distance = from.Distance(to);
-        if (distance <= range)
+        // "Already there" stays a true 3D test — being directly under a tower is not arriving.
+        if (from.Distance(to) <= range)
         {
             return from;
         }
 
-        var direction = to - from;
-        if (direction.LengthSquared() < 0.0001f)
+        var direction = new Vector3(to.X - from.X, 0f, to.Z - from.Z);
+        var horizontal = direction.Length();
+        if (horizontal < 0.0001f)
         {
+            // Straight above or below: no meaningful ray, so aim at the target itself.
             return to;
         }
 
-        direction /= distance;
+        direction /= horizontal;
 
         if (angularJitter > 0f)
         {
@@ -51,7 +61,7 @@ public static class Vector3Extensions
 
             direction = new Vector3(
                 direction.X * cos - direction.Z * sin,
-                direction.Y,
+                0f,
                 direction.X * sin + direction.Z * cos
             );
         }
