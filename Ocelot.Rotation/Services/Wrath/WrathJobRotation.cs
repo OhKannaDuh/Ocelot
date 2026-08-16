@@ -1,8 +1,14 @@
+using Dalamud.Plugin;
 using Ocelot.Ipc.WrathCombo;
+using WrathCombo.API;
+using WrathCombo.API.Enum;
 
 namespace Ocelot.Rotation.Services.Wrath;
 
-public sealed class WrathJobRotation(IWrathComboIpc ipc, OcelotPlugin plugin) : IJobRotationBackend, IDisposable
+public sealed class WrathJobRotation(
+    IDalamudPluginInterface pluginInterface,
+    OcelotPlugin plugin,
+    IWrathComboIpc occult) : IJobRotationBackend, IDisposable
 {
     // Costly / not-advised Wrath options — leave off (do not enable or lock).
     private static readonly HashSet<string> OccultOptionsLeftOff = new(StringComparer.Ordinal)
@@ -17,7 +23,7 @@ public sealed class WrathJobRotation(IWrathComboIpc ipc, OcelotPlugin plugin) : 
 
     private readonly Lock gate = new();
 
-    private Lazy<Guid?> lease = NewLease(ipc, plugin);
+    private Lazy<Guid?> lease = NewLease(pluginInterface, plugin);
 
     private bool farmingDefaultsApplied;
 
@@ -27,9 +33,15 @@ public sealed class WrathJobRotation(IWrathComboIpc ipc, OcelotPlugin plugin) : 
 
     public JobRotationBackendKind Kind => JobRotationBackendKind.Wrath;
 
-    private static Lazy<Guid?> NewLease(IWrathComboIpc ipc, OcelotPlugin plugin)
+    private static Lazy<Guid?> NewLease(IDalamudPluginInterface pluginInterface, OcelotPlugin plugin)
     {
-        return new Lazy<Guid?>(() => ipc.RegisterForLease(plugin.Name, plugin.Name), LazyThreadSafetyMode.ExecutionAndPublication);
+        return new Lazy<Guid?>(
+            () =>
+            {
+                WrathIPCWrapper.Init(pluginInterface, WrathIPCWrapper.ErrorType.All);
+                return WrathIPCWrapper.RegisterForLease(plugin.Name, plugin.Name);
+            },
+            LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
     private Guid? Lease
@@ -51,6 +63,8 @@ public sealed class WrathJobRotation(IWrathComboIpc ipc, OcelotPlugin plugin) : 
             return;
         }
 
+        // Wrath throws if configs are set before AutoRotationControlled[0] exists.
+        WrathIPCWrapper.SetAutoRotationState(Lease.Value, false);
         EnsureCurrentJobReady();
         ApplyFarmingDefaults();
     }
@@ -63,16 +77,16 @@ public sealed class WrathJobRotation(IWrathComboIpc ipc, OcelotPlugin plugin) : 
             return;
         }
 
+        WrathIPCWrapper.SetAutoRotationState(Lease.Value, true);
         EnsureCurrentJobReady();
         ApplyFarmingDefaults();
-        ipc.SetAutoRotationState(Lease.Value, true);
     }
 
     public void Disable()
     {
         if (Lease.HasValue)
         {
-            ipc.SetAutoRotationState(Lease.Value, false);
+            WrathIPCWrapper.SetAutoRotationState(Lease.Value, false);
         }
     }
 
@@ -128,14 +142,14 @@ public sealed class WrathJobRotation(IWrathComboIpc ipc, OcelotPlugin plugin) : 
         lock (gate)
         {
             old = lease;
-            lease = NewLease(ipc, plugin);
+            lease = NewLease(pluginInterface, plugin);
             farmingDefaultsApplied = false;
             trackedPhantomJobId = null;
         }
 
         if (old is { IsValueCreated: true, Value: { } id })
         {
-            ipc.ReleaseControl(id);
+            WrathIPCWrapper.ReleaseControl(id);
         }
     }
 
@@ -146,13 +160,7 @@ public sealed class WrathJobRotation(IWrathComboIpc ipc, OcelotPlugin plugin) : 
             return;
         }
 
-        try
-        {
-            ipc.SetCurrentJobAutoRotationReady(Lease.Value);
-        }
-        catch
-        {
-        }
+        WrathIPCWrapper.SetCurrentJobAutoRotationReady(Lease.Value);
     }
 
     private void ApplyFarmingDefaults()
@@ -163,31 +171,38 @@ public sealed class WrathJobRotation(IWrathComboIpc ipc, OcelotPlugin plugin) : 
         }
 
         var id = Lease.Value;
-        ipc.SetAutoRotationConfigState(id, WrathAutoRotationConfigOption.InCombatOnly, true);
-        ipc.SetAutoRotationConfigState(id, WrathAutoRotationConfigOption.FATEPriority, true);
-        ipc.SetAutoRotationConfigState(id, WrathAutoRotationConfigOption.IncludeNPCs, true);
-        ipc.SetAutoRotationConfigState(id, WrathAutoRotationConfigOption.OnlyAttackInCombat, true);
-        ipc.SetAutoRotationConfigState(id, WrathAutoRotationConfigOption.AutoRez, true);
-        ipc.SetAutoRotationConfigState(id, WrathAutoRotationConfigOption.AutoRezDPSJobs, true);
-        ipc.SetAutoRotationConfigState(id, WrathAutoRotationConfigOption.DPSRotationMode, manualTargeting ? 0 : 6);
-        ipc.SetAutoRotationConfigState(id, WrathAutoRotationConfigOption.HealerRotationMode, manualTargeting ? 0 : 2);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.InCombatOnly, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.FATEPriority, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.IncludeNPCs, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.OnlyAttackInCombat, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRez, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRezDPSJobs, true);
+        WrathIPCWrapper.SetAutoRotationConfigState(
+            id,
+            AutoRotationConfigOption.DPSRotationMode,
+            manualTargeting ? DPSRotationMode.Manual : DPSRotationMode.Nearest);
+        WrathIPCWrapper.SetAutoRotationConfigState(
+            id,
+            AutoRotationConfigOption.HealerRotationMode,
+            manualTargeting ? HealerRotationMode.Manual : HealerRotationMode.Lowest_Current);
 
         farmingDefaultsApplied = true;
     }
 
+    // Official WrathCombo.API does not expose phantom-job helpers until the next package.
     private void TryLockOccultOptimal(Guid leaseId, uint phantomJobId)
     {
         try
         {
-            string? parent = ipc.GetOccultParentComboName(phantomJobId);
+            string? parent = occult.GetOccultParentComboName(phantomJobId);
             if (string.IsNullOrEmpty(parent))
             {
                 return;
             }
 
-            ipc.SetComboState(leaseId, parent, comboState: true, autoState: true);
+            occult.SetComboState(leaseId, parent, comboState: true, autoState: true);
 
-            List<string>? options = ipc.GetOccultOptionNames(phantomJobId);
+            List<string>? options = occult.GetOccultOptionNames(phantomJobId);
             if (options == null)
             {
                 return;
@@ -200,7 +215,7 @@ public sealed class WrathJobRotation(IWrathComboIpc ipc, OcelotPlugin plugin) : 
                     continue;
                 }
 
-                ipc.SetComboOptionState(leaseId, option, state: true);
+                occult.SetComboOptionState(leaseId, option, state: true);
             }
         }
         catch

@@ -1,16 +1,24 @@
-﻿using Ocelot.Ipc.WrathCombo;
+﻿using Dalamud.Plugin;
+using WrathCombo.API;
+using WrathCombo.API.Enum;
 
 namespace Ocelot.Rotation.Services.Wrath;
 
-public class WrathRotationService(IWrathComboIpc ipc, OcelotPlugin plugin) : IRotationService, IDisposable
+public class WrathRotationService(IDalamudPluginInterface pluginInterface, OcelotPlugin plugin) : IRotationService, IDisposable
 {
     private readonly Lock gate = new();
 
-    private Lazy<Guid?> lease = NewLease(ipc, plugin);
+    private Lazy<Guid?> lease = NewLease(pluginInterface, plugin);
 
-    private static Lazy<Guid?> NewLease(IWrathComboIpc ipc, OcelotPlugin plugin)
+    private static Lazy<Guid?> NewLease(IDalamudPluginInterface pluginInterface, OcelotPlugin plugin)
     {
-        return new Lazy<Guid?>(() => ipc.RegisterForLease(plugin.Name, plugin.Name), LazyThreadSafetyMode.ExecutionAndPublication);
+        return new Lazy<Guid?>(
+            () =>
+            {
+                WrathIPCWrapper.Init(pluginInterface, WrathIPCWrapper.ErrorType.All);
+                return WrathIPCWrapper.RegisterForLease(plugin.Name, plugin.Name);
+            },
+            LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
     private Guid? Lease
@@ -30,12 +38,12 @@ public class WrathRotationService(IWrathComboIpc ipc, OcelotPlugin plugin) : IRo
         lock (gate)
         {
             old = lease;
-            lease = NewLease(ipc, plugin);
+            lease = NewLease(pluginInterface, plugin);
         }
 
         if (old is { IsValueCreated: true, Value: { } id })
         {
-            ipc.ReleaseControl(id);
+            WrathIPCWrapper.ReleaseControl(id);
         }
     }
 
@@ -44,7 +52,7 @@ public class WrathRotationService(IWrathComboIpc ipc, OcelotPlugin plugin) : IRo
     {
         if (Lease.HasValue)
         {
-            ipc.SetAutoRotationState(Lease.Value, true);
+            WrathIPCWrapper.SetAutoRotationState(Lease.Value, true);
         }
     }
 
@@ -52,7 +60,7 @@ public class WrathRotationService(IWrathComboIpc ipc, OcelotPlugin plugin) : IRo
     {
         if (Lease.HasValue)
         {
-            ipc.SetAutoRotationState(Lease.Value, false);
+            WrathIPCWrapper.SetAutoRotationState(Lease.Value, false);
         }
     }
 
@@ -63,13 +71,13 @@ public class WrathRotationService(IWrathComboIpc ipc, OcelotPlugin plugin) : IRo
     {
         if (Lease.HasValue)
         {
-            var current = ipc.GetAutoRotationConfigState(WrathAutoRotationConfigOption.DPSAoETargets);
+            var current = WrathIPCWrapper.GetAutoRotationConfigState(AutoRotationConfigOption.DPSAoETargets);
             if (current != null)
             {
                 cachedDPSAoETargets = current as int?;
             }
 
-            ipc.SetAutoRotationConfigState(Lease.Value, WrathAutoRotationConfigOption.DPSAoETargets, 99);
+            WrathIPCWrapper.SetAutoRotationConfigState(Lease.Value, AutoRotationConfigOption.DPSAoETargets, 99);
         }
     }
 
@@ -77,7 +85,7 @@ public class WrathRotationService(IWrathComboIpc ipc, OcelotPlugin plugin) : IRo
     {
         if (Lease.HasValue && cachedDPSAoETargets.HasValue)
         {
-            ipc.SetAutoRotationConfigState(Lease.Value, WrathAutoRotationConfigOption.DPSAoETargets, cachedDPSAoETargets.Value);
+            WrathIPCWrapper.SetAutoRotationConfigState(Lease.Value, AutoRotationConfigOption.DPSAoETargets, cachedDPSAoETargets.Value);
             cachedDPSAoETargets = null;
         }
     }

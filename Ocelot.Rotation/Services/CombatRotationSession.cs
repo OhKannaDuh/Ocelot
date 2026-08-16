@@ -78,8 +78,22 @@ public sealed class CombatRotationSession : ICombatRotationSession
 
     public void Teardown()
     {
-        job.Teardown();
-        ai.Teardown();
+        try
+        {
+            job.Teardown();
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            ai.Teardown();
+        }
+        catch
+        {
+        }
+
         job = nullJob;
         ai = nullAi;
         ActiveRecipe = CombatRotationRecipe.None;

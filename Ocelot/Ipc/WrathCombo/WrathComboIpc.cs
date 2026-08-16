@@ -56,12 +56,25 @@ public class WrathComboIpc(IDalamudPluginInterface plugin) : IWrathComboIpc
 
     public void ReleaseControl(Guid lease)
     {
-        releaseControl.InvokeAction(lease);
+        try
+        {
+            releaseControl.InvokeAction(lease);
+        }
+        catch
+        {
+        }
     }
 
     public WrathSetResult SetAutoRotationConfigState(Guid lease, WrathAutoRotationConfigOption option, object value)
     {
-        return setAutoRotationConfigState.InvokeFunc(lease, option, value);
+        try
+        {
+            return setAutoRotationConfigState.InvokeFunc(lease, option, value);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
     }
 
     public object? GetAutoRotationConfigState(WrathAutoRotationConfigOption option)
@@ -71,7 +84,14 @@ public class WrathComboIpc(IDalamudPluginInterface plugin) : IWrathComboIpc
 
     public WrathSetResult SetAutoRotationState(Guid lease, bool enabled = true)
     {
-        return setAutoRotationState.InvokeFunc(lease, enabled);
+        try
+        {
+            return setAutoRotationState.InvokeFunc(lease, enabled);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
     }
 
     public bool GetAutoRotationState()
@@ -86,7 +106,14 @@ public class WrathComboIpc(IDalamudPluginInterface plugin) : IWrathComboIpc
 
     public WrathSetResult SetCurrentJobAutoRotationReady(Guid lease)
     {
-        return setCurrentJobAutoRotationReady.InvokeFunc(lease);
+        try
+        {
+            return setCurrentJobAutoRotationReady.InvokeFunc(lease);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
     }
 
     public Dictionary<WrathComboStateKeys, bool>? GetComboState(string comboInternalName)
@@ -96,7 +123,14 @@ public class WrathComboIpc(IDalamudPluginInterface plugin) : IWrathComboIpc
 
     public WrathSetResult SetComboState(Guid lease, string comboInternalName, bool comboState = true, bool autoState = true)
     {
-        return setComboState.InvokeFunc(lease, comboInternalName, comboState, autoState);
+        try
+        {
+            return setComboState.InvokeFunc(lease, comboInternalName, comboState, autoState);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
     }
 
     public bool GetComboOptionState(string optionName)
@@ -106,7 +140,14 @@ public class WrathComboIpc(IDalamudPluginInterface plugin) : IWrathComboIpc
 
     public WrathSetResult SetComboOptionState(Guid lease, string optionName, bool state = true)
     {
-        return setComboOptionState.InvokeFunc(lease, optionName, state);
+        try
+        {
+            return setComboOptionState.InvokeFunc(lease, optionName, state);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
     }
 
     public string? GetOccultParentComboName(uint phantomJobId)
@@ -121,6 +162,13 @@ public class WrathComboIpc(IDalamudPluginInterface plugin) : IWrathComboIpc
 
     public WrathSetResult SetOccultReadyForPhantomJob(Guid lease, uint phantomJobId, bool enabled = true)
     {
-        return setOccultReadyForPhantomJob.InvokeFunc(lease, phantomJobId, enabled);
+        try
+        {
+            return setOccultReadyForPhantomJob.InvokeFunc(lease, phantomJobId, enabled);
+        }
+        catch
+        {
+            return WrathSetResult.InvalidLease;
+        }
     }
 }
