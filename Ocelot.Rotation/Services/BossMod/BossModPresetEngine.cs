@@ -86,7 +86,14 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     public void Enable(CombatActivity activity)
     {
         wantOwned = true;
-        bool alreadyArmed = wantActive && armedActivity == activity && presetsReady;
+
+        // "Already armed" has to mean the preset is genuinely active, not just that we activated it
+        // once. Anything can deactivate it behind our back — the user clicking in BossMod, a preset
+        // reload, BMR drift — and trusting the flag alone left us never re-activating it.
+        bool alreadyArmed = wantActive
+                            && armedActivity == activity
+                            && presetsReady
+                            && IsPresetActiveFor(activity);
         wantActive = true;
         activeActivity = activity;
         Refresh();
@@ -233,6 +240,20 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
                || string.Equals(active, naming.FateFullAr, StringComparison.Ordinal)
                || string.Equals(active, naming.CeFullAr, StringComparison.Ordinal)
                || string.Equals(active, LegacyAiPresetName, StringComparison.Ordinal);
+    }
+
+    /// <summary>True when BossMod currently has the preset for this activity active.</summary>
+    private bool IsPresetActiveFor(CombatActivity activity)
+    {
+        if (!ipc.IsAvailable)
+        {
+            return false;
+        }
+
+        return string.Equals(
+            ipc.GetActive(),
+            naming.PresetNameFor(activity, presetKind),
+            StringComparison.Ordinal);
     }
 
     private void ActivateCurrent()

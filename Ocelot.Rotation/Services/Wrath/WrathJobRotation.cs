@@ -114,7 +114,15 @@ public sealed class WrathJobRotation(
                 return;
             }
 
+            uint? previous = trackedPhantomJobId;
             trackedPhantomJobId = contentJobId;
+
+            // Release the job we are leaving. Without this the lease accumulates every phantom job
+            // touched this session, all left enabled, until the lease itself is released.
+            if (previous is { } old && old != contentJobId)
+            {
+                TryReleaseOccult(Lease.Value, old);
+            }
 
             if (contentJobId is { } next)
             {
@@ -205,7 +213,24 @@ public sealed class WrathJobRotation(
         farmingDefaultsApplied = true;
     }
 
-    // Official WrathCombo.API does not expose phantom-job helpers until the next package.
+    private static bool IsOk(WrathSetResult result) =>
+        result is WrathSetResult.Okay or WrathSetResult.OkayWorking;
+
+    /// <summary>
+    ///     Turn a phantom job's pack off again. Best effort: older Wrath builds have no such gate,
+    ///     and the IPC wrapper reports that as a failed result rather than throwing.
+    /// </summary>
+    private void TryReleaseOccult(Guid leaseId, uint phantomJobId)
+    {
+        try
+        {
+            occult.SetOccultReadyForPhantomJob(leaseId, phantomJobId, enabled: false);
+        }
+        catch
+        {
+        }
+    }
+
     private void TryLockOccultOptimal(Guid leaseId, uint phantomJobId)
     {
         try
@@ -216,9 +241,17 @@ public sealed class WrathJobRotation(
                 return;
             }
 
+            List<string>? options = occult.GetOccultOptionNames(phantomJobId);
+
+            // One call turns the parent and every option on. Older builds without the gate report
+            // a failure, and we fall back to setting each option individually below.
+            bool bulk = IsOk(occult.SetOccultReadyForPhantomJob(leaseId, phantomJobId, enabled: true));
+
+            // Assert the parent ourselves either way: the bulk gate's contract only promises the
+            // parent and options are "enabled", not that autoState is set, and without auto the
+            // combo never actually fires.
             occult.SetComboState(leaseId, parent, comboState: true, autoState: true);
 
-            List<string>? options = occult.GetOccultOptionNames(phantomJobId);
             if (options == null)
             {
                 return;
@@ -228,10 +261,20 @@ public sealed class WrathJobRotation(
             {
                 if (OccultOptionsLeftOff.Contains(option))
                 {
+                    // Bulk enabled everything, so the ones we deliberately keep off (BOCCHI owns
+                    // elixirs / sprint / Suspend itself) have to be switched back off.
+                    if (bulk)
+                    {
+                        occult.SetComboOptionState(leaseId, option, state: false);
+                    }
+
                     continue;
                 }
 
-                occult.SetComboOptionState(leaseId, option, state: true);
+                if (!bulk)
+                {
+                    occult.SetComboOptionState(leaseId, option, state: true);
+                }
             }
         }
         catch
