@@ -8,6 +8,8 @@ public sealed class RsrJobRotation(IRotationSolverRebornIpc ipc) : IJobRotationB
 
     public void Prepare(JobRotationSessionOptions options)
     {
+        _ = options;
+        Disable();
     }
 
     public void Enable(CombatActivity activity)

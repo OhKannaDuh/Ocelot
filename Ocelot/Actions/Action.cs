@@ -22,11 +22,13 @@ public unsafe class Action(ActionType type, uint id)
         return GetRecastTime() <= 0f && ActionManager.Instance()->GetActionStatus(Type, Id) <= 0f;
     }
 
-    public bool Cast()
+    public bool Cast() => Cast(0xE0000000);
+
+    public bool Cast(ulong targetId)
     {
         using (ActionCastScope.SuppressPathfindCancel())
         {
-            return ActionManager.Instance()->UseAction(Type, Id);
+            return ActionManager.Instance()->UseAction(Type, Id, targetId);
         }
     }
 
