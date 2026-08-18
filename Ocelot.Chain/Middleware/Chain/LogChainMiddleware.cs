@@ -21,7 +21,7 @@ public class LogChainMiddleware(ILogger logger) : IChainMiddleware
             }
             else if (result.IsCanceled)
             {
-                logger.Warning("Chain {Name} canceled after {Elapsed} ms", context.ChainName, stopwatch.ElapsedMilliseconds);
+                logger.Debug("Chain {Name} canceled after {Elapsed} ms", context.ChainName, stopwatch.ElapsedMilliseconds);
             }
             else
             {
@@ -34,7 +34,7 @@ public class LogChainMiddleware(ILogger logger) : IChainMiddleware
         catch (OperationCanceledException)
         {
             stopwatch.Stop();
-            logger.Warning("Chain {Name} canceled after {Elapsed} ms (OperationCanceledException)",
+            logger.Debug("Chain {Name} canceled after {Elapsed} ms (OperationCanceledException)",
                 context.ChainName, stopwatch.ElapsedMilliseconds);
             throw;
         }

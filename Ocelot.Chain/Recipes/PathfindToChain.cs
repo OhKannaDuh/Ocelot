@@ -134,7 +134,7 @@ public class
 
                     if (stoppedEarly)
                     {
-                        logger.Info(
+                        logger.Debug(
                             "Pathfind stopped before destination (Distance={Distance:F2}) — treating as cancel",
                             DistanceToDestination(pathfinderConfig));
                         return new ValueTask<StepResult>(StepResult.Canceled());

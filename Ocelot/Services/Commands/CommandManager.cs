@@ -76,7 +76,7 @@ public class CommandManager : IOnStart, IDisposable
     private void Register(IOcelotCommand cmd)
     {
         var command = GetCommand(cmd.Command);
-        logger.Info("Registering {c} command", command);
+        logger.Debug("Registering {c} command", command);
 
         var (helpMsg, showInHelp) = cmd.BuildHelp();
 

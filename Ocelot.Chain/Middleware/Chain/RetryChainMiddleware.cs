@@ -37,7 +37,7 @@ public sealed class RetryChainMiddleware(ILogger logger) : IChainMiddleware
 
                 if (result.IsCanceled)
                 {
-                    logger.Warning("Chain attempt {Attempt} canceled (RunId={RunId})", attempt, context.RunId);
+                    logger.Debug("Chain attempt {Attempt} canceled (RunId={RunId})", attempt, context.RunId);
                     return result;
                 }
 
@@ -52,7 +52,7 @@ public sealed class RetryChainMiddleware(ILogger logger) : IChainMiddleware
             }
             catch (OperationCanceledException)
             {
-                logger.Warning("Chain attempt {Attempt} canceled by token (RunId={RunId})", attempt, context.RunId);
+                logger.Debug("Chain attempt {Attempt} canceled by token (RunId={RunId})", attempt, context.RunId);
                 throw;
             }
             catch (Exception ex)

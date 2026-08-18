@@ -31,7 +31,7 @@ public class WindowManager : IWindowManager, IOnRender, IDisposable
 
         foreach (var window in windows.OfType<Window>())
         {
-            logger.Info("Adding window, {name}", window.WindowName);
+            logger.Debug("Adding window, {name}", window.WindowName);
             manager.AddWindow(window);
         }
 

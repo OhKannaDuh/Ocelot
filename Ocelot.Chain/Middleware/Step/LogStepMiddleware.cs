@@ -30,7 +30,7 @@ public class LogStepMiddleware(ILogger logger) : IStepMiddleware
         catch (OperationCanceledException)
         {
             stopwatch.Stop();
-            logger.Warning("Step {Step} canceled after {Elapsed} ms", step.GetType().Name, stopwatch.ElapsedMilliseconds);
+            logger.Debug("Step {Step} canceled after {Elapsed} ms", step.GetType().Name, stopwatch.ElapsedMilliseconds);
             throw;
         }
         catch (Exception ex)
