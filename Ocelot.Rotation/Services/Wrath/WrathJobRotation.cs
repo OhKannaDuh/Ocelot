@@ -27,6 +27,8 @@ public sealed class WrathJobRotation(
 
     private bool manualTargeting = true;
 
+    private bool? rotationOn;
+
     private uint? trackedPhantomJobId;
 
     public JobRotationBackendKind Kind => JobRotationBackendKind.Wrath;
@@ -62,7 +64,7 @@ public sealed class WrathJobRotation(
         }
 
         // Wrath throws if configs are set before AutoRotationControlled[0] exists.
-        WrathIPCWrapper.SetAutoRotationState(Lease.Value, false);
+        SetRotation(false);
         EnsureCurrentJobReady();
         ApplyFarmingDefaults();
     }
@@ -70,27 +72,20 @@ public sealed class WrathJobRotation(
     public void Enable(CombatActivity activity)
     {
         _ = activity;
-        if (!Lease.HasValue)
+        if (!SetRotation(true))
         {
             return;
         }
 
-        WrathIPCWrapper.SetAutoRotationState(Lease.Value, true);
         EnsureCurrentJobReady();
         ApplyFarmingDefaults();
     }
 
-    public void Disable()
-    {
-        if (Lease.HasValue)
-        {
-            WrathIPCWrapper.SetAutoRotationState(Lease.Value, false);
-        }
-    }
+    public void Disable() => SetRotation(false);
 
     public void Refresh()
     {
-        if (!Lease.HasValue)
+        if (rotationOn != true || !Lease.HasValue)
         {
             return;
         }
@@ -142,6 +137,23 @@ public sealed class WrathJobRotation(
 
     public void Dispose() => Teardown();
 
+    private bool SetRotation(bool on)
+    {
+        if (!Lease.HasValue)
+        {
+            return false;
+        }
+
+        if (rotationOn == on)
+        {
+            return false;
+        }
+
+        WrathIPCWrapper.SetAutoRotationState(Lease.Value, on);
+        rotationOn = on;
+        return true;
+    }
+
     private void ReleaseLease()
     {
         Lazy<Guid?> old;
@@ -150,6 +162,7 @@ public sealed class WrathJobRotation(
             old = lease;
             lease = NewLease(pluginInterface, plugin);
             farmingDefaultsApplied = false;
+            rotationOn = null;
             trackedPhantomJobId = null;
         }
 

@@ -6,6 +6,8 @@ public sealed class RsrJobRotation(IRotationSolverRebornIpc ipc) : IJobRotationB
 {
     public JobRotationBackendKind Kind => JobRotationBackendKind.RotationSolverReborn;
 
+    private RSRStateCommandType? armed;
+
     public void Prepare(JobRotationSessionOptions options)
     {
         _ = options;
@@ -14,14 +16,30 @@ public sealed class RsrJobRotation(IRotationSolverRebornIpc ipc) : IJobRotationB
 
     public void Enable(CombatActivity activity)
     {
-        ipc.ChangeOperatingMode(RSRStateCommandType.Henched);
+        _ = activity;
+        SetMode(RSRStateCommandType.Henched);
     }
 
-    public void Disable() => ipc.ChangeOperatingMode(RSRStateCommandType.Off);
+    public void Disable() => SetMode(RSRStateCommandType.Off);
 
     public void Refresh()
     {
     }
 
-    public void Teardown() => Disable();
+    public void Teardown()
+    {
+        Disable();
+        armed = null;
+    }
+
+    private void SetMode(RSRStateCommandType mode)
+    {
+        if (armed == mode)
+        {
+            return;
+        }
+
+        ipc.ChangeOperatingMode(mode);
+        armed = mode;
+    }
 }

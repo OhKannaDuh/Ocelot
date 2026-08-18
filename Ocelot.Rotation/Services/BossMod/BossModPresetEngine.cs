@@ -94,10 +94,15 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
                             && armedActivity == activity
                             && presetsReady
                             && IsPresetActiveFor(activity);
+        if (alreadyArmed)
+        {
+            return;
+        }
+
         wantActive = true;
         activeActivity = activity;
         Refresh();
-        if (!presetsReady || !ipc.IsAvailable || alreadyArmed)
+        if (!presetsReady || !ipc.IsAvailable)
         {
             return;
         }
@@ -108,12 +113,17 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
 
     public void Disable()
     {
+        bool needsDeactivate = wantActive
+                               || armedActivity != null
+                               || (ipc.IsAvailable && IsAnyOwnedPresetActive());
         wantActive = false;
         armedActivity = null;
-        if (ipc.IsAvailable)
+        if (!needsDeactivate || !ipc.IsAvailable)
         {
-            DeactivateAllOwnedPresets();
+            return;
         }
+
+        DeactivateAllOwnedPresets();
     }
 
     public void Refresh()
