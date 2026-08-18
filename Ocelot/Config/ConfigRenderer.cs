@@ -96,7 +96,11 @@ public class ConfigRenderer : IConfigRenderer
 
     public void Render()
     {
-        using (ImRaii.Child("##LeftPanel", new Vector2(300, 0), true))
+        // Font-relative, not a hardcoded 300px: at larger UI scales a fixed sidebar clips its own
+        // labels, and at small scales it wastes half the window.
+        var sidebarWidth = Math.Clamp(ImGui.GetFontSize() * 15f, 220f, 380f);
+
+        using (ImRaii.Child("##LeftPanel", new Vector2(sidebarWidth, 0), true))
         {
             foreach (var uConfig in ungrouped)
             {
@@ -127,7 +131,12 @@ public class ConfigRenderer : IConfigRenderer
                     continue;
                 }
 
-                ImGui.Text(translator.T($"config_group.{key}.label"));
+                // Muted, from the active theme rather than a fixed colour, so a group header reads
+                // as a category and not as another clickable row at the same weight as its pages.
+                ImGui.Spacing();
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
+                ImGui.TextUnformatted(translator.T($"config_group.{key}.label"));
+                ImGui.PopStyleColor();
 
                 ImGui.Indent(16);
                 foreach (var gConfig in gConfigs)
@@ -183,15 +192,25 @@ public class ConfigRenderer : IConfigRenderer
                 var fieldAttr = attr!;
                 if (!string.IsNullOrEmpty(fieldAttr.Section) && fieldAttr.Section != lastSection)
                 {
+                    // Separate every section the same way, including the first. Previously the first
+                    // header butted straight against the page blurb while the rest were spaced, so
+                    // the top of every page looked subtly different from the body.
+                    ImGui.Spacing();
                     if (lastSection != null)
                     {
-                        ImGui.Spacing();
                         ImGui.Separator();
                         ImGui.Spacing();
                     }
 
                     var sectionKey = $"config.{configSnake}.sections.{fieldAttr.Section}";
+
+                    // Accent colour from the theme — section headers sat at the same weight as the
+                    // field labels beneath them, which is what made long pages hard to scan.
+                    // (ImGui.SeparatorText would be the idiomatic choice but is not in these bindings.)
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.CheckMark));
                     ImGui.TextUnformatted(translator.Has(sectionKey) ? translator.T(sectionKey) : fieldAttr.Section);
+                    ImGui.PopStyleColor();
+
                     ImGui.Spacing();
                     lastSection = fieldAttr.Section;
                 }
