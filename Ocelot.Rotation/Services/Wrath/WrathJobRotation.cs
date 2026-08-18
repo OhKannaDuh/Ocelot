@@ -1,5 +1,4 @@
 using Dalamud.Plugin;
-using Ocelot.Ipc.WrathCombo;
 using WrathCombo.API;
 using WrathCombo.API.Enum;
 
@@ -7,8 +6,7 @@ namespace Ocelot.Rotation.Services.Wrath;
 
 public sealed class WrathJobRotation(
     IDalamudPluginInterface pluginInterface,
-    OcelotPlugin plugin,
-    IWrathComboIpc occult) : IJobRotationBackend, IDisposable
+    OcelotPlugin plugin) : IJobRotationBackend, IDisposable
 {
     // Costly / not-advised Wrath options — leave off (do not enable or lock).
     private static readonly HashSet<string> OccultOptionsLeftOff = new(StringComparer.Ordinal)
@@ -213,44 +211,40 @@ public sealed class WrathJobRotation(
         farmingDefaultsApplied = true;
     }
 
-    private static bool IsOk(WrathSetResult result) =>
-        result is WrathSetResult.Okay or WrathSetResult.OkayWorking;
+    private static bool IsOk(SetResult result) =>
+        result is SetResult.Okay or SetResult.OkayWorking;
 
     /// <summary>
-    ///     Turn a phantom job's pack off again. Best effort: older Wrath builds have no such gate,
-    ///     and the IPC wrapper reports that as a failed result rather than throwing.
+    ///     Turn a phantom job's pack off again. Best effort if Wrath is older than this IPC.
     /// </summary>
-    private void TryReleaseOccult(Guid leaseId, uint phantomJobId)
+    private static void TryReleaseOccult(Guid leaseId, uint phantomJobId)
     {
         try
         {
-            occult.SetOccultReadyForPhantomJob(leaseId, phantomJobId, enabled: false);
+            WrathIPCWrapper.SetOccultReadyForPhantomJob(leaseId, phantomJobId, enabled: false);
         }
         catch
         {
         }
     }
 
-    private void TryLockOccultOptimal(Guid leaseId, uint phantomJobId)
+    private static void TryLockOccultOptimal(Guid leaseId, uint phantomJobId)
     {
         try
         {
-            string? parent = occult.GetOccultParentComboName(phantomJobId);
+            string? parent = WrathIPCWrapper.GetOccultParentComboName(phantomJobId);
             if (string.IsNullOrEmpty(parent))
             {
                 return;
             }
 
-            List<string>? options = occult.GetOccultOptionNames(phantomJobId);
+            List<string>? options = WrathIPCWrapper.GetOccultOptionNames(phantomJobId);
 
-            // One call turns the parent and every option on. Older builds without the gate report
-            // a failure, and we fall back to setting each option individually below.
-            bool bulk = IsOk(occult.SetOccultReadyForPhantomJob(leaseId, phantomJobId, enabled: true));
+            // One call turns the parent and every option on. Older Wrath without the gate
+            // reports a failure; fall back to setting each option individually below.
+            bool bulk = IsOk(WrathIPCWrapper.SetOccultReadyForPhantomJob(leaseId, phantomJobId, enabled: true));
 
-            // Assert the parent ourselves either way: the bulk gate's contract only promises the
-            // parent and options are "enabled", not that autoState is set, and without auto the
-            // combo never actually fires.
-            occult.SetComboState(leaseId, parent, comboState: true, autoState: true);
+            WrathIPCWrapper.SetComboState(leaseId, parent, comboState: true, autoState: true);
 
             if (options == null)
             {
@@ -261,11 +255,9 @@ public sealed class WrathJobRotation(
             {
                 if (OccultOptionsLeftOff.Contains(option))
                 {
-                    // Bulk enabled everything, so the ones we deliberately keep off (BOCCHI owns
-                    // elixirs / sprint / Suspend itself) have to be switched back off.
                     if (bulk)
                     {
-                        occult.SetComboOptionState(leaseId, option, state: false);
+                        WrathIPCWrapper.SetComboOptionState(leaseId, option, comboState: false);
                     }
 
                     continue;
@@ -273,7 +265,7 @@ public sealed class WrathJobRotation(
 
                 if (!bulk)
                 {
-                    occult.SetComboOptionState(leaseId, option, state: true);
+                    WrathIPCWrapper.SetComboOptionState(leaseId, option, comboState: true);
                 }
             }
         }

@@ -12,7 +12,6 @@ using Ocelot.Ipc.Lifestream;
 using Ocelot.Ipc.PandorasBox;
 using Ocelot.Ipc.VNavmesh;
 using Ocelot.Ipc.RotationSolverReborn;
-using Ocelot.Ipc.WrathCombo;
 using Ocelot.Lifecycle;
 using Ocelot.Lifecycle.Hosts;
 using Ocelot.Services.ClientState;
@@ -67,7 +66,6 @@ public static class IServiceCollectionExtensions
 
         services.AddSingleton<IVNavmeshIpc, VNavmeshIpc>();
         services.AddSingleton<IBossModIpc, BossModIpc>();
-        services.AddSingleton<IWrathComboIpc, WrathComboIpc>();
         services.AddSingleton<IRotationSolverRebornIpc, RotationSolverRebornIpc>();
         services.AddSingleton<ILifestreamIpc, LifestreamIpc>();
         services.AddSingleton<IPandorasBoxIpc, PandorasBoxIpc>();

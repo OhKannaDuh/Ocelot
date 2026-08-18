@@ -41,11 +41,6 @@ public static class Registry
         return CachedTypes;
     }
 
-    public static IEnumerable<Type> GetTypesImplementing<TBase>() where TBase : class
-    {
-        return GetAllLoadableTypes().Where(t => !t.IsAbstract && typeof(TBase).IsAssignableFrom(t));
-    }
-
     public static IEnumerable<Type> GetTypesWithAttribute<TAttribute>() where TAttribute : Attribute
     {
         return GetAllLoadableTypes().Where(t => !t.IsAbstract && t.IsDefined(typeof(TAttribute), false));

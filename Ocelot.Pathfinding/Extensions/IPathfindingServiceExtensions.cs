@@ -8,14 +8,4 @@ public static class IPathfindingServiceExtensions
     {
         return service.GetState() == PathfindingState.Idle;
     }
-
-    public static bool IsPathfinding(this IPathfinder service)
-    {
-        return service.GetState() == PathfindingState.Pathfinding;
-    }
-
-    public static bool IsMoving(this IPathfinder service)
-    {
-        return service.GetState() == PathfindingState.Moving;
-    }
 }

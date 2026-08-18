@@ -74,19 +74,4 @@ public static class StringExtensions
 
         return str.StartsWith(prefix) ? str : prefix + str;
     }
-
-    public static string WithSuffix(this string str, string suffix)
-    {
-        if (string.IsNullOrEmpty(suffix))
-        {
-            return str;
-        }
-
-        if (string.IsNullOrEmpty(str))
-        {
-            return suffix;
-        }
-
-        return str.EndsWith(suffix) ? str : str + suffix;
-    }
 }

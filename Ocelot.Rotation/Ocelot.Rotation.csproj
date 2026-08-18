@@ -6,6 +6,6 @@
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="WrathCombo.API" Version="0.5.6" />
+      <PackageReference Include="WrathCombo.API" Version="0.5.7" />
     </ItemGroup>
 </Project>

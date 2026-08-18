@@ -27,8 +27,6 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
     private readonly ICallGateSubscriber<Vector3, float, float, Vector3?> findPointOnMesh =
         plugin.GetIpcSubscriber<Vector3, float, float, Vector3?>("vnavmesh.Query.Mesh.NearestPoint");
 
-    private readonly ICallGateSubscriber<List<Vector3>> listWaypoints = plugin.GetIpcSubscriber<List<Vector3>>("vnavmesh.Path.ListWaypoints");
-
     private readonly ICallGateSubscriber<object> stop = plugin.GetIpcSubscriber<object>("vnavmesh.Path.Stop");
 
     private readonly ICallGateSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>> pathfind =
@@ -244,23 +242,6 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
         catch
         {
             return origin;
-        }
-    }
-
-    public List<Vector3> GetActiveNodes()
-    {
-        if (!listWaypoints.HasFunction)
-        {
-            return [];
-        }
-
-        try
-        {
-            return listWaypoints.InvokeFunc();
-        }
-        catch
-        {
-            return [];
         }
     }
 

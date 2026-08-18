@@ -26,7 +26,5 @@ public interface IVNavmeshIpc
 
     Vector3 FindPointOnMesh(Vector3 origin, float halfExtentXZ, float halfExtentY);
 
-    List<Vector3> GetActiveNodes();
-
     void Stop();
 }

@@ -68,43 +68,4 @@ public static class Vector3Extensions
 
         return to - direction * range;
     }
-
-
-    public static Vector3 Centroid(this IEnumerable<Vector3> positions)
-    {
-        var count = 0;
-        var sum = Vector3.Zero;
-
-        foreach (var pos in positions)
-        {
-            sum += pos;
-            count++;
-        }
-
-        if (count == 0)
-        {
-            return sum;
-        }
-
-        return sum / count;
-    }
-
-    public static Vector2 Centroid(this IEnumerable<Vector2> positions)
-    {
-        var count = 0;
-        var sum = Vector2.Zero;
-
-        foreach (var pos in positions)
-        {
-            sum += pos;
-            count++;
-        }
-
-        if (count == 0)
-        {
-            return sum;
-        }
-
-        return sum / count;
-    }
 }
