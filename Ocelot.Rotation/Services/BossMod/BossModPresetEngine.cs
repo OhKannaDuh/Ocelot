@@ -287,13 +287,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
             ipc.Deactivate(naming.CeFullAr);
         }
 
-        if (ipc.Activate(wanted))
-        {
-            return;
-        }
-
-        // Activate/SetActive returned false — one more SetActive attempt for BMR/VBM drift (#182).
-        ipc.SetActive(wanted);
+        ipc.Activate(wanted);
     }
 
     private bool RecreatePresets(bool isMelee, uint jobId)

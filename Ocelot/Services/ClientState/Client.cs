@@ -2,8 +2,6 @@
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Plugin.Services;
-using ECommons.DalamudServices;
-using ECommons.DalamudServices.Legacy;
 using Lumina.Excel.Sheets;
 using Ocelot.Services.Data;
 

@@ -1,6 +1,5 @@
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
-using Ocelot.Ipc.BossMod;
 
 namespace Ocelot.Ipc.Lifestream;
 

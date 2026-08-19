@@ -22,7 +22,6 @@ public static class IServiceCollectionExtensions
         services.AddTransient<RetryStepMiddleware>();
         services.AddTransient<RunOnMainThreadMiddleware>();
 
-        services.AddSingleton<InteractChain>();
         services.AddSingleton<PathfindToChain>();
     }
 }
