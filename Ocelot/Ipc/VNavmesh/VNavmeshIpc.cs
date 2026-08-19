@@ -211,37 +211,57 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
         }
     }
 
-    public Vector3 FindPointOnFloor(Vector3 origin, float halfExtentXZ)
+    public Vector3 FindPointOnFloor(Vector3 origin, float halfExtentXZ) =>
+        TryFindPointOnFloor(origin, halfExtentXZ, out Vector3 point) ? point : origin;
+
+    public Vector3 FindPointOnMesh(Vector3 origin, float halfExtentXZ, float halfExtentY) =>
+        TryFindPointOnMesh(origin, halfExtentXZ, halfExtentY, out Vector3 point) ? point : origin;
+
+    public bool TryFindPointOnFloor(Vector3 origin, float halfExtentXZ, out Vector3 point)
     {
+        point = origin;
         if (!findPointOnFloor.HasFunction)
         {
-            return origin;
+            return false;
         }
 
         try
         {
-            return findPointOnFloor.InvokeFunc(origin, false, halfExtentXZ) ?? origin;
+            if (findPointOnFloor.InvokeFunc(origin, false, halfExtentXZ) is not { } found)
+            {
+                return false;
+            }
+
+            point = found;
+            return true;
         }
         catch
         {
-            return origin;
+            return false;
         }
     }
 
-    public Vector3 FindPointOnMesh(Vector3 origin, float halfExtentXZ, float halfExtentY)
+    public bool TryFindPointOnMesh(Vector3 origin, float halfExtentXZ, float halfExtentY, out Vector3 point)
     {
+        point = origin;
         if (!findPointOnMesh.HasFunction)
         {
-            return origin;
+            return false;
         }
 
         try
         {
-            return findPointOnMesh.InvokeFunc(origin, halfExtentXZ, halfExtentY) ?? origin;
+            if (findPointOnMesh.InvokeFunc(origin, halfExtentXZ, halfExtentY) is not { } found)
+            {
+                return false;
+            }
+
+            point = found;
+            return true;
         }
         catch
         {
-            return origin;
+            return false;
         }
     }
 
