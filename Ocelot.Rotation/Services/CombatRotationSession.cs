@@ -1,3 +1,5 @@
+using Ocelot.Rotation.Services.BossMod;
+
 namespace Ocelot.Rotation.Services;
 
 public sealed class CombatRotationSession : ICombatRotationSession
@@ -5,6 +7,8 @@ public sealed class CombatRotationSession : ICombatRotationSession
     private readonly Dictionary<JobRotationBackendKind, IJobRotationBackend> jobs;
 
     private readonly Dictionary<CombatAiKind, ICombatAiBackend> ais;
+
+    private readonly BossModPresetEngine bossModPresets;
 
     private readonly NullJobRotation nullJob = new();
 
@@ -16,16 +20,35 @@ public sealed class CombatRotationSession : ICombatRotationSession
 
     public CombatRotationSession(
         IEnumerable<IJobRotationBackend> jobBackends,
-        IEnumerable<ICombatAiBackend> combatAiBackends
+        IEnumerable<ICombatAiBackend> combatAiBackends,
+        BossModPresetEngine bossModPresets
     )
     {
         jobs = jobBackends.ToDictionary(b => b.Kind);
         ais = combatAiBackends.ToDictionary(b => b.Kind);
+        this.bossModPresets = bossModPresets;
         job = nullJob;
         ai = nullAi;
     }
 
     public CombatRotationRecipe ActiveRecipe { get; private set; } = CombatRotationRecipe.None;
+
+    public bool OverwriteBossModPresets
+    {
+        get => bossModPresets.OverwriteExisting;
+        set => bossModPresets.OverwriteExisting = value;
+    }
+
+    public bool BossModPresetsAvailable => bossModPresets.IsAvailable;
+
+    public bool TryForceRecreateBossModPresets(BossModPresetKind kind) =>
+        bossModPresets.TryForceRecreate(kind);
+
+    public BossModMovementSettings MovementSettings
+    {
+        get => bossModPresets.Movement;
+        set => bossModPresets.Movement = value;
+    }
 
     public void Prepare(CombatRotationRecipe recipe)
     {

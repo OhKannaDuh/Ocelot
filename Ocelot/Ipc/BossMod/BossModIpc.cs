@@ -30,6 +30,12 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
     private readonly ICallGateSubscriber<string, bool> deactivate =
         plugin.GetIpcSubscriber<string, bool>("BossMod.Presets.Deactivate");
 
+    private readonly ICallGateSubscriber<string, string, string, string, bool> addTransient =
+        plugin.GetIpcSubscriber<string, string, string, string, bool>("BossMod.Presets.AddTransientStrategy");
+
+    private readonly ICallGateSubscriber<string, bool> clearTransient =
+        plugin.GetIpcSubscriber<string, bool>("BossMod.Presets.ClearTransientPresetStrategies");
+
     public bool IsAvailable
     {
         get
@@ -157,5 +163,29 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
         }
 
         return ClearActive();
+    }
+
+    public bool AddTransientStrategy(string presetName, string moduleTypeName, string trackName, string value)
+    {
+        try
+        {
+            return addTransient.HasFunction && addTransient.InvokeFunc(presetName, moduleTypeName, trackName, value);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public bool ClearTransientPresetStrategies(string presetName)
+    {
+        try
+        {
+            return clearTransient.HasFunction && clearTransient.InvokeFunc(presetName);
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

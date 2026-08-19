@@ -67,6 +67,14 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
 
     private uint? bakedJobId;
 
+    /// <summary>
+    ///     When true, owned FATE/CE presets are rebuilt from stock JSON (Illegal Mode start, job /
+    ///     melee change). When false, existing presets are left alone and only created if missing.
+    /// </summary>
+    public bool OverwriteExisting { get; set; }
+
+    public BossModMovementSettings Movement { get; set; } = BossModMovementSettings.Default;
+
     public bool IsAvailable => ipc.IsAvailable;
 
     public void EnsurePresets(BossModPresetKind kind)
@@ -74,13 +82,12 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         wantOwned = true;
         if (presetKind != kind)
         {
-            DeleteOwnedPresets();
             ClearBakeState();
         }
 
         presetKind = kind;
         DeleteLegacyPresets();
-        presetsReady = RecreatePresets(player.IsMelee(), CurrentJobId());
+        presetsReady = WriteOwnedPresets(player.IsMelee(), OverwriteExisting);
     }
 
     public void Enable(CombatActivity activity)
@@ -118,6 +125,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
                                || (ipc.IsAvailable && IsAnyOwnedPresetActive());
         wantActive = false;
         armedActivity = null;
+        ClearAppliedMovement();
         if (!needsDeactivate || !ipc.IsAvailable)
         {
             return;
@@ -144,22 +152,30 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         string fate = FateName();
         string ce = CeName();
         bool missing = ipc.Get(fate) == null || ipc.Get(ce) == null;
-        bool jobChanged = bakedJobId is not null && bakedJobId.Value != jobId;
-        bool roleChanged = bakedAsMelee is not null && bakedAsMelee.Value != isMelee;
+        bool jobChanged = OverwriteExisting && bakedJobId is not null && bakedJobId.Value != jobId;
+        bool roleChanged = OverwriteExisting && bakedAsMelee is not null && bakedAsMelee.Value != isMelee;
         string? fateStored = ipc.Get(fate);
-        bool staleRange = fateStored != null && isMelee != fateStored.Contains("OnHitbox", StringComparison.Ordinal);
+        bool staleRange = OverwriteExisting
+                          && fateStored != null
+                          && isMelee != fateStored.Contains("OnHitbox", StringComparison.Ordinal);
 
         if (!presetsReady || missing || jobChanged || roleChanged || staleRange)
         {
             bool wasActive = wantActive || IsAnyOwnedPresetActive();
             armedActivity = null;
-            presetsReady = RecreatePresets(isMelee, jobId);
+            bool overwrite = OverwriteExisting && (jobChanged || roleChanged || staleRange || !presetsReady);
+            presetsReady = WriteOwnedPresets(isMelee, overwrite);
             if (presetsReady && wasActive)
             {
                 wantActive = true;
                 ActivateCurrent();
                 armedActivity = activeActivity;
             }
+        }
+
+        if (wantActive && presetsReady)
+        {
+            ApplyMovement(naming.PresetNameFor(activeActivity, presetKind));
         }
     }
 
@@ -175,8 +191,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         }
 
         DeactivateAllOwnedPresets();
-        DeleteOwnedPresets();
-        DeleteLegacyPresets();
+        ClearAppliedMovement();
         presetKind = BossModPresetKind.MiscAi;
     }
 
@@ -192,6 +207,26 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         storedJson =
             $"=== {naming.FateMiscAi} ===\n{ipc.Get(naming.FateMiscAi)}\n\n=== {naming.CeMiscAi} ===\n{ipc.Get(naming.CeMiscAi)}";
         return true;
+    }
+
+    public bool TryForceRecreate(BossModPresetKind kind)
+    {
+        if (!ipc.IsAvailable)
+        {
+            return false;
+        }
+
+        presetKind = kind;
+        armedActivity = null;
+        ClearAppliedMovement();
+        presetsReady = WriteOwnedPresets(player.IsMelee(), overwrite: true);
+        if (presetsReady && wantActive)
+        {
+            ActivateCurrent();
+            armedActivity = activeActivity;
+        }
+
+        return presetsReady;
     }
 
     private string FateName() => naming.PresetNameFor(CombatActivity.Fate, presetKind);
@@ -212,14 +247,6 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     {
         DeletePresetIfPresent(LegacyAiPresetName);
         DeletePresetIfPresent(LegacySingleTargetPresetName);
-    }
-
-    private void DeleteOwnedPresets()
-    {
-        DeletePresetIfPresent(naming.FateMiscAi);
-        DeletePresetIfPresent(naming.CeMiscAi);
-        DeletePresetIfPresent(naming.FateFullAr);
-        DeletePresetIfPresent(naming.CeFullAr);
     }
 
     private void DeletePresetIfPresent(string name)
@@ -288,9 +315,41 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         }
 
         ipc.Activate(wanted);
+        ApplyMovement(wanted);
     }
 
-    private bool RecreatePresets(bool isMelee, uint jobId)
+    private BossModMovementSettings appliedMovement;
+
+    private string? appliedMovementPreset;
+
+    private void ApplyMovement(string preset)
+    {
+        if (!ipc.IsAvailable || string.IsNullOrEmpty(preset))
+        {
+            return;
+        }
+
+        if (appliedMovementPreset == preset && appliedMovement == Movement)
+        {
+            return;
+        }
+
+        const string stayClose = "BossMod.Autorotation.MiscAI.StayCloseToTarget";
+        const string normal = "BossMod.Autorotation.MiscAI.NormalMovement";
+        ipc.AddTransientStrategy(preset, stayClose, "range", Movement.RangeOption);
+        ipc.AddTransientStrategy(preset, normal, "ForbiddenZoneCushion", Movement.ForbiddenZoneCushion);
+        ipc.AddTransientStrategy(preset, normal, "DelayMovement", Movement.DelayMovement);
+        appliedMovementPreset = preset;
+        appliedMovement = Movement;
+    }
+
+    private void ClearAppliedMovement()
+    {
+        appliedMovementPreset = null;
+        appliedMovement = default;
+    }
+
+    private bool WriteOwnedPresets(bool isMelee, bool overwrite)
     {
         if (!ipc.IsAvailable)
         {
@@ -298,13 +357,18 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         }
 
         DeleteLegacyPresets();
-        bool fateOk = UpsertPreset(FateName(), BuildPresetJson(FateName(), isMelee, forFate: true));
-        bool ceOk = UpsertPreset(CeName(), BuildPresetJson(CeName(), isMelee, forFate: false));
+        if (overwrite)
+        {
+            ClearAppliedMovement();
+        }
+
+        bool fateOk = WritePreset(FateName(), BuildPresetJson(FateName(), forFate: true), overwrite);
+        bool ceOk = WritePreset(CeName(), BuildPresetJson(CeName(), forFate: false), overwrite);
         bool ok = fateOk && ceOk;
         if (ok)
         {
             bakedAsMelee = isMelee;
-            bakedJobId = jobId;
+            bakedJobId = CurrentJobId();
         }
         else
         {
@@ -314,10 +378,15 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         return ok;
     }
 
-    private bool UpsertPreset(string name, string json)
+    private bool WritePreset(string name, string json, bool overwrite)
     {
         if (ipc.Get(name) != null)
         {
+            if (!overwrite)
+            {
+                return true;
+            }
+
             ipc.Deactivate(name);
             ipc.Delete(name);
         }
@@ -326,16 +395,18 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         return ipc.Get(name) != null;
     }
 
-    private string BuildPresetJson(string name, bool isMelee, bool forFate)
+    private string BuildPresetJson(string name, bool forFate)
     {
+        string rangeOption = Movement.RangeOption;
+        string cushion = Movement.ForbiddenZoneCushion;
+        string delay = Movement.DelayMovement;
         return presetKind == BossModPresetKind.FullAr
-            ? BuildFullArPresetJson(name, isMelee, forFate)
-            : BuildMiscAiPresetJson(name, isMelee, forFate);
+            ? BuildFullArPresetJson(name, forFate, rangeOption, cushion, delay)
+            : BuildMiscAiPresetJson(name, forFate, rangeOption, cushion, delay);
     }
 
-    private static string BuildMiscAiPresetJson(string name, bool isMelee, bool forFate)
+    private static string BuildMiscAiPresetJson(string name, bool forFate, string rangeOption, string cushion, string delay)
     {
-        string rangeOption = isMelee ? "OnHitbox" : "15";
         string fateOption = forFate ? "Enabled" : "Disabled";
         string everythingOption = forFate ? "Disabled" : "Enabled";
 
@@ -344,15 +415,14 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
             {
               "Name": "{{name}}",
               "Modules": {
-                {{BuildMiscAiModulesJson(rangeOption, fateOption, everythingOption)}}
+                {{BuildMiscAiModulesJson(rangeOption, fateOption, everythingOption, cushion, delay)}}
               }
             }
             """;
     }
 
-    private static string BuildFullArPresetJson(string name, bool isMelee, bool forFate)
+    private static string BuildFullArPresetJson(string name, bool forFate, string rangeOption, string cushion, string delay)
     {
-        string rangeOption = isMelee ? "OnHitbox" : "15";
         string fateOption = forFate ? "Enabled" : "Disabled";
         string everythingOption = forFate ? "Disabled" : "Enabled";
 
@@ -360,7 +430,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         sb.AppendLine("{");
         sb.AppendLine($"  \"Name\": \"{name}\",");
         sb.AppendLine("  \"Modules\": {");
-        sb.Append(BuildMiscAiModulesJson(rangeOption, fateOption, everythingOption));
+        sb.Append(BuildMiscAiModulesJson(rangeOption, fateOption, everythingOption, cushion, delay));
         sb.AppendLine(",");
         for (int i = 0; i < XanRoleAiModules.Length; i++)
         {
@@ -384,7 +454,12 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         return sb.ToString();
     }
 
-    private static string BuildMiscAiModulesJson(string rangeOption, string fateOption, string everythingOption) =>
+    private static string BuildMiscAiModulesJson(
+        string rangeOption,
+        string fateOption,
+        string everythingOption,
+        string cushion,
+        string delay) =>
         $$"""
             "BossMod.Autorotation.MiscAI.AutoTarget": [
               { "Track": "General", "Option": "Aggressive" },
@@ -403,9 +478,9 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
             ],
             "BossMod.Autorotation.MiscAI.NormalMovement": [
               { "Track": "Destination", "Option": "Pathfind" },
-              { "Track": "ForbiddenZoneCushion", "Option": "None" },
+              { "Track": "ForbiddenZoneCushion", "Option": "{{cushion}}" },
               { "Track": "Range", "Option": "Any" },
-              { "Track": "DelayMovement", "Option": "None" },
+              { "Track": "DelayMovement", "Option": "{{delay}}" },
               { "Track": "Cast", "Option": "Leeway" }
             ]
         """;

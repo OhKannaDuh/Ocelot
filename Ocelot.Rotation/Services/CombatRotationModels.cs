@@ -27,6 +27,15 @@ public enum BossModPresetKind
     FullAr,
 }
 
+/// <summary>StayCloseToTarget / NormalMovement options applied to BOCCHI's BossMod presets.</summary>
+public readonly record struct BossModMovementSettings(
+    string RangeOption,
+    string ForbiddenZoneCushion,
+    string DelayMovement)
+{
+    public static BossModMovementSettings Default { get; } = new("OnHitbox", "None", "None");
+}
+
 public static class JobRotationBackendKeys
 {
     public const string Wrath = "WrathCombo";
@@ -51,7 +60,7 @@ public readonly record struct CombatRotationRecipe(
     public bool IsActive => Job != JobRotationBackendKind.None || CombatAi != CombatAiKind.None;
 }
 
-/// <summary>Ephemeral BossMod preset display names (defaults keep BOCCHI branding).</summary>
+/// <summary>BossMod preset display names. Created if missing, then left in the user's preset list.</summary>
 public sealed class CombatAiPresetNaming
 {
     public string FateMiscAi { get; init; } = "BOCCHI AI FATE";
