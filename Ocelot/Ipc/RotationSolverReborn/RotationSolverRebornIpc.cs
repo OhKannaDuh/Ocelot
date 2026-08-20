@@ -34,18 +34,18 @@ public class RotationSolverRebornIpc(IDalamudPluginInterface plugin) : IRotation
         {
             if (changeOperatingMode.HasAction)
             {
-                // RSR Off releases a Wrath lease RSR itself took. Wrath then fails to call
-                // RotationSolver.LeaseCancelled — that throws after RSR already changed mode.
-                // Treat invoke as success so we do not retry Off and spam the Dalamud log.
                 try
                 {
                     changeOperatingMode.InvokeAction(command);
+                    return true;
                 }
                 catch
                 {
+                    // RSR Off releases a Wrath lease RSR itself took. Wrath then fails to call
+                    // RotationSolver.LeaseCancelled — that throws after RSR already changed mode.
+                    // Treat Off as success so we do not retry and spam the Dalamud log.
+                    return command == RSRStateCommandType.Off;
                 }
-
-                return true;
             }
 
             if (changeOperatingModeByte.HasAction)
@@ -53,12 +53,12 @@ public class RotationSolverRebornIpc(IDalamudPluginInterface plugin) : IRotation
                 try
                 {
                     changeOperatingModeByte.InvokeAction((byte)command);
+                    return true;
                 }
                 catch
                 {
+                    return command == RSRStateCommandType.Off;
                 }
-
-                return true;
             }
         }
         catch
