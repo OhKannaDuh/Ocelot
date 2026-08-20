@@ -31,9 +31,11 @@ public enum BossModPresetKind
 public readonly record struct BossModMovementSettings(
     string RangeOption,
     string ForbiddenZoneCushion,
-    string DelayMovement)
+    string DelayMovement,
+    string SeparateDodgeDelay,
+    string DodgeDelayMovement)
 {
-    public static BossModMovementSettings Default { get; } = new("OnHitbox", "None", "None");
+    public static BossModMovementSettings Default { get; } = new("OnHitbox", "None", "None", "Disabled", "None");
 }
 
 public static class JobRotationBackendKeys

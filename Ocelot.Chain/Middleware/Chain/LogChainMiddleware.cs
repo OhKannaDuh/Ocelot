@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Chain.Middleware.Chain;

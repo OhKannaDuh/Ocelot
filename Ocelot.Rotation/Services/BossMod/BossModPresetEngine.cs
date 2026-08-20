@@ -339,6 +339,8 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         ipc.AddTransientStrategy(preset, stayClose, "range", Movement.RangeOption);
         ipc.AddTransientStrategy(preset, normal, "ForbiddenZoneCushion", Movement.ForbiddenZoneCushion);
         ipc.AddTransientStrategy(preset, normal, "DelayMovement", Movement.DelayMovement);
+        ipc.AddTransientStrategy(preset, normal, "SeparateDodgeDelay", Movement.SeparateDodgeDelay);
+        ipc.AddTransientStrategy(preset, normal, "DodgeDelayMovement", Movement.DodgeDelayMovement);
         appliedMovementPreset = preset;
         appliedMovement = Movement;
     }
@@ -400,12 +402,21 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         string rangeOption = Movement.RangeOption;
         string cushion = Movement.ForbiddenZoneCushion;
         string delay = Movement.DelayMovement;
+        string separateDodge = Movement.SeparateDodgeDelay;
+        string dodgeDelay = Movement.DodgeDelayMovement;
         return presetKind == BossModPresetKind.FullAr
-            ? BuildFullArPresetJson(name, forFate, rangeOption, cushion, delay)
-            : BuildMiscAiPresetJson(name, forFate, rangeOption, cushion, delay);
+            ? BuildFullArPresetJson(name, forFate, rangeOption, cushion, delay, separateDodge, dodgeDelay)
+            : BuildMiscAiPresetJson(name, forFate, rangeOption, cushion, delay, separateDodge, dodgeDelay);
     }
 
-    private static string BuildMiscAiPresetJson(string name, bool forFate, string rangeOption, string cushion, string delay)
+    private static string BuildMiscAiPresetJson(
+        string name,
+        bool forFate,
+        string rangeOption,
+        string cushion,
+        string delay,
+        string separateDodge,
+        string dodgeDelay)
     {
         string fateOption = forFate ? "Enabled" : "Disabled";
         string everythingOption = forFate ? "Disabled" : "Enabled";
@@ -415,13 +426,20 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
             {
               "Name": "{{name}}",
               "Modules": {
-                {{BuildMiscAiModulesJson(rangeOption, fateOption, everythingOption, cushion, delay)}}
+                {{BuildMiscAiModulesJson(rangeOption, fateOption, everythingOption, cushion, delay, separateDodge, dodgeDelay)}}
               }
             }
             """;
     }
 
-    private static string BuildFullArPresetJson(string name, bool forFate, string rangeOption, string cushion, string delay)
+    private static string BuildFullArPresetJson(
+        string name,
+        bool forFate,
+        string rangeOption,
+        string cushion,
+        string delay,
+        string separateDodge,
+        string dodgeDelay)
     {
         string fateOption = forFate ? "Enabled" : "Disabled";
         string everythingOption = forFate ? "Disabled" : "Enabled";
@@ -430,7 +448,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         sb.AppendLine("{");
         sb.AppendLine($"  \"Name\": \"{name}\",");
         sb.AppendLine("  \"Modules\": {");
-        sb.Append(BuildMiscAiModulesJson(rangeOption, fateOption, everythingOption, cushion, delay));
+        sb.Append(BuildMiscAiModulesJson(rangeOption, fateOption, everythingOption, cushion, delay, separateDodge, dodgeDelay));
         sb.AppendLine(",");
         for (int i = 0; i < XanRoleAiModules.Length; i++)
         {
@@ -459,7 +477,9 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         string fateOption,
         string everythingOption,
         string cushion,
-        string delay) =>
+        string delay,
+        string separateDodge,
+        string dodgeDelay) =>
         $$"""
             "BossMod.Autorotation.MiscAI.AutoTarget": [
               { "Track": "General", "Option": "Aggressive" },
@@ -481,6 +501,8 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
               { "Track": "ForbiddenZoneCushion", "Option": "{{cushion}}" },
               { "Track": "Range", "Option": "Any" },
               { "Track": "DelayMovement", "Option": "{{delay}}" },
+              { "Track": "SeparateDodgeDelay", "Option": "{{separateDodge}}" },
+              { "Track": "DodgeDelayMovement", "Option": "{{dodgeDelay}}" },
               { "Track": "Cast", "Option": "Leeway" }
             ]
         """;

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Chain.Middleware.Chain;
 using Ocelot.Chain.Middleware.Step;
 using Ocelot.Chain.Recipes;

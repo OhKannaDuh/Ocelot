@@ -1,4 +1,4 @@
-﻿using Dalamud.Interface.Windowing;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Ocelot.Lifecycle;
 using Ocelot.Services.Logger;

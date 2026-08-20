@@ -1,4 +1,4 @@
-﻿using Ocelot.Services.Pathfinding;
+using Ocelot.Services.Pathfinding;
 
 namespace Ocelot.Pathfinding.Extensions;
 

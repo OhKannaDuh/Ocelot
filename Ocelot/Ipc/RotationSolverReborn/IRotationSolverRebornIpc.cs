@@ -1,4 +1,4 @@
-﻿namespace Ocelot.Ipc.RotationSolverReborn;
+namespace Ocelot.Ipc.RotationSolverReborn;
 
 public interface IRotationSolverRebornIpc
 {
