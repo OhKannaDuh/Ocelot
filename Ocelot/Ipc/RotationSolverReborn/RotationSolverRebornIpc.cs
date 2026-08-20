@@ -5,8 +5,8 @@ namespace Ocelot.Ipc.RotationSolverReborn;
 
 public class RotationSolverRebornIpc(IDalamudPluginInterface plugin) : IRotationSolverRebornIpc
 {
-    private readonly ICallGateSubscriber<RSRStateCommandType, object> getAutoRotationState = plugin
-        .GetIpcSubscriber<RSRStateCommandType, object>("RotationSolverReborn.ChangeOperatingMode");
+    private readonly ICallGateSubscriber<byte, object> changeOperatingMode = plugin
+        .GetIpcSubscriber<byte, object>("RotationSolverReborn.ChangeOperatingMode");
 
     public bool IsAvailable
     {
@@ -14,7 +14,7 @@ public class RotationSolverRebornIpc(IDalamudPluginInterface plugin) : IRotation
         {
             try
             {
-                return getAutoRotationState.HasFunction;
+                return changeOperatingMode.HasFunction;
             }
             catch
             {
@@ -30,6 +30,6 @@ public class RotationSolverRebornIpc(IDalamudPluginInterface plugin) : IRotation
             return;
         }
 
-        getAutoRotationState.InvokeAction(command);
+        changeOperatingMode.InvokeAction((byte)command);
     }
 }
