@@ -68,8 +68,9 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     private uint? bakedJobId;
 
     /// <summary>
-    ///     When true, owned FATE/CE presets are rebuilt from stock JSON (Illegal Mode start, job /
-    ///     melee change). When false, existing presets are left alone and only created if missing.
+    ///     When true, owned FATE/CE/Mob Farm presets are rebuilt from stock JSON (Illegal Mode
+    ///     start, job / melee change). When false, existing presets are left alone and only
+    ///     created if missing.
     /// </summary>
     public bool OverwriteExisting { get; set; }
 
@@ -151,7 +152,8 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         bool isMelee = player.IsMelee();
         string fate = FateName();
         string ce = CeName();
-        bool missing = ipc.Get(fate) == null || ipc.Get(ce) == null;
+        string mob = MobFarmName();
+        bool missing = ipc.Get(fate) == null || ipc.Get(ce) == null || ipc.Get(mob) == null;
         bool jobChanged = OverwriteExisting && bakedJobId is not null && bakedJobId.Value != jobId;
         bool roleChanged = OverwriteExisting && bakedAsMelee is not null && bakedAsMelee.Value != isMelee;
         string? fateStored = ipc.Get(fate);
@@ -205,7 +207,9 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         }
 
         storedJson =
-            $"=== {naming.FateMiscAi} ===\n{ipc.Get(naming.FateMiscAi)}\n\n=== {naming.CeMiscAi} ===\n{ipc.Get(naming.CeMiscAi)}";
+            $"=== {naming.FateMiscAi} ===\n{ipc.Get(naming.FateMiscAi)}\n\n"
+            + $"=== {naming.CeMiscAi} ===\n{ipc.Get(naming.CeMiscAi)}\n\n"
+            + $"=== {naming.MobFarmMiscAi} ===\n{ipc.Get(naming.MobFarmMiscAi)}";
         return true;
     }
 
@@ -232,6 +236,8 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     private string FateName() => naming.PresetNameFor(CombatActivity.Fate, presetKind);
 
     private string CeName() => naming.PresetNameFor(CombatActivity.CriticalEncounter, presetKind);
+
+    private string MobFarmName() => naming.PresetNameFor(CombatActivity.MobFarm, presetKind);
 
     private uint CurrentJobId() => player.GetClassJob()?.RowId ?? 0;
 
@@ -264,8 +270,10 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     {
         ipc.Deactivate(naming.FateMiscAi);
         ipc.Deactivate(naming.CeMiscAi);
+        ipc.Deactivate(naming.MobFarmMiscAi);
         ipc.Deactivate(naming.FateFullAr);
         ipc.Deactivate(naming.CeFullAr);
+        ipc.Deactivate(naming.MobFarmFullAr);
         ipc.Deactivate(LegacyAiPresetName);
     }
 
@@ -274,8 +282,10 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         string? active = ipc.GetActive();
         return string.Equals(active, naming.FateMiscAi, StringComparison.Ordinal)
                || string.Equals(active, naming.CeMiscAi, StringComparison.Ordinal)
+               || string.Equals(active, naming.MobFarmMiscAi, StringComparison.Ordinal)
                || string.Equals(active, naming.FateFullAr, StringComparison.Ordinal)
                || string.Equals(active, naming.CeFullAr, StringComparison.Ordinal)
+               || string.Equals(active, naming.MobFarmFullAr, StringComparison.Ordinal)
                || string.Equals(active, LegacyAiPresetName, StringComparison.Ordinal);
     }
 
@@ -296,26 +306,41 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     private void ActivateCurrent()
     {
         string wanted = naming.PresetNameFor(activeActivity, presetKind);
-        string other = naming.PresetNameFor(
-            activeActivity == CombatActivity.Fate
-                ? CombatActivity.CriticalEncounter
-                : CombatActivity.Fate,
-            presetKind);
-        ipc.Deactivate(other);
         ipc.Deactivate(LegacyAiPresetName);
         if (presetKind == BossModPresetKind.FullAr)
         {
             ipc.Deactivate(naming.FateMiscAi);
             ipc.Deactivate(naming.CeMiscAi);
+            ipc.Deactivate(naming.MobFarmMiscAi);
+            DeactivateOwnedExcept(wanted, BossModPresetKind.FullAr);
         }
         else
         {
             ipc.Deactivate(naming.FateFullAr);
             ipc.Deactivate(naming.CeFullAr);
+            ipc.Deactivate(naming.MobFarmFullAr);
+            DeactivateOwnedExcept(wanted, BossModPresetKind.MiscAi);
         }
 
         ipc.Activate(wanted);
         ApplyMovement(wanted);
+    }
+
+    private void DeactivateOwnedExcept(string wanted, BossModPresetKind kind)
+    {
+        foreach (CombatActivity activity in new[]
+                 {
+                     CombatActivity.Fate,
+                     CombatActivity.CriticalEncounter,
+                     CombatActivity.MobFarm,
+                 })
+        {
+            string name = naming.PresetNameFor(activity, kind);
+            if (!string.Equals(name, wanted, StringComparison.Ordinal))
+            {
+                ipc.Deactivate(name);
+            }
+        }
     }
 
     private BossModMovementSettings appliedMovement;
@@ -364,9 +389,10 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
             ClearAppliedMovement();
         }
 
-        bool fateOk = WritePreset(FateName(), BuildPresetJson(FateName(), forFate: true), overwrite);
-        bool ceOk = WritePreset(CeName(), BuildPresetJson(CeName(), forFate: false), overwrite);
-        bool ok = fateOk && ceOk;
+        bool fateOk = WritePreset(FateName(), BuildPresetJson(FateName(), CombatActivity.Fate), overwrite);
+        bool ceOk = WritePreset(CeName(), BuildPresetJson(CeName(), CombatActivity.CriticalEncounter), overwrite);
+        bool mobOk = WritePreset(MobFarmName(), BuildPresetJson(MobFarmName(), CombatActivity.MobFarm), overwrite);
+        bool ok = fateOk && ceOk && mobOk;
         if (ok)
         {
             bakedAsMelee = isMelee;
@@ -397,29 +423,32 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         return ipc.Get(name) != null;
     }
 
-    private string BuildPresetJson(string name, bool forFate)
+    private string BuildPresetJson(string name, CombatActivity activity)
     {
         string rangeOption = Movement.RangeOption;
         string cushion = Movement.ForbiddenZoneCushion;
         string delay = Movement.DelayMovement;
         string separateDodge = Movement.SeparateDodgeDelay;
         string dodgeDelay = Movement.DodgeDelayMovement;
+        // FATE presets restrict AutoTarget to FATE enemies. CE and Mob Farm use Everything so
+        // open-world / CE packs can be acquired (needed for pack AoE). Job modules stay at xan defaults.
+        bool fateOnlyTargets = activity == CombatActivity.Fate;
         return presetKind == BossModPresetKind.FullAr
-            ? BuildFullArPresetJson(name, forFate, rangeOption, cushion, delay, separateDodge, dodgeDelay)
-            : BuildMiscAiPresetJson(name, forFate, rangeOption, cushion, delay, separateDodge, dodgeDelay);
+            ? BuildFullArPresetJson(name, fateOnlyTargets, rangeOption, cushion, delay, separateDodge, dodgeDelay)
+            : BuildMiscAiPresetJson(name, fateOnlyTargets, rangeOption, cushion, delay, separateDodge, dodgeDelay);
     }
 
     private static string BuildMiscAiPresetJson(
         string name,
-        bool forFate,
+        bool fateOnlyTargets,
         string rangeOption,
         string cushion,
         string delay,
         string separateDodge,
         string dodgeDelay)
     {
-        string fateOption = forFate ? "Enabled" : "Disabled";
-        string everythingOption = forFate ? "Disabled" : "Enabled";
+        string fateOption = fateOnlyTargets ? "Enabled" : "Disabled";
+        string everythingOption = fateOnlyTargets ? "Disabled" : "Enabled";
 
         return
             $$"""
@@ -434,15 +463,15 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
 
     private static string BuildFullArPresetJson(
         string name,
-        bool forFate,
+        bool fateOnlyTargets,
         string rangeOption,
         string cushion,
         string delay,
         string separateDodge,
         string dodgeDelay)
     {
-        string fateOption = forFate ? "Enabled" : "Disabled";
-        string everythingOption = forFate ? "Disabled" : "Enabled";
+        string fateOption = fateOnlyTargets ? "Enabled" : "Disabled";
+        string everythingOption = fateOnlyTargets ? "Disabled" : "Enabled";
 
         var sb = new StringBuilder();
         sb.AppendLine("{");
@@ -452,13 +481,39 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         sb.AppendLine(",");
         for (int i = 0; i < XanRoleAiModules.Length; i++)
         {
+            // Role AI has no AOE track — empty strategies use BossMod defaults.
             sb.Append($"    \"{XanRoleAiModules[i]}\": []");
             sb.AppendLine(",");
         }
 
+        // Empty xan job modules default to single-target (option 0). Match VBM Default AOE.
+        // VeynWAR: user-optimized Occult / farm tracks (same for FATE/CE/MOB).
+        static string JobStrategies(string module) =>
+            module.EndsWith("VeynWAR", StringComparison.Ordinal)
+                ? """
+                  [
+                        { "Track": "AOE", "Option": "ForceAOE" },
+                        { "Track": "Burst", "Option": "Spend" },
+                        { "Track": "Potion", "Option": "Manual" },
+                        { "Track": "FC", "Option": "Automatic" },
+                        { "Track": "Infuriate", "Option": "ForceIfChargesCapping" },
+                        { "Track": "IR", "Option": "Automatic" },
+                        { "Track": "Upheaval", "Option": "Automatic" },
+                        { "Track": "PR", "Option": "Automatic" },
+                        { "Track": "Onslaught", "Option": "NoReserve" },
+                        { "Track": "Tomahawk", "Option": "OpenerRanged" }
+                      ]
+                  """
+                : """
+                  [
+                        { "Track": "AOE", "Option": "AOE" }
+                      ]
+                  """;
+
         for (int i = 0; i < XanStandardJobModules.Length; i++)
         {
-            sb.Append($"    \"{XanStandardJobModules[i]}\": []");
+            string module = XanStandardJobModules[i];
+            sb.Append($"    \"{module}\": {JobStrategies(module)}");
             if (i < XanStandardJobModules.Length - 1)
             {
                 sb.Append(',');

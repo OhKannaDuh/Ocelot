@@ -4,6 +4,7 @@ public enum CombatActivity
 {
     Fate,
     CriticalEncounter,
+    MobFarm,
 }
 
 public enum JobRotationBackendKind
@@ -69,17 +70,24 @@ public sealed class CombatAiPresetNaming
 
     public string CeMiscAi { get; init; } = "BOCCHI AI CE";
 
+    public string MobFarmMiscAi { get; init; } = "BOCCHI AI MOB";
+
     public string FateFullAr { get; init; } = "BOCCHI AR FATE";
 
     public string CeFullAr { get; init; } = "BOCCHI AR CE";
 
+    public string MobFarmFullAr { get; init; } = "BOCCHI AR MOB";
+
     public string PresetNameFor(CombatActivity activity, BossModPresetKind kind)
     {
-        bool fate = activity == CombatActivity.Fate;
-        return kind switch
+        return (kind, activity) switch
         {
-            BossModPresetKind.FullAr => fate ? FateFullAr : CeFullAr,
-            _ => fate ? FateMiscAi : CeMiscAi,
+            (BossModPresetKind.FullAr, CombatActivity.Fate) => FateFullAr,
+            (BossModPresetKind.FullAr, CombatActivity.CriticalEncounter) => CeFullAr,
+            (BossModPresetKind.FullAr, _) => MobFarmFullAr,
+            (_, CombatActivity.Fate) => FateMiscAi,
+            (_, CombatActivity.CriticalEncounter) => CeMiscAi,
+            _ => MobFarmMiscAi,
         };
     }
 }

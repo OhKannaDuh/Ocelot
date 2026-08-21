@@ -39,8 +39,8 @@ public interface ICombatRotationSession
     CombatRotationRecipe ActiveRecipe { get; }
 
     /// <summary>
-    ///     Rebuild owned BossMod FATE/CE presets from stock JSON. When false, existing presets are
-    ///     kept and only created if missing.
+    ///     Rebuild owned BossMod FATE/CE/Mob Farm presets from stock JSON. When false, existing
+    ///     presets are kept and only created if missing.
     /// </summary>
     bool OverwriteBossModPresets { get; set; }
 
