@@ -157,7 +157,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         string? fateStored = ipc.Get(fate);
         bool staleRange = OverwriteExisting
                           && fateStored != null
-                          && isMelee != fateStored.Contains("OnHitbox", StringComparison.Ordinal);
+                          && !fateStored.Contains(Movement.RangeOption, StringComparison.Ordinal);
 
         if (!presetsReady || missing || jobChanged || roleChanged || staleRange)
         {

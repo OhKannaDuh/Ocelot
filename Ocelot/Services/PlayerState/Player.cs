@@ -17,10 +17,7 @@ public class Player(
     private const float MeleeRange = 3.5f;
 
     private const float RangedRange = 25f;
-
-    // Tank + melee DPS ClassJob RowIds (base classes + jobs).
-    // Dancer (38): Standard/Technical Finish is a 15y PBAoE; ranged standoff leaves Steps out of range.
-    // Sage (40): Phlegma / Dyskrasia need ≤6y — use OnHitbox AI instead of the 15y healer ring.
+    
     private static readonly HashSet<uint> MeleeJobIds =
     [
         1, 2, 3, 4, // GLA, PUG, MRD, LNC
