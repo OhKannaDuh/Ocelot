@@ -8,15 +8,9 @@ public sealed class WrathJobRotation(
     IDalamudPluginInterface pluginInterface,
     OcelotPlugin plugin) : IJobRotationBackend, IDisposable
 {
-    // Costly / not-advised Wrath options — leave off (do not enable or lock).
     private static readonly HashSet<string> OccultOptionsLeftOff = new(StringComparer.Ordinal)
     {
-        "Phantom_Chemist_OccultPotion",
-        "Phantom_Chemist_OccultEther",
         "Phantom_Chemist_OccultElixir",
-        "Phantom_Samurai_Zeninage",
-        "Phantom_Geomancer_Suspend",
-        "Phantom_Thief_OccultSprint",
     };
 
     private readonly Lock gate = new();
@@ -242,18 +236,13 @@ public sealed class WrathJobRotation(
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.OnlyAttackInCombat, false);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.DPSAlwaysHardTarget, true);
 
+        // Lock heal target policy only; leave HP% thresholds / Only Raise Raisers to the user.
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.HealerRotationMode, HealerRotationMode.Lowest_Current);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.SingleTargetHPP, 70);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.SingleTargetRegenHPP, 60);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.SingleTargetExcogHPP, 50);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AoETargetHPP, 80);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRez, true);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRezOutOfParty, true);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRezDPSJobs, true);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoRezDPSJobsHealersOnly, true);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoCleanse, true);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.ManageKardia, true);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.IncludeNPCs, false);
         return WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.HealerAlwaysHardTarget, false);
     }
 
