@@ -54,10 +54,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     private CombatActivity activeActivity = CombatActivity.Fate;
 
     /// <summary>
-    ///     Activity the active preset is already armed for. Activation is edge-triggered: callers
-    ///     poll Enable() every tick, and re-Activating each time restarts the preset in BossMod,
-    ///     which throws away NormalMovement's in-flight NavigationDecision — the AI never gets far
-    ///     enough through a dodge to execute it.
+    ///     Activity already armed. Re-Activate every tick restarts the preset and breaks dodges.
     /// </summary>
     private CombatActivity? armedActivity;
 
@@ -68,9 +65,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     private uint? bakedJobId;
 
     /// <summary>
-    ///     When true, owned FATE/CE/Mob Farm presets are rebuilt from stock JSON (Illegal Mode
-    ///     start, job / melee change). When false, existing presets are left alone and only
-    ///     created if missing.
+    ///     Rebuild owned presets from stock JSON when true; otherwise create only if missing.
     /// </summary>
     public bool OverwriteExisting { get; set; }
 
@@ -95,9 +90,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
     {
         wantOwned = true;
 
-        // "Already armed" has to mean the preset is genuinely active, not just that we activated it
-        // once. Anything can deactivate it behind our back — the user clicking in BossMod, a preset
-        // reload, BMR drift — and trusting the flag alone left us never re-activating it.
+        // Confirm BossMod still has the preset active (user / reload can clear it).
         bool alreadyArmed = wantActive
                             && armedActivity == activity
                             && presetsReady
@@ -430,8 +423,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         string delay = Movement.DelayMovement;
         string separateDodge = Movement.SeparateDodgeDelay;
         string dodgeDelay = Movement.DodgeDelayMovement;
-        // FATE presets restrict AutoTarget to FATE enemies. CE and Mob Farm use Everything so
-        // open-world / CE packs can be acquired (needed for pack AoE). Job modules stay at xan defaults.
+        // FATE AutoTarget = FATE only; CE / Mob Farm = Everything.
         bool fateOnlyTargets = activity == CombatActivity.Fate;
         return presetKind == BossModPresetKind.FullAr
             ? BuildFullArPresetJson(name, fateOnlyTargets, rangeOption, cushion, delay, separateDodge, dodgeDelay)
@@ -481,13 +473,11 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         sb.AppendLine(",");
         for (int i = 0; i < XanRoleAiModules.Length; i++)
         {
-            // Role AI has no AOE track — empty strategies use BossMod defaults.
             sb.Append($"    \"{XanRoleAiModules[i]}\": []");
             sb.AppendLine(",");
         }
 
-        // Empty xan job modules default to single-target (option 0). Match VBM Default AOE.
-        // VeynWAR: user-optimized Occult / farm tracks (same for FATE/CE/MOB).
+        // Empty xan modules default to ST; set AOE like VBM Default. VeynWAR uses ForceAOE + farm tracks.
         static string JobStrategies(string module) =>
             module.EndsWith("VeynWAR", StringComparison.Ordinal)
                 ? """
