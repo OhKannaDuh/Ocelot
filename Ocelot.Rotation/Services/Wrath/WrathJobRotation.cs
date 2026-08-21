@@ -64,7 +64,8 @@ public sealed class WrathJobRotation(
         }
 
         // Wrath throws if configs are set before AutoRotationControlled[0] exists.
-        SetRotation(false);
+        SetAutoRotationState(false);
+        rotationOn = false;
         EnsureCurrentJobReady();
         ApplyFarmingDefaults();
     }
@@ -72,16 +73,41 @@ public sealed class WrathJobRotation(
     public void Enable(CombatActivity activity)
     {
         _ = activity;
-        if (!SetRotation(true))
+
+        // Edge-triggered when the lease is still live. Wrath suspends leases on job change /
+        // cache rebuild without telling us — InvalidLease on a touch re-arms below.
+        if (rotationOn == true && farmingDefaultsApplied && Lease.HasValue)
+        {
+            SetResult touch = WrathIPCWrapper.SetAutoRotationState(Lease.Value, true);
+            if (touch != SetResult.InvalidLease)
+            {
+                return;
+            }
+
+            DropDeadLease();
+        }
+
+        if (!SetAutoRotationState(true))
         {
             return;
         }
 
+        rotationOn = true;
         EnsureCurrentJobReady();
         ApplyFarmingDefaults();
     }
 
-    public void Disable() => SetRotation(false);
+    public void Disable()
+    {
+        if (rotationOn == false)
+        {
+            return;
+        }
+
+        // Always clear local intent. Lease may already be dead (JobChanged); still try IPC.
+        _ = SetAutoRotationState(false);
+        rotationOn = false;
+    }
 
     // Job-ready is set once in Enable/Prepare. Re-calling every combat tick is unnecessary and
     // spams Wrath when the lease dies mid-fight (e.g. Wrath reload).
@@ -133,21 +159,13 @@ public sealed class WrathJobRotation(
 
     public void Dispose() => Teardown();
 
-    private bool SetRotation(bool on)
+    /// <summary>
+    ///     Set Auto-Rotation on/off. Recreates the lease once on InvalidLease (job change, etc.).
+    ///     Does not change <see cref="rotationOn"/> — callers own that.
+    /// </summary>
+    private bool SetAutoRotationState(bool on)
     {
-        if (!Lease.HasValue)
-        {
-            return false;
-        }
-
-        if (rotationOn == on)
-        {
-            return false;
-        }
-
-        WrathIPCWrapper.SetAutoRotationState(Lease.Value, on);
-        rotationOn = on;
-        return true;
+        return InvokeWithLeaseRecovery(id => WrathIPCWrapper.SetAutoRotationState(id, on));
     }
 
     private void ReleaseLease()
@@ -168,25 +186,46 @@ public sealed class WrathJobRotation(
         }
     }
 
+    /// <summary>
+    ///     Drop a Guid Wrath already cancelled. Keep <see cref="rotationOn"/> so Enable/Disable can
+    ///     re-apply intent on the new registration. Do not ReleaseControl (LeaseeReleased noise).
+    /// </summary>
+    private void DropDeadLease()
+    {
+        lock (gate)
+        {
+            lease = NewLease(pluginInterface, plugin);
+            farmingDefaultsApplied = false;
+            trackedPhantomJobId = null;
+        }
+    }
+
     private void EnsureCurrentJobReady()
     {
-        if (!Lease.HasValue)
-        {
-            return;
-        }
-
-        WrathIPCWrapper.SetCurrentJobAutoRotationReady(Lease.Value);
+        // Best-effort: Auto-Rotation can be locked on even if job-ready fails briefly.
+        _ = InvokeWithLeaseRecovery(WrathIPCWrapper.SetCurrentJobAutoRotationReady);
     }
 
     private void ApplyFarmingDefaults()
     {
-        if (!Lease.HasValue || farmingDefaultsApplied)
+        if (farmingDefaultsApplied)
         {
             return;
         }
 
-        var id = Lease.Value;
+        // On InvalidLease, restore Auto-Rotation on the new lease before configs (Wrath requires it).
+        if (!InvokeWithLeaseRecovery(
+                id => ApplyFarmingDefaultsTo(id),
+                rearmAutoRotationAfterDrop: true))
+        {
+            return;
+        }
 
+        farmingDefaultsApplied = true;
+    }
+
+    private SetResult ApplyFarmingDefaultsTo(Guid id)
+    {
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.InCombatOnly, true);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.BypassQuest, false);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.BypassFATE, true);
@@ -215,13 +254,52 @@ public sealed class WrathJobRotation(
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.AutoCleanse, true);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.ManageKardia, true);
         WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.IncludeNPCs, false);
-        WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.HealerAlwaysHardTarget, false);
+        return WrathIPCWrapper.SetAutoRotationConfigState(id, AutoRotationConfigOption.HealerAlwaysHardTarget, false);
+    }
 
-        farmingDefaultsApplied = true;
+    /// <summary>
+    ///     Run an IPC call; on InvalidLease drop the Guid and retry once with a fresh registration.
+    /// </summary>
+    private bool InvokeWithLeaseRecovery(
+        Func<Guid, SetResult> action,
+        bool rearmAutoRotationAfterDrop = false)
+    {
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            if (!Lease.HasValue)
+            {
+                return false;
+            }
+
+            SetResult result = action(Lease.Value);
+            if (result != SetResult.InvalidLease)
+            {
+                // IGNORED = wrapper swallowed an exception (ErrorType.All). Treat like the old
+                // fire-and-forget path so a soft IPC blip does not leave us with no lease control.
+                return IsAcceptable(result) || result == SetResult.IGNORED;
+            }
+
+            bool? desired = rotationOn;
+            DropDeadLease();
+
+            if (rearmAutoRotationAfterDrop && desired is { } on && Lease.HasValue)
+            {
+                SetResult restored = WrathIPCWrapper.SetAutoRotationState(Lease.Value, on);
+                if (restored == SetResult.InvalidLease)
+                {
+                    continue;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static bool IsOk(SetResult result) =>
         result is SetResult.Okay or SetResult.OkayWorking;
+
+    private static bool IsAcceptable(SetResult result) =>
+        result is SetResult.Okay or SetResult.OkayWorking or SetResult.Duplicate;
 
     /// <summary>
     ///     Turn a phantom job's pack off again. Best effort if Wrath is older than this IPC.
