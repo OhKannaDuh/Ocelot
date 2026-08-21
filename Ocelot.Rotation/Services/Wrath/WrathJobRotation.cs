@@ -83,14 +83,10 @@ public sealed class WrathJobRotation(
 
     public void Disable() => SetRotation(false);
 
+    // Job-ready is set once in Enable/Prepare. Re-calling every combat tick is unnecessary and
+    // spams Wrath when the lease dies mid-fight (e.g. Wrath reload).
     public void Refresh()
     {
-        if (rotationOn != true || !Lease.HasValue)
-        {
-            return;
-        }
-
-        EnsureCurrentJobReady();
     }
 
     public void SyncContentJob(uint? contentJobId)
