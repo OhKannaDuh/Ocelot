@@ -11,6 +11,8 @@ public sealed class WrathJobRotation(
     private static readonly HashSet<string> OccultOptionsLeftOff = new(StringComparer.Ordinal)
     {
         "Phantom_Chemist_OccultElixir",
+        // Wrath has no useful Phantom BLM gate for this yet — bulk-enable spam-casts Toad.
+        "Phantom_BlackMage_OccultToad",
     };
 
     private readonly Lock gate = new();
