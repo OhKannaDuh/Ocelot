@@ -24,6 +24,11 @@ public static class PropertyInfoExtensions
         return $"{prop.GetFieldKeyBase(owner)}.tooltip";
     }
 
+    public static string GetFieldTooltipDisabledKey(this PropertyInfo prop, Type owner)
+    {
+        return $"{prop.GetFieldKeyBase(owner)}.tooltip_disabled";
+    }
+
     public static string Label(this PropertyInfo prop, Type owner, ITranslator translator)
     {
         var key = prop.GetFieldLabelKey(owner);
@@ -32,8 +37,23 @@ public static class PropertyInfoExtensions
 
     public static void Tooltip(this PropertyInfo prop, Type owner, ITranslator translator)
     {
-        var tooltipKey = prop.GetFieldTooltipKey(owner);
-        if (!translator.Has(tooltipKey) || !ImGui.IsItemHovered())
+        // Disabled fields (Requires / DisabledWhen) need AllowWhenDisabled or hover never fires.
+        if (!ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+        {
+            return;
+        }
+
+        bool disabledHover = !ImGui.IsItemHovered();
+        string disabledKey = prop.GetFieldTooltipDisabledKey(owner);
+        string tooltipKey = prop.GetFieldTooltipKey(owner);
+
+        if (disabledHover && translator.Has(disabledKey))
+        {
+            DrawWrappedTooltip(translator.T(disabledKey));
+            return;
+        }
+
+        if (!translator.Has(tooltipKey))
         {
             return;
         }

@@ -231,6 +231,15 @@ public class ConfigRenderer : IConfigRenderer
                     }
                 }
 
+                if (!requiresDisabled && !string.IsNullOrEmpty(fieldAttr.DisabledWhen))
+                {
+                    var blocker = type.GetProperty(fieldAttr.DisabledWhen, BindingFlags.Instance | BindingFlags.Public);
+                    if (blocker?.PropertyType == typeof(bool) && blocker.GetValue(current) is true)
+                    {
+                        requiresDisabled = true;
+                    }
+                }
+
                 bool changed;
                 if (requiresDisabled)
                 {

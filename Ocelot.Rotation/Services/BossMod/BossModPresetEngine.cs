@@ -64,6 +64,8 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
 
     private uint? bakedJobId;
 
+    private BossModMovementSettings? bakedMovement;
+
     /// <summary>
     ///     Rebuild owned presets from stock JSON when true; otherwise create only if missing.
     /// </summary>
@@ -149,16 +151,18 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         bool missing = ipc.Get(fate) == null || ipc.Get(ce) == null || ipc.Get(mob) == null;
         bool jobChanged = OverwriteExisting && bakedJobId is not null && bakedJobId.Value != jobId;
         bool roleChanged = OverwriteExisting && bakedAsMelee is not null && bakedAsMelee.Value != isMelee;
-        string? fateStored = ipc.Get(fate);
-        bool staleRange = OverwriteExisting
-                          && fateStored != null
-                          && !fateStored.Contains(Movement.RangeOption, StringComparison.Ordinal);
+        // Any Combat movement slider — not only range — must remake when auto-update is on.
+        // Otherwise settings only stick until the next Illegal Mode toggle (Discord / Rinko).
+        bool movementChanged = OverwriteExisting
+                               && bakedMovement is not null
+                               && bakedMovement != Movement;
 
-        if (!presetsReady || missing || jobChanged || roleChanged || staleRange)
+        if (!presetsReady || missing || jobChanged || roleChanged || movementChanged)
         {
             bool wasActive = wantActive || IsAnyOwnedPresetActive();
             armedActivity = null;
-            bool overwrite = OverwriteExisting && (jobChanged || roleChanged || staleRange || !presetsReady);
+            bool overwrite = OverwriteExisting
+                             && (jobChanged || roleChanged || movementChanged || !presetsReady);
             presetsReady = WriteOwnedPresets(isMelee, overwrite);
             if (presetsReady && wasActive)
             {
@@ -168,6 +172,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
             }
         }
 
+        // Push BOCCHI movement onto the live preset even when auto-update is off (transients).
         if (wantActive && presetsReady)
         {
             ApplyMovement(naming.PresetNameFor(activeActivity, presetKind));
@@ -240,6 +245,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         armedActivity = null;
         bakedAsMelee = null;
         bakedJobId = null;
+        bakedMovement = null;
     }
 
     private void DeleteLegacyPresets()
@@ -390,6 +396,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         {
             bakedAsMelee = isMelee;
             bakedJobId = CurrentJobId();
+            bakedMovement = Movement;
         }
         else
         {

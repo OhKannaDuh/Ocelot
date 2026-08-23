@@ -17,6 +17,12 @@ public class UIFieldAttribute(Type rendererType) : Attribute
     public string? Requires { get; set; }
 
     /// <summary>
+    ///     Name of a bool property on the same config object. When that property is true,
+    ///     this field is drawn disabled (e.g. an alternative that another option replaces).
+    /// </summary>
+    public string? DisabledWhen { get; set; }
+
+    /// <summary>
     ///     Optional section key within this config page. When it changes between fields,
     ///     ConfigRenderer draws a small titled divider. Resolved as
     ///     <c>config.{page}.sections.{key}</c>.
