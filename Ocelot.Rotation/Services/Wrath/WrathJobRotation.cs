@@ -111,6 +111,8 @@ public sealed class WrathJobRotation(
     {
     }
 
+    public void ClearAppliedCache() => rotationOn = null;
+
     public void SyncContentJob(uint? contentJobId)
     {
         if (!Lease.HasValue)

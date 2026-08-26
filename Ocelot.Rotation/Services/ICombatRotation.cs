@@ -14,6 +14,14 @@ public interface IJobRotationBackend
 
     void Teardown();
 
+    /// <summary>
+    ///     Drop the "already applied" latch so the next Enable/Refresh re-issues IPC.
+    ///     Used after raise: RSR may ignore Henched while unconscious while we cached success.
+    /// </summary>
+    void ClearAppliedCache()
+    {
+    }
+
     void SyncContentJob(uint? contentJobId)
     {
     }
@@ -57,6 +65,9 @@ public interface ICombatRotationSession
     void Disable();
 
     void Tick(uint? contentJobId = null);
+
+    /// <summary>See <see cref="IJobRotationBackend.ClearAppliedCache"/>.</summary>
+    void ClearJobAppliedCache();
 
     void Teardown();
 }

@@ -99,6 +99,8 @@ public sealed class CombatRotationSession : ICombatRotationSession
         job.SyncContentJob(contentJobId);
     }
 
+    public void ClearJobAppliedCache() => job.ClearAppliedCache();
+
     public void Teardown()
     {
         try

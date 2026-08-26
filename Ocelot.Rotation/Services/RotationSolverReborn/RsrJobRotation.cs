@@ -27,6 +27,13 @@ public sealed class RsrJobRotation(IRotationSolverRebornIpc ipc) : IJobRotationB
     public void Enable(CombatActivity activity)
     {
         _ = activity;
+        // After Off (CE death) always re-issue Henched. RSR can no-op Henched while
+        // unconscious; if we cached success we would never send it again after raise.
+        if (desired != RSRStateCommandType.Henched || applied != RSRStateCommandType.Henched)
+        {
+            applied = null;
+        }
+
         desired = RSRStateCommandType.Henched;
         Apply();
     }
@@ -38,6 +45,8 @@ public sealed class RsrJobRotation(IRotationSolverRebornIpc ipc) : IJobRotationB
     }
 
     public void Refresh() => Apply();
+
+    public void ClearAppliedCache() => applied = null;
 
     public void Teardown()
     {
