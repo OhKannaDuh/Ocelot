@@ -480,7 +480,8 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         sb.AppendLine(",");
         for (int i = 0; i < XanRoleAiModules.Length; i++)
         {
-            sb.Append($"    \"{XanRoleAiModules[i]}\": []");
+            string module = XanRoleAiModules[i];
+            sb.Append($"    \"{module}\": {RoleAiStrategies(module)}");
             sb.AppendLine(",");
         }
 
@@ -506,6 +507,27 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
                         { "Track": "AOE", "Option": "AOE" }
                       ]
                   """;
+
+        static string RoleAiStrategies(string module) =>
+            module.EndsWith("PhantomAI", StringComparison.Ordinal)
+                ? """
+                  [
+                        { "Track": "Chemist", "Option": "InCombat" },
+                        { "Track": "WHMRaise", "Option": "InCombat" }
+                      ]
+                  """
+                : module.EndsWith("HealerAI", StringComparison.Ordinal)
+                    ? """
+                      [
+                            { "Track": "Raise", "Option": "Swiftcast" },
+                            { "Track": "RaiseTargets", "Option": "Everyone" },
+                            { "Track": "Heal", "Option": "Enabled" },
+                            { "Track": "Esuna2", "Option": "Enabled" },
+                            { "Track": "Stay near party", "Option": "Enabled" },
+                            { "Track": "OutOfCombat", "Option": "Enabled" }
+                          ]
+                      """
+                    : "[]";
 
         for (int i = 0; i < XanStandardJobModules.Length; i++)
         {
