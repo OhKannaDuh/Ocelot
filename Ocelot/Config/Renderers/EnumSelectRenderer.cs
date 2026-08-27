@@ -4,6 +4,7 @@ using Ocelot.Config.Fields;
 using Ocelot.Config.Renderers.Enum;
 using Ocelot.Extensions;
 using Ocelot.Services.Translation;
+using Ocelot.UI;
 
 namespace Ocelot.Config.Renderers;
 
@@ -54,16 +55,25 @@ public class EnumSelectRenderer<TEnum, TDisplay, TFilter>(TDisplay display, TFil
         }
 
         var label = prop.Label(owner, translator);
-        var changed = ImGui.Combo(label, ref index, cache.Labels, cache.Labels.Length);
 
-        prop.Tooltip(owner, translator);
-
-        if (changed)
+        OcelotUi.PushFieldStyle();
+        try
         {
-            var selectedKey = cache.Keys[index];
-            prop.SetValue(target, selectedKey);
-        }
+            var changed = ImGui.Combo(label, ref index, cache.Labels, cache.Labels.Length);
 
-        return changed;
+            prop.Tooltip(owner, translator);
+
+            if (changed)
+            {
+                var selectedKey = cache.Keys[index];
+                prop.SetValue(target, selectedKey);
+            }
+
+            return changed;
+        }
+        finally
+        {
+            OcelotUi.PopFieldStyle();
+        }
     }
 }

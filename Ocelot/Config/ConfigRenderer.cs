@@ -9,6 +9,7 @@ using Ocelot.Extensions;
 using Ocelot.Graphics;
 using Ocelot.Services.Translation;
 using Ocelot.Services.WindowManager;
+using Ocelot.UI;
 
 namespace Ocelot.Config;
 
@@ -131,12 +132,9 @@ public class ConfigRenderer : IConfigRenderer
                     continue;
                 }
 
-                // Muted, from the active theme rather than a fixed colour, so a group header reads
-                // as a category and not as another clickable row at the same weight as its pages.
+                // Gold category header (RelicTracker-style), not another selectable row.
                 ImGui.Spacing();
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
-                ImGui.TextUnformatted(translator.T($"config_group.{key}.label"));
-                ImGui.PopStyleColor();
+                ImGui.TextColored(OcelotUi.Header, translator.T($"config_group.{key}.label"));
 
                 ImGui.Indent(16);
                 foreach (var gConfig in gConfigs)
@@ -165,11 +163,13 @@ public class ConfigRenderer : IConfigRenderer
         {
             var type = current.GetType();
 
-            // Page blurb when present (mirrors main-window mode descriptions).
+            // Page blurb when present (muted intro + separator, RelicTracker Settings recipe).
             var descKey = current.GetTooltipKey();
             if (translator.Has(descKey))
             {
+                ImGui.PushStyleColor(ImGuiCol.Text, OcelotUi.Muted);
                 ImGui.TextWrapped(translator.T(descKey));
+                ImGui.PopStyleColor();
                 ImGui.Spacing();
                 ImGui.Separator();
                 ImGui.Spacing();
@@ -204,12 +204,7 @@ public class ConfigRenderer : IConfigRenderer
 
                     var sectionKey = $"config.{configSnake}.sections.{fieldAttr.Section}";
 
-                    // Accent colour from the theme — section headers sat at the same weight as the
-                    // field labels beneath them, which is what made long pages hard to scan.
-                    // (ImGui.SeparatorText would be the idiomatic choice but is not in these bindings.)
-                    ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.CheckMark));
-                    ImGui.TextUnformatted(translator.Has(sectionKey) ? translator.T(sectionKey) : fieldAttr.Section);
-                    ImGui.PopStyleColor();
+                    ImGui.TextColored(OcelotUi.Header, translator.Has(sectionKey) ? translator.T(sectionKey) : fieldAttr.Section);
 
                     ImGui.Spacing();
                     lastSection = fieldAttr.Section;

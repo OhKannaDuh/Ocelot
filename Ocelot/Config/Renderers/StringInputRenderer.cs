@@ -3,6 +3,7 @@ using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Fields;
 using Ocelot.Extensions;
 using Ocelot.Services.Translation;
+using Ocelot.UI;
 
 namespace Ocelot.Config.Renderers;
 
@@ -17,18 +18,27 @@ public sealed class StringInputRenderer : IFieldRenderer<StringInputAttribute>
         }
 
         string value = (string?)prop.GetValue(target) ?? string.Empty;
-        bool changed = ImGui.InputTextWithHint(
-            prop.Label(owner, translator),
-            "https://…/api/v1/observations",
-            ref value,
-            attr.MaxLength);
-        prop.Tooltip(owner, translator);
 
-        if (changed)
+        OcelotUi.PushFieldStyle();
+        try
         {
-            prop.SetValue(target, value);
-        }
+            bool changed = ImGui.InputTextWithHint(
+                prop.Label(owner, translator),
+                "https://…/api/v1/observations",
+                ref value,
+                attr.MaxLength);
+            prop.Tooltip(owner, translator);
 
-        return changed;
+            if (changed)
+            {
+                prop.SetValue(target, value);
+            }
+
+            return changed;
+        }
+        finally
+        {
+            OcelotUi.PopFieldStyle();
+        }
     }
 }

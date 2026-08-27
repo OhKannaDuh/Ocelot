@@ -3,6 +3,7 @@ using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Fields;
 using Ocelot.Extensions;
 using Ocelot.Services.Translation;
+using Ocelot.UI;
 
 namespace Ocelot.Config.Renderers;
 
@@ -18,15 +19,23 @@ public sealed class FloatRangeRenderer : IFieldRenderer<FloatRangeAttribute>
 
         var value = (float)(prop.GetValue(target) ?? 0f);
 
-        var changed = ImGui.SliderFloat(prop.Label(owner, translator), ref value, attr.Min, attr.Max);
-
-        prop.Tooltip(owner, translator);
-
-        if (changed)
+        OcelotUi.PushFieldStyle();
+        try
         {
-            prop.SetValue(target, value);
-        }
+            var changed = ImGui.SliderFloat(prop.Label(owner, translator), ref value, attr.Min, attr.Max);
 
-        return changed;
+            prop.Tooltip(owner, translator);
+
+            if (changed)
+            {
+                prop.SetValue(target, value);
+            }
+
+            return changed;
+        }
+        finally
+        {
+            OcelotUi.PopFieldStyle();
+        }
     }
 }
