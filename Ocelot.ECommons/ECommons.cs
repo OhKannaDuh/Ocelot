@@ -1,4 +1,4 @@
-﻿using Dalamud.Plugin;
+using Dalamud.Plugin;
 using ECommons;
 using Ocelot.ECommons.Services;
 using Ocelot.Lifecycle;
