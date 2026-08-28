@@ -4,25 +4,35 @@ using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Lifecycle;
 using Ocelot.Services;
 using Ocelot.Services.Translation;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Ocelot;
 
-public abstract class OcelotPlugin : IDalamudPlugin
+public abstract class OcelotPlugin : IAsyncDalamudPlugin
 {
-    private readonly ServiceProvider services;
-
-    private readonly EventManager host;
+    private readonly IDalamudPluginInterface plugin;
+    private ServiceProvider? services;
+    private EventManager? host;
 
     public abstract string Name { get; }
 
     protected OcelotPlugin(IDalamudPluginInterface plugin, IPluginLog logger)
     {
+        this.plugin = plugin;
+    }
+
+    protected abstract void Bootstrap(IServiceCollection collection);
+
+    public Task LoadAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
         Registry.RegisterAssemblies(typeof(OcelotPlugin).Assembly, GetType().Assembly);
 
         var collection = new OcelotServiceCollection();
 
         collection.AddSingleton(plugin);
-        collection.AddSingleton<IDalamudPlugin>(this);
         collection.AddSingleton(this);
 
         collection.AddSingleton(new TranslatorContextResolverOptions(GetType()));
@@ -36,13 +46,18 @@ public abstract class OcelotPlugin : IDalamudPlugin
         services = collection.Build();
         host = services.GetRequiredService<EventManager>();
         host.Start();
+
+        return Task.CompletedTask;
     }
 
-    protected abstract void Bootstrap(IServiceCollection collection);
-
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
-        host.Stop();
-        services.Dispose();
+        host?.Stop();
+        host = null;
+
+        services?.Dispose();
+        services = null;
+
+        return ValueTask.CompletedTask;
     }
 }

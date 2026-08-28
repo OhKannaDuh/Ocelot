@@ -14,20 +14,20 @@ Nuget Package: https://www.nuget.org/packages/FFXIVOcelot
 
 ## Getting Started with Ocelot DI
 
-You'll want to make a plugin that extends [`Ocelot.OcelotPlugin`](https://github.com/OhKannaDuh/Ocelot/blob/master/Ocelot/OcelotPlugin.cs), which youll need to provide with a [`Dalamud.Plugin.IDalamudPluginInterface`](https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Plugin/IDalamudPluginInterface.cs). Luckily if you request this in your plugins constructor, Dalamud will supply it for you.
+You'll want to make a plugin that extends [`Ocelot.OcelotPlugin`](https://github.com/OhKannaDuh/Ocelot/blob/master/Ocelot/OcelotPlugin.cs), which implements [`IAsyncDalamudPlugin`](https://dalamud.dev/api/Dalamud.Plugin/Interfaces/IAsyncDalamudPlugin). Request [`IDalamudPluginInterface`](https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Plugin/IDalamudPluginInterface.cs) and `IPluginLog` in your plugin constructor — Dalamud supplies them; Ocelot finishes setup in `LoadAsync`.
 
 ```cs
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Ocelot;
-using Ocelot.States;
 
 namespace MyAwesomePlugin;
 
-public sealed class Plugin(IDalamudPluginInterface plugin) : OcelotPlugin(plugin)
+public sealed class Plugin(IDalamudPluginInterface plugin, IPluginLog logger) : OcelotPlugin(plugin, logger)
 ...
 ```
 
-`OcelotPlugin` is where our DI container gets set up. Your plugin _should_ implement `void Bootstrap(IServiceCollection services)` to register your own types and load any Ocelot modules you need (more on modules in the wiki).
+`OcelotPlugin` builds the DI container and starts lifecycle hosts in `LoadAsync` (not the constructor), so boot does not hitch on heavy init. Your plugin _should_ override `void Bootstrap(IServiceCollection services)` to register types and load Ocelot modules (more on modules in the wiki).
 
 ```cs
 using Microsoft.Extensions.DependencyInjection;
