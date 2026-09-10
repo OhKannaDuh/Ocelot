@@ -70,8 +70,7 @@ public sealed class WrathJobRotation(
     {
         _ = activity;
 
-        // Edge-triggered when the lease is still live. Wrath suspends leases on job change /
-        // cache rebuild without telling us — InvalidLease on a touch re-arms below.
+        // Wrath suspends leases on job change without telling us; InvalidLease re-arms below.
         if (rotationOn == true && farmingDefaultsApplied && Lease.HasValue)
         {
             SetResult touch = WrathIPCWrapper.SetAutoRotationState(Lease.Value, true);
@@ -105,8 +104,7 @@ public sealed class WrathJobRotation(
         rotationOn = false;
     }
 
-    // Job-ready is set once in Enable/Prepare. Re-calling every combat tick is unnecessary and
-    // spams Wrath when the lease dies mid-fight (e.g. Wrath reload).
+    // Set job-ready once in Enable/Prepare. Re-calling every tick spams Wrath if the lease dies.
     public void Refresh()
     {
     }
@@ -130,8 +128,7 @@ public sealed class WrathJobRotation(
             uint? previous = trackedPhantomJobId;
             trackedPhantomJobId = contentJobId;
 
-            // Release the job we are leaving. Without this the lease accumulates every phantom job
-            // touched this session, all left enabled, until the lease itself is released.
+            // Release the job we are leaving or the lease keeps every phantom job enabled.
             if (previous is { } old && old != contentJobId)
             {
                 TryReleaseOccult(Lease.Value, old);
@@ -255,8 +252,7 @@ public sealed class WrathJobRotation(
             SetResult result = action(Lease.Value);
             if (result != SetResult.InvalidLease)
             {
-                // IGNORED = wrapper swallowed an exception (ErrorType.All). Treat like the old
-                // fire-and-forget path so a soft IPC blip does not leave us with no lease control.
+                // IGNORED = wrapper swallowed an exception; keep the lease.
                 return IsAcceptable(result) || result == SetResult.IGNORED;
             }
 

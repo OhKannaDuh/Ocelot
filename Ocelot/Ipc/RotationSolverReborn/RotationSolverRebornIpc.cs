@@ -5,8 +5,7 @@ namespace Ocelot.Ipc.RotationSolverReborn;
 
 public class RotationSolverRebornIpc(IDalamudPluginInterface plugin) : IRotationSolverRebornIpc
 {
-    // EzIPC registers ChangeOperatingMode as an Action (void), last generic = object.
-    // HasFunction is for returning funcs and stays false here — 4.1.0.4 used that and never called Henched.
+    // ChangeOperatingMode is an Action (void). HasFunction stays false — 4.1.0.4 never called Henched.
     private readonly ICallGateSubscriber<RSRStateCommandType, object> changeOperatingMode = plugin
         .GetIpcSubscriber<RSRStateCommandType, object>("RotationSolverReborn.ChangeOperatingMode");
 
@@ -41,9 +40,7 @@ public class RotationSolverRebornIpc(IDalamudPluginInterface plugin) : IRotation
                 }
                 catch
                 {
-                    // RSR Off releases a Wrath lease RSR itself took. Wrath then fails to call
-                    // RotationSolver.LeaseCancelled — that throws after RSR already changed mode.
-                    // Treat Off as success so we do not retry and spam the Dalamud log.
+                    // Off already landed; Wrath's LeaseCancelled callback can still throw.
                     return command == RSRStateCommandType.Off;
                 }
             }

@@ -2,8 +2,12 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace Ocelot.Actions;
 
-public partial class Actions
+public class Actions
 {
+    protected Actions()
+    {
+    }
+
     public readonly static Action AutoAttack = new(ActionType.GeneralAction, 1);
 
     public readonly static Action Jump = new(ActionType.GeneralAction, 2);

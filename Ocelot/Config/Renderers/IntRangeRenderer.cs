@@ -14,7 +14,7 @@ public sealed class IntRangeRenderer : IFieldRenderer<IntRangeAttribute>
         if (prop.PropertyType != typeof(int))
         {
             throw new InvalidOperationException(
-                $"[FloatRange] can only be used on float properties. {prop.DeclaringType?.Name}.{prop.Name} is {prop.PropertyType.Name}.");
+                $"[IntRange] can only be used on int properties. {prop.DeclaringType?.Name}.{prop.Name} is {prop.PropertyType.Name}.");
         }
 
         var value = (int)(prop.GetValue(target) ?? 0);

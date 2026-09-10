@@ -56,3 +56,6 @@ nunit-*.xml
 
 
 .env
+
+# Rider
+.idea/

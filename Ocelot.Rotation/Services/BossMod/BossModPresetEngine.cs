@@ -151,8 +151,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         bool missing = ipc.Get(fate) == null || ipc.Get(ce) == null || ipc.Get(mob) == null;
         bool jobChanged = OverwriteExisting && bakedJobId is not null && bakedJobId.Value != jobId;
         bool roleChanged = OverwriteExisting && bakedAsMelee is not null && bakedAsMelee.Value != isMelee;
-        // Any Combat movement slider — not only range — must remake when auto-update is on.
-        // Otherwise settings only stick until the next Illegal Mode toggle (Discord / Rinko).
+        // Any Combat movement slider must remake when auto-update is on.
         bool movementChanged = OverwriteExisting
                                && bakedMovement is not null
                                && bakedMovement != Movement;

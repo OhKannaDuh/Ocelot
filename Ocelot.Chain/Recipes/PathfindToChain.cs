@@ -37,7 +37,6 @@ public class
             .UseMiddleware(new RetryChainMiddleware(logger)
             {
                 DelayMs = 500,
-                // Was 5 — retries after a 5m hang felt like "randomly fires again".
                 MaxAttempts = 2,
             })
             .UseStepMiddleware<RunOnMainThreadMiddleware>()
@@ -126,8 +125,7 @@ public class
             {
                 if (!IsAtDestination(pathfinderConfig))
                 {
-                    // Check before Stop() — Stop always leaves Idle, which used to make every
-                    // shortfall look like a user cancel (no retries, soft-pause Illegal Mode).
+                    // Stop() always reports Idle, so check first or a shortfall looks like a cancel.
                     bool stoppedEarly = HasStoppedMoving();
                     pathfinder.Stop();
                     vnav.Stop();

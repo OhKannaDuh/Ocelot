@@ -97,8 +97,7 @@ public class ConfigRenderer : IConfigRenderer
 
     public void Render()
     {
-        // Font-relative, not a hardcoded 300px: at larger UI scales a fixed sidebar clips its own
-        // labels, and at small scales it wastes half the window.
+        // Font-relative width — a fixed 300px clips labels at large UI scale.
         var sidebarWidth = Math.Clamp(ImGui.GetFontSize() * 15f, 220f, 380f);
 
         using (ImRaii.Child("##LeftPanel", new Vector2(sidebarWidth, 0), true))
@@ -192,9 +191,7 @@ public class ConfigRenderer : IConfigRenderer
                 var fieldAttr = attr!;
                 if (!string.IsNullOrEmpty(fieldAttr.Section) && fieldAttr.Section != lastSection)
                 {
-                    // Separate every section the same way, including the first. Previously the first
-                    // header butted straight against the page blurb while the rest were spaced, so
-                    // the top of every page looked subtly different from the body.
+                    // Space every section, including the first after the page blurb.
                     ImGui.Spacing();
                     if (lastSection != null)
                     {

@@ -125,8 +125,7 @@ public class BossModIpc(IDalamudPluginInterface plugin) : IBossModIpc
 
     public bool Activate(string name)
     {
-        // Prefer Activate when present, but fall through to SetActive when it fails —
-        // some BossMod builds expose Activate that returns false without enabling AI (#182).
+        // Prefer Activate; some BossMod builds return false without enabling AI (#182).
         try
         {
             if (activate.HasFunction && activate.InvokeFunc(name))

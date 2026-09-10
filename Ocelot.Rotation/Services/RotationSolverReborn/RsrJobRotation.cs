@@ -27,8 +27,7 @@ public sealed class RsrJobRotation(IRotationSolverRebornIpc ipc) : IJobRotationB
     public void Enable(CombatActivity activity)
     {
         _ = activity;
-        // After Off (CE death) always re-issue Henched. RSR can no-op Henched while
-        // unconscious; if we cached success we would never send it again after raise.
+        // After Off (CE death) always re-issue Henched; RSR can no-op it while unconscious.
         if (desired != RSRStateCommandType.Henched || applied != RSRStateCommandType.Henched)
         {
             applied = null;
@@ -75,8 +74,7 @@ public sealed class RsrJobRotation(IRotationSolverRebornIpc ipc) : IJobRotationB
             return;
         }
 
-        // Off is one-shot even if IPC throws (Wrath lease-cancel callback). Retrying Off
-        // every second reprints Wrath's LeaseCancelled error on Return.
+        // Off is one-shot even if IPC throws (Wrath lease-cancel). Retrying reprints LeaseCancelled.
         applied = desired;
         nextAttemptUtc = DateTimeOffset.MinValue;
     }
