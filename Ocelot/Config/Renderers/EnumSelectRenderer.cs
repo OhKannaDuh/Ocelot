@@ -20,22 +20,25 @@ public class EnumSelectRenderer<TEnum, TDisplay, TFilter>(TDisplay display, TFil
 
     public bool Render(object target, PropertyInfo prop, EnumSelectAttribute<TEnum, TDisplay, TFilter> attr, Type owner, ITranslator translator)
     {
-        if (cache == null)
+        // Rebuild when the filter set changes (e.g. combat plugins installed/uninstalled mid-session).
+        var labels = new List<string>();
+        var values = new List<TEnum>();
+
+        foreach (var datum in System.Enum.GetValues<TEnum>())
         {
-            var labels = new List<string>();
-            var values = new List<TEnum>();
-
-            foreach (var datum in System.Enum.GetValues<TEnum>())
+            if (!filter.Filter(datum))
             {
-                if (!filter.Filter(datum))
-                {
-                    continue;
-                }
-
-                labels.Add(display.Display(datum));
-                values.Add(datum);
+                continue;
             }
 
+            labels.Add(display.Display(datum));
+            values.Add(datum);
+        }
+
+        if (cache == null
+            || cache.Keys.Length != values.Count
+            || !cache.Keys.SequenceEqual(values))
+        {
             cache = new CachedList(labels.ToArray(), values.ToArray());
         }
 
