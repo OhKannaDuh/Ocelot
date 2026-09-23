@@ -10,14 +10,14 @@
       },
       "WrathCombo.API": {
         "type": "Direct",
-        "requested": "[0.5.7, )",
-        "resolved": "0.5.7",
-        "contentHash": "A7KURat4s3efIj+KO5LTy6Vky1Y0Hsnqt4XWBL6xYsLlYSxlqhBCS3Y/LrEkohDuGletwRjfkx8IiLTiVnEmxw=="
+        "requested": "[0.5.8, )",
+        "resolved": "0.5.8",
+        "contentHash": "AudBr8hlqPitv2hRs7i1Nh8ahUIZ1b9KmPjgPfiUMhjFjsRguH5XZlWdzKKM0wmOFvabgR8mLfXDrqBmzBgGSQ=="
       },
       "ECommons": {
         "type": "Transitive",
-        "resolved": "3.2.1.18",
-        "contentHash": "7yudYdKsg6TMki8+vekCbnOf4JdG/JFAcMFzMC77uv8E9WF87Cln6TL+OvFYUbqatfyFiMwXwJOEs/P7LcCjPQ=="
+        "resolved": "3.2.1.20",
+        "contentHash": "ftyiWsxzrJPnIHvh3VacdfW1evDqqhFgZ7CLHpq3hstZ1Stgco92vJkR5Y1tb2fnVNW2GFW4JX3FcwLjPIgB8w=="
       },
       "Microsoft.Extensions.DependencyInjection": {
         "type": "Transitive",
@@ -35,7 +35,7 @@
       "FFXIVOcelot": {
         "type": "Project",
         "dependencies": {
-          "ECommons": "[3.2.1.18, )",
+          "ECommons": "[3.2.1.20, )",
           "Microsoft.Extensions.DependencyInjection": "[10.0.7, )"
         }
       }
