@@ -50,12 +50,19 @@ public static class JobRotationBackendKeys
     public const string BossModReborn = "BossModReborn";
 }
 
-public readonly record struct JobRotationSessionOptions(bool ManualTargeting = true);
+/// <param name="DisabledOccultOptions">
+///     Wrath phantom-job option names to leave off when the phantom job loadout is applied.
+/// </param>
+public readonly record struct JobRotationSessionOptions(
+    bool ManualTargeting = true,
+    IReadOnlyCollection<string>? DisabledOccultOptions = null);
 
+/// <param name="DisabledOccultOptions">See <see cref="JobRotationSessionOptions.DisabledOccultOptions"/>.</param>
 public readonly record struct CombatRotationRecipe(
     JobRotationBackendKind Job,
     CombatAiKind CombatAi,
-    bool ManualTargeting = true
+    bool ManualTargeting = true,
+    IReadOnlyCollection<string>? DisabledOccultOptions = null
 )
 {
     public static CombatRotationRecipe None { get; } = new(JobRotationBackendKind.None, CombatAiKind.None);
