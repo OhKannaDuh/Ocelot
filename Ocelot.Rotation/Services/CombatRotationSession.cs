@@ -61,7 +61,7 @@ public sealed class CombatRotationSession : ICombatRotationSession
         job = ResolveJob(recipe.Job);
         ai = ResolveAi(recipe.CombatAi);
 
-        job.Prepare(new JobRotationSessionOptions(recipe.ManualTargeting));
+        job.Prepare(new JobRotationSessionOptions(recipe.ManualTargeting, recipe.DisabledOccultOptions));
         ai.EnsurePresets();
     }
 

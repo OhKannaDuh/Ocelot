@@ -8,7 +8,8 @@ public sealed class WrathJobRotation(
     IDalamudPluginInterface pluginInterface,
     OcelotPlugin plugin) : IJobRotationBackend, IDisposable
 {
-    private static readonly HashSet<string> OccultOptionsLeftOff = new(StringComparer.Ordinal)
+    /// <summary>Phantom-job options BOCCHI always leaves off, whatever the user's blacklist says.</summary>
+    public static readonly IReadOnlySet<string> BuiltInOccultOptionsLeftOff = new HashSet<string>(StringComparer.Ordinal)
     {
         "Phantom_Chemist_OccultElixir",
         // Wrath has no useful Phantom BLM gate for this yet — bulk-enable spam-casts Toad.
@@ -20,6 +21,9 @@ public sealed class WrathJobRotation(
     private Lazy<Guid?> lease = NewLease(pluginInterface, plugin);
 
     private bool farmingDefaultsApplied;
+
+    // Built-in left-off set plus the user's blacklist from the session options.
+    private HashSet<string> occultOptionsLeftOff = new(BuiltInOccultOptionsLeftOff, StringComparer.Ordinal);
 
     private bool manualTargeting = true;
 
@@ -54,6 +58,11 @@ public sealed class WrathJobRotation(
     public void Prepare(JobRotationSessionOptions options)
     {
         manualTargeting = options.ManualTargeting;
+        lock (gate)
+        {
+            occultOptionsLeftOff = BuildOccultOptionsLeftOff(options.DisabledOccultOptions);
+        }
+
         if (!Lease.HasValue)
         {
             return;
@@ -272,6 +281,17 @@ public sealed class WrathJobRotation(
         return false;
     }
 
+    private static HashSet<string> BuildOccultOptionsLeftOff(IReadOnlyCollection<string>? disabled)
+    {
+        HashSet<string> set = new(BuiltInOccultOptionsLeftOff, StringComparer.Ordinal);
+        if (disabled != null)
+        {
+            set.UnionWith(disabled.Where(name => !string.IsNullOrWhiteSpace(name)));
+        }
+
+        return set;
+    }
+
     private static bool IsOk(SetResult result) =>
         result is SetResult.Okay or SetResult.OkayWorking;
 
@@ -292,7 +312,7 @@ public sealed class WrathJobRotation(
         }
     }
 
-    private static void TryLockOccultOptimal(Guid leaseId, uint phantomJobId)
+    private void TryLockOccultOptimal(Guid leaseId, uint phantomJobId)
     {
         try
         {
@@ -317,7 +337,7 @@ public sealed class WrathJobRotation(
 
             foreach (string option in options)
             {
-                if (OccultOptionsLeftOff.Contains(option))
+                if (occultOptionsLeftOff.Contains(option))
                 {
                     if (bulk)
                     {

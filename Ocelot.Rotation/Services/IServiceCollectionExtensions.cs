@@ -16,6 +16,7 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<ICombatAiBackend>(sp => sp.GetRequiredService<BossModMiscAiBackend>());
 
         services.AddSingleton<IJobRotationBackend, WrathJobRotation>();
+        services.AddSingleton<IWrathOccultOptionCatalog, WrathOccultOptionCatalog>();
         services.AddSingleton<IJobRotationBackend, RsrJobRotation>();
         services.AddSingleton<IJobRotationBackend>(sp =>
             new BossModFullArJobRotation(sp.GetRequiredService<BossModPresetEngine>(), JobRotationBackendKind.BossMod));
