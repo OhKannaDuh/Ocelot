@@ -1,4 +1,4 @@
-﻿using Dalamud.Plugin;
+using Dalamud.Plugin;
 
 namespace Ocelot.Services.PluginStatus;
 
@@ -6,6 +6,10 @@ public class PluginStatus(IDalamudPluginInterface plugin) : IPluginStatus
 {
     public bool IsLoaded(string internalName)
     {
-        return plugin.InstalledPlugins.FirstOrDefault(p => p.InternalName == internalName)?.IsLoaded ?? false;
+        // InstalledPlugins can list unloaded copies of the same InternalName; require IsLoaded.
+        return plugin.InstalledPlugins.Any(p => p.InternalName == internalName && p.IsLoaded);
     }
+
+    public bool IsInstalled(string internalName) =>
+        plugin.InstalledPlugins.Any(p => p.InternalName == internalName);
 }

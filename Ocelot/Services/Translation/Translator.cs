@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Ocelot.Extensions;
 
 namespace Ocelot.Services.Translation;
 
@@ -47,13 +48,13 @@ public sealed class Translator : ITranslator, IDisposable
     public string T(string key)
     {
         var fullKey = BuildFullKey(Scope, key);
-        return translations.Get(fullKey, key);
+        return translations.Get(fullKey, fullKey.HumanizeTranslationKey());
     }
 
     public string T(string key, params (string key, object value)[] replacements)
     {
         var fullKey = BuildFullKey(Scope, key);
-        var template = translations.Get(fullKey, key);
+        var template = translations.Get(fullKey, fullKey.HumanizeTranslationKey());
         return ApplyReplacements(template, replacements);
     }
 

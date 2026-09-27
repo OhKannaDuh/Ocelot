@@ -1,4 +1,4 @@
-﻿using Ocelot.Extensions;
+using Ocelot.Extensions;
 using Ocelot.Services.Translation;
 using IUIService = Ocelot.Services.UI.IUIService;
 
@@ -100,11 +100,6 @@ public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposabl
     public void Reset()
     {
         SetState(initial);
-    }
-
-    public TimeSpan GetTimeInCurrentState()
-    {
-        return Current.TimeInState;
     }
 
     public void Dispose()

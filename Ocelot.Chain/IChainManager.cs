@@ -7,4 +7,6 @@ public interface IChainManager
     Task<ChainResult> Manage(IChain chain);
 
     void CancelAll();
+
+    void CancelWhere(Func<string, bool> predicate);
 }

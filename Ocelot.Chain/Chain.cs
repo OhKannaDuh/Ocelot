@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Chain.Steps;
 
 namespace Ocelot.Chain;
@@ -82,6 +82,10 @@ public class Chain(string name, IServiceProvider services) : IChain
         {
             return ChainResult.Canceled();
         }
+        catch (ObjectDisposedException)
+        {
+            return ChainResult.Canceled();
+        }
         catch (Exception ex)
         {
             return ChainResult.Failure(ex);
@@ -135,6 +139,11 @@ public class Chain(string name, IServiceProvider services) : IChain
 
                 var result = await pipeline();
 
+                if (result.IsCanceled || context.CancellationToken.IsCancellationRequested)
+                {
+                    return ChainResult.Canceled();
+                }
+
                 switch (result.IsSuccess)
                 {
                     case true when result.ShouldBreak:
@@ -144,6 +153,10 @@ public class Chain(string name, IServiceProvider services) : IChain
                 }
             }
             catch (OperationCanceledException)
+            {
+                return ChainResult.Canceled();
+            }
+            catch (ObjectDisposedException)
             {
                 return ChainResult.Canceled();
             }

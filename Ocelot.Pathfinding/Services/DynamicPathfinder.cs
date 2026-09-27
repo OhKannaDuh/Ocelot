@@ -10,11 +10,16 @@ public class DynamicPathfinder(
     IEnumerable<IPathfindingProvider> providers,
     IPathfindingPriorityService priority,
     ILogger<DynamicPathfinder> logger
-) : IPathfinder, IOnPreUpdate
+) : IPathfinder, IOnPreUpdate, IOnStart
 {
     private string currentInternalName = "";
 
     private IPathfinder? current;
+
+    public void OnStart()
+    {
+        PreUpdate();
+    }
 
     public void PreUpdate()
     {

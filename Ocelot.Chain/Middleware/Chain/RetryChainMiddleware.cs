@@ -1,4 +1,4 @@
-﻿using Ocelot.Services.Logger;
+using Ocelot.Services.Logger;
 
 namespace Ocelot.Chain.Middleware.Chain;
 
@@ -25,19 +25,19 @@ public sealed class RetryChainMiddleware(ILogger logger) : IChainMiddleware
 
             try
             {
-                logger.Info("Chain attempt {Attempt} starting (RunId={RunId})", attempt, context.RunId);
+                logger.Debug("Chain attempt {Attempt} starting (RunId={RunId})", attempt, context.RunId);
 
                 var result = await next();
 
                 if (result.IsSuccess)
                 {
-                    logger.Info("Chain attempt {Attempt} succeeded (RunId={RunId})", attempt, context.RunId);
+                    logger.Debug("Chain attempt {Attempt} succeeded (RunId={RunId})", attempt, context.RunId);
                     return result;
                 }
 
                 if (result.IsCanceled)
                 {
-                    logger.Warning("Chain attempt {Attempt} canceled (RunId={RunId})", attempt, context.RunId);
+                    logger.Debug("Chain attempt {Attempt} canceled (RunId={RunId})", attempt, context.RunId);
                     return result;
                 }
 
@@ -52,7 +52,7 @@ public sealed class RetryChainMiddleware(ILogger logger) : IChainMiddleware
             }
             catch (OperationCanceledException)
             {
-                logger.Warning("Chain attempt {Attempt} canceled by token (RunId={RunId})", attempt, context.RunId);
+                logger.Debug("Chain attempt {Attempt} canceled by token (RunId={RunId})", attempt, context.RunId);
                 throw;
             }
             catch (Exception ex)

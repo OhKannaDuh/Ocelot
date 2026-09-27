@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Plugin.Services;
@@ -12,10 +12,7 @@ public interface IPlayer
 
     IPlayerCharacter? PlayerCharacter { get; }
 
-    StatusList? StatusList
-    {
-        get => PlayerCharacter?.StatusList;
-    }
+    StatusList? StatusList => PlayerCharacter?.StatusList;
 
     Vector3 Position { get; }
 
@@ -23,6 +20,7 @@ public interface IPlayer
 
     int GetLevel();
 
+    /// <summary>Base combat ClassJob — not Occult Crescent phantom job.</summary>
     ClassJob? GetClassJob();
 
     int GetLevel(ClassJob job);

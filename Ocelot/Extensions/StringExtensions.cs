@@ -1,9 +1,37 @@
-﻿using System.Text.RegularExpressions;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Ocelot.Extensions;
 
 public static class StringExtensions
 {
+    private static readonly HashSet<string> TranslationKeySuffixes = new(StringComparer.Ordinal)
+    {
+        "label",
+        "tooltip",
+        "fields",
+        "title",
+    };
+
+    public static string HumanizeTranslationKey(this string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return key;
+        }
+
+        var parts = key.Split('.');
+        for (var i = parts.Length - 1; i >= 0; i--)
+        {
+            if (!TranslationKeySuffixes.Contains(parts[i]))
+            {
+                return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(parts[i].Replace('_', ' '));
+            }
+        }
+
+        return key;
+    }
+
     public static string ToSnakeCase(this string str)
     {
         if (string.IsNullOrEmpty(str))
@@ -45,20 +73,5 @@ public static class StringExtensions
         }
 
         return str.StartsWith(prefix) ? str : prefix + str;
-    }
-
-    public static string WithSuffix(this string str, string suffix)
-    {
-        if (string.IsNullOrEmpty(suffix))
-        {
-            return str;
-        }
-
-        if (string.IsNullOrEmpty(str))
-        {
-            return suffix;
-        }
-
-        return str.EndsWith(suffix) ? str : str + suffix;
     }
 }

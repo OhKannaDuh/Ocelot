@@ -3,6 +3,7 @@ using Dalamud.Bindings.ImGui;
 using Ocelot.Config.Fields;
 using Ocelot.Extensions;
 using Ocelot.Services.Translation;
+using Ocelot.UI;
 
 namespace Ocelot.Config.Renderers;
 
@@ -18,15 +19,23 @@ public sealed class CheckboxRenderer : IFieldRenderer<CheckboxAttribute>
 
         var value = (bool)(prop.GetValue(target) ?? false);
 
-        var changed = ImGui.Checkbox(prop.Label(owner, translator), ref value);
-
-        prop.Tooltip(owner, translator);
-
-        if (changed)
+        OcelotUi.PushFieldStyle();
+        try
         {
-            prop.SetValue(target, value);
-        }
+            var changed = ImGui.Checkbox(prop.Label(owner, translator), ref value);
 
-        return changed;
+            prop.Tooltip(owner, translator);
+
+            if (changed)
+            {
+                prop.SetValue(target, value);
+            }
+
+            return changed;
+        }
+        finally
+        {
+            OcelotUi.PopFieldStyle();
+        }
     }
 }

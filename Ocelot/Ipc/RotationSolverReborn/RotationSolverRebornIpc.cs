@@ -1,15 +1,67 @@
-﻿using Dalamud.Plugin;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 
 namespace Ocelot.Ipc.RotationSolverReborn;
 
 public class RotationSolverRebornIpc(IDalamudPluginInterface plugin) : IRotationSolverRebornIpc
 {
-    private readonly ICallGateSubscriber<RSRStateCommandType, object> getAutoRotationState = plugin
+    // ChangeOperatingMode is an Action (void). HasFunction stays false — 4.1.0.4 never called Henched.
+    private readonly ICallGateSubscriber<RSRStateCommandType, object> changeOperatingMode = plugin
         .GetIpcSubscriber<RSRStateCommandType, object>("RotationSolverReborn.ChangeOperatingMode");
 
-    public void ChangeOperatingMode(RSRStateCommandType command)
+    private readonly ICallGateSubscriber<byte, object> changeOperatingModeByte = plugin
+        .GetIpcSubscriber<byte, object>("RotationSolverReborn.ChangeOperatingMode");
+
+    public bool IsAvailable
     {
-        getAutoRotationState.InvokeAction(command);
+        get
+        {
+            try
+            {
+                return changeOperatingMode.HasAction || changeOperatingModeByte.HasAction;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    public bool ChangeOperatingMode(RSRStateCommandType command)
+    {
+        try
+        {
+            if (changeOperatingMode.HasAction)
+            {
+                try
+                {
+                    changeOperatingMode.InvokeAction(command);
+                    return true;
+                }
+                catch
+                {
+                    // Off already landed; Wrath's LeaseCancelled callback can still throw.
+                    return command == RSRStateCommandType.Off;
+                }
+            }
+
+            if (changeOperatingModeByte.HasAction)
+            {
+                try
+                {
+                    changeOperatingModeByte.InvokeAction((byte)command);
+                    return true;
+                }
+                catch
+                {
+                    return command == RSRStateCommandType.Off;
+                }
+            }
+        }
+        catch
+        {
+        }
+
+        return false;
     }
 }

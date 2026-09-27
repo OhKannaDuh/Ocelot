@@ -5,5 +5,7 @@ public sealed class ConfigGroupAttribute(string key) : Attribute
 {
     public string Key { get; } = key;
 
+    public int GroupOrder { get; init; } = 0;
+
     public int Order { get; init; } = 0;
 }

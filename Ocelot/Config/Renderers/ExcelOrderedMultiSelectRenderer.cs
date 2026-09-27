@@ -6,6 +6,7 @@ using Ocelot.Config.Renderers.Excel;
 using Ocelot.Extensions;
 using Ocelot.Services.Data;
 using Ocelot.Services.Translation;
+using Ocelot.UI;
 
 namespace Ocelot.Config.Renderers;
 
@@ -118,100 +119,107 @@ public class ExcelOrderedMultiSelectRenderer<TRow, TDisplay, TFilter>(IDataRepos
             return $"{string.Join(", ", selectedLabels)}, +{workingList.Count - 3}";
         }
 
-
-        if (ImGui.BeginCombo(label, PreviewText()))
+        OcelotUi.PushFieldStyle();
+        try
         {
-            foreach (var key in workingList.ToList())
+            if (ImGui.BeginCombo(label, PreviewText()))
             {
-                var first = key == workingList.First();
-                var last = key == workingList.Last();
-                var index = workingList.IndexOf(key);
+                foreach (var key in workingList.ToList())
+                {
+                    var first = key == workingList.First();
+                    var last = key == workingList.Last();
+                    var index = workingList.IndexOf(key);
 
-                ImGui.PushID($"###{prop.Label(owner, translator)}_{key}");
-                if (first)
-                {
-                    ImGui.BeginDisabled();
-                    ImGui.ArrowButton("Up", ImGuiDir.Up);
-                    ImGui.SameLine();
-                    ImGui.EndDisabled();
-                }
-                else
-                {
-                    if (ImGui.ArrowButton("Up", ImGuiDir.Up))
+                    ImGui.PushID($"###{prop.Label(owner, translator)}_{key}");
+                    if (first)
                     {
-                        (workingList[index - 1], workingList[index]) = (workingList[index], workingList[index - 1]);
+                        ImGui.BeginDisabled();
+                        ImGui.ArrowButton("Up", ImGuiDir.Up);
+                        ImGui.SameLine();
+                        ImGui.EndDisabled();
+                    }
+                    else
+                    {
+                        if (ImGui.ArrowButton("Up", ImGuiDir.Up))
+                        {
+                            (workingList[index - 1], workingList[index]) = (workingList[index], workingList[index - 1]);
+                            changed = true;
+                        }
+
+                        ImGui.SameLine();
+                    }
+
+                    if (last)
+                    {
+                        ImGui.BeginDisabled();
+                        ImGui.ArrowButton("Down", ImGuiDir.Down);
+                        ImGui.SameLine();
+                        ImGui.EndDisabled();
+                    }
+                    else
+                    {
+                        if (ImGui.ArrowButton("Down", ImGuiDir.Down))
+                        {
+                            (workingList[index + 1], workingList[index]) = (workingList[index], workingList[index + 1]);
+                            changed = true;
+                        }
+
+                        ImGui.SameLine();
+                    }
+
+
+                    var l = display.Display(data.Get(key));
+                    if (ImGui.Selectable(l, true, ImGuiSelectableFlags.DontClosePopups))
+                    {
+                        workingList.Remove(key);
                         changed = true;
                     }
 
-                    ImGui.SameLine();
+                    ImGui.PopID();
                 }
 
-                if (last)
+
+                for (var i = 0; i < cache!.Labels.Length; i++)
                 {
-                    ImGui.BeginDisabled();
-                    ImGui.ArrowButton("Down", ImGuiDir.Down);
-                    ImGui.SameLine();
-                    ImGui.EndDisabled();
-                }
-                else
-                {
-                    if (ImGui.ArrowButton("Down", ImGuiDir.Down))
+                    var key = cache.Keys[i];
+                    var selected = workingList.Contains(key);
+
+                    if (!selected)
                     {
-                        (workingList[index + 1], workingList[index]) = (workingList[index], workingList[index + 1]);
-                        changed = true;
+                        if (ImGui.Selectable(cache.Labels[i], selected, ImGuiSelectableFlags.DontClosePopups))
+                        {
+                            workingList.Add(key);
+                            changed = true;
+                        }
                     }
-
-                    ImGui.SameLine();
                 }
 
-
-                var l = display.Display(data.Get(key));
-                if (ImGui.Selectable(l, true, ImGuiSelectableFlags.DontClosePopups))
-                {
-                    workingList.Remove(key);
-                    changed = true;
-                }
-
-                ImGui.PopID();
+                ImGui.EndCombo();
             }
 
+            prop.Tooltip(owner, translator);
 
-            for (var i = 0; i < cache!.Labels.Length; i++)
+            if (changed)
             {
-                var key = cache.Keys[i];
-                var selected = workingList.Contains(key);
-
-                if (!selected)
+                if (propType == typeof(List<uint>))
                 {
-                    if (ImGui.Selectable(cache.Labels[i], selected, ImGuiSelectableFlags.DontClosePopups))
-                    {
-                        workingList.Add(key);
-                        changed = true;
-                    }
+                    prop.SetValue(target, workingList);
+                }
+                else if (propType == typeof(HashSet<uint>))
+                {
+                    prop.SetValue(target, workingList.ToHashSet());
+                }
+                else // uint[]
+                {
+                    prop.SetValue(target, workingList.ToArray());
                 }
             }
 
-            ImGui.EndCombo();
+            return changed;
         }
-
-        prop.Tooltip(owner, translator);
-
-        if (changed)
+        finally
         {
-            if (propType == typeof(List<uint>))
-            {
-                prop.SetValue(target, workingList);
-            }
-            else if (propType == typeof(HashSet<uint>))
-            {
-                prop.SetValue(target, workingList.ToHashSet());
-            }
-            else // uint[]
-            {
-                prop.SetValue(target, workingList.ToArray());
-            }
+            OcelotUi.PopFieldStyle();
         }
-
-        return changed;
     }
 }

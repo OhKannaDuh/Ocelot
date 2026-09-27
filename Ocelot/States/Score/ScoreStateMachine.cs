@@ -1,4 +1,4 @@
-﻿using Ocelot.Extensions;
+using Ocelot.Extensions;
 using Ocelot.Services.Translation;
 using IUIService = Ocelot.Services.UI.IUIService;
 
@@ -71,10 +71,11 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
     {
         Current.Handle();
 
-        var next = handlers
+        var scores = handlers
             .ToDictionary(h => h.Key, h => h.Value.GetScore())
-            .OrderByDescending(h => h.Value)
-            .First();
+            .OrderByDescending(h => h.Value);
+
+        var next = scores.First();
 
         if (EqualityComparer<TState>.Default.Equals(next.Key, State))
         {
@@ -107,11 +108,6 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
     public void Reset()
     {
         SetState(initial);
-    }
-
-    public TimeSpan GetTimeInCurrentState()
-    {
-        return Current.TimeInState;
     }
 
     public void Dispose()

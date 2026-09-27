@@ -1,9 +1,13 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace Ocelot.Actions;
 
-public partial class Actions
+public class Actions
 {
+    protected Actions()
+    {
+    }
+
     public readonly static Action AutoAttack = new(ActionType.GeneralAction, 1);
 
     public readonly static Action Jump = new(ActionType.GeneralAction, 2);
@@ -83,4 +87,12 @@ public partial class Actions
     public readonly static Action PlusTarget = new(ActionType.GeneralAction, 41);
 
     public readonly static Action TriangleTarget = new(ActionType.GeneralAction, 42);
+
+    /// <param name="id">Mount sheet row ID; 0 = Mount Roulette.</param>
+    public static Action Mount(uint id)
+    {
+        return id == 0 ? MountRoulette : new Action(ActionType.Mount, id);
+    }
+
+    public static Action Unmount => Dismount;
 }

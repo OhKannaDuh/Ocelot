@@ -1,51 +1,76 @@
-﻿using Dalamud.Plugin;
+using Dalamud.Plugin;
+using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Lifecycle.Hosts;
 
 public class OverlayRenderHost(
-    IEnumerable<IOnPreRender> preRender,
-    IEnumerable<IOnRender> render,
-    IEnumerable<IOnPostRender> postRender,
+    IServiceProvider services,
     IDalamudPluginInterface plugin,
     ILogger<OverlayRenderHost> logger
 ) : BaseEventHost(logger)
 {
-    private readonly IOnPreRender[] preRender = preRender.OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnPreRender[]> preRenderHooks = new(() =>
+        services.GetServices<IOnPreRender>().OrderByDescending(h => h.Order).ToArray());
 
-    private readonly IOnRender[] render = render.OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnRender[]> renderHooks = new(() =>
+        services.GetServices<IOnRender>().OrderByDescending(h => h.Order).ToArray());
 
-    private readonly IOnPostRender[] postRender = postRender.OrderByDescending(h => h.Order).ToArray();
+    private readonly Lazy<IOnPostRender[]> postRenderHooks = new(() =>
+        services.GetServices<IOnPostRender>().OrderByDescending(h => h.Order).ToArray());
 
     public override int Count
     {
-        get => preRender.Length + render.Length + postRender.Length;
+        get
+        {
+            var count = 0;
+            if (preRenderHooks.IsValueCreated)
+            {
+                count += preRenderHooks.Value.Length;
+            }
+
+            if (renderHooks.IsValueCreated)
+            {
+                count += renderHooks.Value.Length;
+            }
+
+            if (postRenderHooks.IsValueCreated)
+            {
+                count += postRenderHooks.Value.Length;
+            }
+
+            return count;
+        }
     }
+
+    private bool subscribed;
 
     public override void Start()
     {
-        if (Count == 0)
+        if (preRenderHooks.Value.Length + renderHooks.Value.Length + postRenderHooks.Value.Length == 0)
         {
             return;
         }
 
-        plugin.UiBuilder.Draw += Render;
+        plugin.UiBuilder.Draw += OnDraw;
+        subscribed = true;
     }
 
     public override void Stop()
     {
-        if (Count == 0)
+        if (!subscribed)
         {
             return;
         }
 
-        plugin.UiBuilder.Draw -= Render;
+        plugin.UiBuilder.Draw -= OnDraw;
+        subscribed = false;
     }
 
-    private void Render()
+    private void OnDraw()
     {
-        SafeEach(preRender, h => h.PreRender());
-        SafeEach(render, h => h.Render());
-        SafeEach(postRender, h => h.PostRender());
+        SafeEach(preRenderHooks.Value, h => h.PreRender());
+        SafeEach(renderHooks.Value, h => h.Render());
+        SafeEach(postRenderHooks.Value, h => h.PostRender());
     }
 }

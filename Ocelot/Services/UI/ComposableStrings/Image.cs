@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -13,8 +13,6 @@ public class Image(IDalamudTextureWrap texture) : IComposable
     private Vector2 size = Vector2.Zero;
 
     private float scale = 1.0f;
-
-    private string? Tooltip;
 
     public Image(ITextureProvider textures, uint id) : this(textures.GetFromGameIcon(new GameIconLookup(id)).GetWrapOrEmpty())
     {
@@ -45,13 +43,6 @@ public class Image(IDalamudTextureWrap texture) : IComposable
     {
         ImGui.Image(texture.Handle, new Vector2(GetWidth(), GetHeight()), tint);
         return ImGui.IsItemHovered();
-        // if (hovered && Tooltip != null)
-        // {
-        //     ImGui.SetTooltip(Tooltip);
-        //     return false;
-        // }
-
-        // return hovered;
     }
 
     public Image WithTint(Vector4 tint)
@@ -84,12 +75,6 @@ public class Image(IDalamudTextureWrap texture) : IComposable
     public Image WithScale(float scale)
     {
         this.scale = scale;
-        return this;
-    }
-
-    public Image WithTooltip(string? tooltip)
-    {
-        Tooltip = tooltip;
         return this;
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Lumina.Excel.Sheets;
 
 namespace Ocelot.Services.Pathfinding;
@@ -24,6 +24,9 @@ public readonly record struct PathfinderConfig(Func<Vector3> to)
     public bool ShouldSnapToFloor { get; init; } = false;
 
     public float FloorSnapExtents { get; init; } = 5f;
+
+    /// <summary>Optional hook invoked after movement starts and while pathing (e.g. cast mount while running).</summary>
+    public System.Action? WhileMoving { get; init; }
 
     public static PathfinderConfig Fly(Vector3 to)
     {

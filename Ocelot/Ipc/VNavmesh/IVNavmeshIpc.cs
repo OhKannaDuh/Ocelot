@@ -1,9 +1,13 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 namespace Ocelot.Ipc.VNavmesh;
 
 public interface IVNavmeshIpc
 {
+    bool IsAvailable();
+
+    bool IsNavmeshReady();
+
     bool IsPathfinding();
 
     bool IsRunning();
@@ -22,7 +26,11 @@ public interface IVNavmeshIpc
 
     Vector3 FindPointOnMesh(Vector3 origin, float halfExtentXZ, float halfExtentY);
 
-    List<Vector3> GetActiveNodes();
+    /// <returns>False when vnav has no polygon in range (do not pathfind to <paramref name="origin"/>).</returns>
+    bool TryFindPointOnFloor(Vector3 origin, float halfExtentXZ, out Vector3 point);
+
+    /// <returns>False when vnav has no polygon in range (do not pathfind to <paramref name="origin"/>).</returns>
+    bool TryFindPointOnMesh(Vector3 origin, float halfExtentXZ, float halfExtentY, out Vector3 point);
 
     void Stop();
 }

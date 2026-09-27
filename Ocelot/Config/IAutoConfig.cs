@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Ocelot.Extensions;
 using Ocelot.Services.Translation;
 
@@ -30,7 +30,7 @@ public interface IAutoConfig
         var key = GetTooltipKey();
         if (translator.Has(key) && ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip(translator.T(key));
+            PropertyInfoExtensions.DrawWrappedTooltip(translator.T(key));
         }
     }
 }

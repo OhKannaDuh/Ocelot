@@ -4,6 +4,7 @@ using Ocelot.Config.Fields;
 using Ocelot.Config.Renderers.Enum;
 using Ocelot.Extensions;
 using Ocelot.Services.Translation;
+using Ocelot.UI;
 
 namespace Ocelot.Config.Renderers;
 
@@ -19,22 +20,25 @@ public class EnumSelectRenderer<TEnum, TDisplay, TFilter>(TDisplay display, TFil
 
     public bool Render(object target, PropertyInfo prop, EnumSelectAttribute<TEnum, TDisplay, TFilter> attr, Type owner, ITranslator translator)
     {
-        if (cache == null)
+        // Rebuild when the filter set changes (e.g. combat plugins installed/uninstalled mid-session).
+        var labels = new List<string>();
+        var values = new List<TEnum>();
+
+        foreach (var datum in System.Enum.GetValues<TEnum>())
         {
-            var labels = new List<string>();
-            var values = new List<TEnum>();
-
-            foreach (var datum in System.Enum.GetValues<TEnum>())
+            if (!filter.Filter(datum))
             {
-                if (!filter.Filter(datum))
-                {
-                    continue;
-                }
-
-                labels.Add(display.Display(datum));
-                values.Add(datum);
+                continue;
             }
 
+            labels.Add(display.Display(datum));
+            values.Add(datum);
+        }
+
+        if (cache == null
+            || cache.Keys.Length != values.Count
+            || !cache.Keys.SequenceEqual(values))
+        {
             cache = new CachedList(labels.ToArray(), values.ToArray());
         }
 
@@ -54,16 +58,25 @@ public class EnumSelectRenderer<TEnum, TDisplay, TFilter>(TDisplay display, TFil
         }
 
         var label = prop.Label(owner, translator);
-        var changed = ImGui.Combo(label, ref index, cache.Labels, cache.Labels.Length);
 
-        prop.Tooltip(owner, translator);
-
-        if (changed)
+        OcelotUi.PushFieldStyle();
+        try
         {
-            var selectedKey = cache.Keys[index];
-            prop.SetValue(target, selectedKey);
-        }
+            var changed = ImGui.Combo(label, ref index, cache.Labels, cache.Labels.Length);
 
-        return changed;
+            prop.Tooltip(owner, translator);
+
+            if (changed)
+            {
+                var selectedKey = cache.Keys[index];
+                prop.SetValue(target, selectedKey);
+            }
+
+            return changed;
+        }
+        finally
+        {
+            OcelotUi.PopFieldStyle();
+        }
     }
 }

@@ -1,6 +1,5 @@
-﻿using Dalamud.Plugin;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
-using Ocelot.Ipc.BossMod;
 
 namespace Ocelot.Ipc.Lifestream;
 
@@ -12,18 +11,69 @@ public class LifestreamIpc(IDalamudPluginInterface plugin) : ILifestreamIpc
 
     private readonly ICallGateSubscriber<uint, bool> aethernetTeleportByPlaceNameId = plugin.GetIpcSubscriber<uint, bool>("Lifestream.AethernetTeleportByPlaceNameId");
 
+    private readonly ICallGateSubscriber<object> abort = plugin.GetIpcSubscriber<object>("Lifestream.Abort");
+
+    public bool IsAvailable
+    {
+        get
+        {
+            try
+            {
+                return aethernetTeleportByPlaceNameId.HasFunction && isBusy.HasFunction;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
     public bool IsBusy()
     {
-        return isBusy.InvokeFunc();
+        try
+        {
+            return isBusy.InvokeFunc();
+        }
+        catch
+        {
+            // Missing/broken IPC must not look "busy" or pathing waits forever.
+            return false;
+        }
     }
 
     public uint GetActiveCustomAetheryte()
     {
-        return getActiveCustomAetheryte.InvokeFunc();
+        try
+        {
+            return getActiveCustomAetheryte.InvokeFunc();
+        }
+        catch
+        {
+            return 0;
+        }
     }
 
     public bool AethernetTeleportByPlaceNameId(uint placeNameRowId)
     {
-        return aethernetTeleportByPlaceNameId.InvokeFunc(placeNameRowId);
+        try
+        {
+            return aethernetTeleportByPlaceNameId.InvokeFunc(placeNameRowId);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public void Abort()
+    {
+        try
+        {
+            abort.InvokeAction();
+        }
+        catch
+        {
+            // optional
+        }
     }
 }

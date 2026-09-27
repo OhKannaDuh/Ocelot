@@ -1,11 +1,12 @@
-﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <PackageId>FFXIVOcelot.Pictomancy</PackageId>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Ocelot\Ocelot.csproj"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Pictomancy" Version="1.0.3" />
+        <PackageReference Include="Pictomancy" Version="1.0.10" />
     </ItemGroup>
 </Project>

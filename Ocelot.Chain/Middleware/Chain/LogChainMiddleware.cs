@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Ocelot.Services.Logger;
 
 namespace Ocelot.Chain.Middleware.Chain;
@@ -8,7 +8,7 @@ public class LogChainMiddleware(ILogger logger) : IChainMiddleware
     public async Task<ChainResult> InvokeAsync(IChainContext context, ChainMiddlewareDelegate next)
     {
         var stopwatch = Stopwatch.StartNew();
-        logger.Info("Chain {Name} started (RunId={RunId})", context.ChainName, context.RunId);
+        logger.Debug("Chain {Name} started (RunId={RunId})", context.ChainName, context.RunId);
 
         try
         {
@@ -17,11 +17,11 @@ public class LogChainMiddleware(ILogger logger) : IChainMiddleware
 
             if (result.IsSuccess)
             {
-                logger.Info("Chain {Name} succeeded in {Elapsed} ms", context.ChainName, stopwatch.ElapsedMilliseconds);
+                logger.Debug("Chain {Name} succeeded in {Elapsed} ms", context.ChainName, stopwatch.ElapsedMilliseconds);
             }
             else if (result.IsCanceled)
             {
-                logger.Warning("Chain {Name} canceled after {Elapsed} ms", context.ChainName, stopwatch.ElapsedMilliseconds);
+                logger.Debug("Chain {Name} canceled after {Elapsed} ms", context.ChainName, stopwatch.ElapsedMilliseconds);
             }
             else
             {
@@ -34,7 +34,7 @@ public class LogChainMiddleware(ILogger logger) : IChainMiddleware
         catch (OperationCanceledException)
         {
             stopwatch.Stop();
-            logger.Warning("Chain {Name} canceled after {Elapsed} ms (OperationCanceledException)",
+            logger.Debug("Chain {Name} canceled after {Elapsed} ms (OperationCanceledException)",
                 context.ChainName, stopwatch.ElapsedMilliseconds);
             throw;
         }

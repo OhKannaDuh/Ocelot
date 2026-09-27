@@ -10,9 +10,9 @@
       },
       "ECommons": {
         "type": "Direct",
-        "requested": "[3.2.0.11, )",
-        "resolved": "3.2.0.11",
-        "contentHash": "6W3Slgp4A+H0OtLcW7tlmtDG7dhJIZw7LzPKvskWa+6K1RPXDa9GsuPkNgDj6ww8Y3OrMbebebfuU9vnglnm+A=="
+        "requested": "[3.2.1.16, )",
+        "resolved": "3.2.1.16",
+        "contentHash": "Ifq1cHrBXL9h+94hWhocehklrl3DamafhYTfxgwzOGc6yc/3AkDvwLjYQG2EHEv1Rrgrf5FkdxlnJzcVfiBesQ=="
       },
       "Microsoft.Extensions.DependencyInjection": {
         "type": "Transitive",
@@ -30,7 +30,7 @@
       "FFXIVOcelot": {
         "type": "Project",
         "dependencies": {
-          "ECommons": "[3.2.0.11, )",
+          "ECommons": "[3.2.1.17, )",
           "Microsoft.Extensions.DependencyInjection": "[10.0.7, )"
         }
       }

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Dalamud.Configuration;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -9,9 +9,9 @@ using Ocelot.Config.Fields;
 using Ocelot.Config.Renderers;
 using Ocelot.Ipc.BossMod;
 using Ocelot.Ipc.Lifestream;
+using Ocelot.Ipc.PandorasBox;
 using Ocelot.Ipc.VNavmesh;
 using Ocelot.Ipc.RotationSolverReborn;
-using Ocelot.Ipc.WrathCombo;
 using Ocelot.Lifecycle;
 using Ocelot.Lifecycle.Hosts;
 using Ocelot.Services.ClientState;
@@ -47,6 +47,7 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<IFieldRenderer<CheckboxAttribute>, CheckboxRenderer>();
         services.AddSingleton<IFieldRenderer<FloatRangeAttribute>, FloatRangeRenderer>();
         services.AddSingleton<IFieldRenderer<IntRangeAttribute>, IntRangeRenderer>();
+        services.AddSingleton<IFieldRenderer<StringInputAttribute>, StringInputRenderer>();
 
         services.AddSingleton<ITranslationRepository, TranslationRepository>();
         services.AddSingleton<ITranslator, Translator>();
@@ -65,9 +66,9 @@ public static class IServiceCollectionExtensions
 
         services.AddSingleton<IVNavmeshIpc, VNavmeshIpc>();
         services.AddSingleton<IBossModIpc, BossModIpc>();
-        services.AddSingleton<IWrathComboIpc, WrathComboIpc>();
         services.AddSingleton<IRotationSolverRebornIpc, RotationSolverRebornIpc>();
         services.AddSingleton<ILifestreamIpc, LifestreamIpc>();
+        services.AddSingleton<IPandorasBoxIpc, PandorasBoxIpc>();
 
         services.AddSingleton<IEventHost, LoadHost>();
         services.AddSingleton<IEventHost, StartHost>();
@@ -80,12 +81,10 @@ public static class IServiceCollectionExtensions
 
         services.AddSingleton<CommandManager>();
 
-        // These commands don't get registered by ocelot as an IOcelotCommand, so CommandManager doesn't auto register them
-        // But they this allows them to be DId into a main command delegate
+        // Subcommands of /bocchi (or plugin InternalName) — not registered as their own slash commands.
         services.AddSingleton<ReloadTranslationsCommand>();
 
         services.AddSingleton<IConfigCommand, ConfigCommand>();
-        services.AddSingleton<IOcelotCommand>(container => container.GetRequiredService<IConfigCommand>());
 
         services.AddSingleton<IMainCommand, MainCommand>();
         services.AddSingleton<IOcelotCommand>(container => container.GetRequiredService<IMainCommand>());
@@ -150,33 +149,5 @@ public static class IServiceCollectionExtensions
                 });
             }
         }
-
-        // var cfg = plugin.GetPluginConfig() as TConcrete ?? new TConcrete();
-        // services.AddSingleton<TConcrete>(cfg);
-        //
-        // services.AddSingleton<TInterface>(sp => sp.GetRequiredService<TConcrete>());
-        // services.AddSingleton<IPluginConfiguration>(sp => sp.GetRequiredService<TConcrete>());
-        //
-        // var properties = typeof(TInterface).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-        //
-        // foreach (var prop in properties)
-        // {
-        //     var propType = prop.PropertyType;
-        //
-        //     services.AddSingleton(propType, sp =>
-        //     {
-        //         var conf = sp.GetRequiredService<TInterface>();
-        //         return prop.GetValue(conf)!;
-        //     });
-        //
-        //     if (typeof(IAutoConfig).IsAssignableFrom(propType))
-        //     {
-        //         services.AddSingleton(typeof(IAutoConfig), sp =>
-        //         {
-        //             var conf = sp.GetRequiredService<TInterface>();
-        //             return prop.GetValue(conf)!;
-        //         });
-        //     }
-        // }
     }
 }

@@ -1,21 +1,21 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Reflection;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Microsoft.Extensions.DependencyInjection;
 using Ocelot.Config.Fields;
 using Ocelot.Config.Renderers;
+using Ocelot.Extensions;
 using Ocelot.Graphics;
 using Ocelot.Services.Translation;
 using Ocelot.Services.WindowManager;
+using Ocelot.UI;
 
 namespace Ocelot.Config;
 
 public class ConfigRenderer : IConfigRenderer
 {
     private readonly ITranslator translator;
-
-    private readonly Dictionary<Type, object> renderers = [];
 
     private readonly IServiceProvider services;
 
@@ -38,6 +38,11 @@ public class ConfigRenderer : IConfigRenderer
 
         foreach (var config in configs)
         {
+            if (config is null || config.GetType().GetCustomAttribute<ConfigHiddenAttribute>() != null)
+            {
+                continue;
+            }
+
             var attr = config.GetType().GetCustomAttribute<ConfigGroupAttribute>();
             if (attr == null)
             {
@@ -66,9 +71,9 @@ public class ConfigRenderer : IConfigRenderer
             });
         }
 
-        current = configs.FirstOrDefault();
+        current = configs.FirstOrDefault(c =>
+            c is not null && c.GetType().GetCustomAttribute<ConfigHiddenAttribute>() == null);
     }
-
 
     private object GetRenderer(UIFieldAttribute attr)
     {
@@ -92,7 +97,10 @@ public class ConfigRenderer : IConfigRenderer
 
     public void Render()
     {
-        using (ImRaii.Child("##LeftPanel", new Vector2(300, 0), true))
+        // Font-relative width — a fixed 300px clips labels at large UI scale.
+        var sidebarWidth = Math.Clamp(ImGui.GetFontSize() * 15f, 220f, 380f);
+
+        using (ImRaii.Child("##LeftPanel", new Vector2(sidebarWidth, 0), true))
         {
             foreach (var uConfig in ungrouped)
             {
@@ -101,13 +109,32 @@ public class ConfigRenderer : IConfigRenderer
                 {
                     current = uConfig;
                 }
-
-                uConfig.Tooltip(translator);
             }
 
-            foreach (var (key, gConfigs) in grouped)
+            foreach (var (key, gConfigs) in grouped.OrderBy(kvp =>
+                         kvp.Value
+                             .Select(c => c.GetType().GetCustomAttribute<ConfigGroupAttribute>()?.GroupOrder ?? 0)
+                             .DefaultIfEmpty(0)
+                             .Min())
+                     .ThenBy(kvp => kvp.Key))
             {
-                ImGui.Text(translator.T($"config_group.{key}.label"));
+                // Single-page groups: show one top-level entry (avoid "Mob Farmer → Mob Farmer").
+                if (gConfigs.Count == 1)
+                {
+                    var only = gConfigs[0];
+                    var selected = current == only;
+                    if (ImGui.Selectable(only.Label(translator), selected))
+                    {
+                        current = only;
+                    }
+
+                    continue;
+                }
+
+                // Gold category header (RelicTracker-style), not another selectable row.
+                ImGui.Spacing();
+                ImGui.TextColored(OcelotUi.Header, translator.T($"config_group.{key}.label"));
+
                 ImGui.Indent(16);
                 foreach (var gConfig in gConfigs)
                 {
@@ -116,8 +143,6 @@ public class ConfigRenderer : IConfigRenderer
                     {
                         current = gConfig;
                     }
-
-                    gConfig.Tooltip(translator);
                 }
 
                 ImGui.Unindent(16);
@@ -137,18 +162,95 @@ public class ConfigRenderer : IConfigRenderer
         {
             var type = current.GetType();
 
-            foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            // Page blurb when present (muted intro + separator, RelicTracker Settings recipe).
+            var descKey = current.GetTooltipKey();
+            if (translator.Has(descKey))
             {
-                var attr = prop.GetCustomAttributes().OfType<UIFieldAttribute>().SingleOrDefault();
-                if (attr is null)
-                {
-                    continue;
-                }
+                ImGui.PushStyleColor(ImGuiCol.Text, OcelotUi.Muted);
+                ImGui.TextWrapped(translator.T(descKey));
+                ImGui.PopStyleColor();
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+            }
 
+            var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Select(prop => (prop, attr: prop.GetCustomAttributes().OfType<UIFieldAttribute>().SingleOrDefault()))
+                .Where(x => x.attr is not null)
+                .OrderBy(x => x.attr!.Order)
+                .ThenBy(x => x.prop.Name, StringComparer.Ordinal)
+                .ToList();
+
+            var configSnake = type.Name.Replace("Config", "").ToSnakeCase();
+            string? lastSection = null;
+
+            foreach (var (prop, attr) in props)
+            {
                 ImGui.PushID(prop.Name);
 
-                var renderer = GetRenderer(attr);
-                var changed = InvokeRenderer(renderer, current, prop, attr, type);
+                var fieldAttr = attr!;
+                if (!string.IsNullOrEmpty(fieldAttr.Section) && fieldAttr.Section != lastSection)
+                {
+                    // Space every section, including the first after the page blurb.
+                    ImGui.Spacing();
+                    if (lastSection != null)
+                    {
+                        ImGui.Separator();
+                        ImGui.Spacing();
+                    }
+
+                    var sectionKey = $"config.{configSnake}.sections.{fieldAttr.Section}";
+
+                    ImGui.TextColored(OcelotUi.Header, translator.Has(sectionKey) ? translator.T(sectionKey) : fieldAttr.Section);
+
+                    ImGui.Spacing();
+                    lastSection = fieldAttr.Section;
+                }
+
+                var indentPx = fieldAttr.Indent > 0 ? fieldAttr.Indent * 16f : 0f;
+                if (indentPx > 0f)
+                {
+                    ImGui.Indent(indentPx);
+                }
+
+                var requiresDisabled = false;
+                if (!string.IsNullOrEmpty(fieldAttr.Requires))
+                {
+                    var required = type.GetProperty(fieldAttr.Requires, BindingFlags.Instance | BindingFlags.Public);
+                    if (required?.PropertyType == typeof(bool) && required.GetValue(current) is false)
+                    {
+                        requiresDisabled = true;
+                    }
+                }
+
+                if (!requiresDisabled && !string.IsNullOrEmpty(fieldAttr.DisabledWhen))
+                {
+                    var blocker = type.GetProperty(fieldAttr.DisabledWhen, BindingFlags.Instance | BindingFlags.Public);
+                    if (blocker?.PropertyType == typeof(bool) && blocker.GetValue(current) is true)
+                    {
+                        requiresDisabled = true;
+                    }
+                }
+
+                bool changed;
+                if (requiresDisabled)
+                {
+                    using (ImRaii.Disabled())
+                    {
+                        var renderer = GetRenderer(fieldAttr);
+                        changed = InvokeRenderer(renderer, current, prop, fieldAttr, type);
+                    }
+                }
+                else
+                {
+                    var renderer = GetRenderer(fieldAttr);
+                    changed = InvokeRenderer(renderer, current, prop, fieldAttr, type);
+                }
+
+                if (indentPx > 0f)
+                {
+                    ImGui.Unindent(indentPx);
+                }
 
                 if (changed)
                 {

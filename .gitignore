@@ -56,3 +56,9 @@ nunit-*.xml
 
 
 .env
+
+# Rider
+.idea/
+*.DotSettings.user
+*.sln.DotSettings.user
+
