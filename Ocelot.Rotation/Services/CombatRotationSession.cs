@@ -1,4 +1,5 @@
 using Ocelot.Rotation.Services.BossMod;
+using Ocelot.Services.Logger;
 
 namespace Ocelot.Rotation.Services;
 
@@ -9,6 +10,8 @@ public sealed class CombatRotationSession : ICombatRotationSession
     private readonly Dictionary<CombatAiKind, ICombatAiBackend> ais;
 
     private readonly BossModPresetEngine bossModPresets;
+
+    private readonly ILogger<CombatRotationSession> logger;
 
     private readonly NullJobRotation nullJob = new();
 
@@ -21,12 +24,14 @@ public sealed class CombatRotationSession : ICombatRotationSession
     public CombatRotationSession(
         IEnumerable<IJobRotationBackend> jobBackends,
         IEnumerable<ICombatAiBackend> combatAiBackends,
-        BossModPresetEngine bossModPresets
+        BossModPresetEngine bossModPresets,
+        ILogger<CombatRotationSession> logger
     )
     {
         jobs = jobBackends.ToDictionary(b => b.Kind);
         ais = combatAiBackends.ToDictionary(b => b.Kind);
         this.bossModPresets = bossModPresets;
+        this.logger = logger;
         job = nullJob;
         ai = nullAi;
     }
@@ -107,16 +112,18 @@ public sealed class CombatRotationSession : ICombatRotationSession
         {
             job.Teardown();
         }
-        catch
+        catch (Exception ex)
         {
+            logger.Warning(ex, "Rotation teardown failed for {Backend}", job.Kind);
         }
 
         try
         {
             ai.Teardown();
         }
-        catch
+        catch (Exception ex)
         {
+            logger.Warning(ex, "Combat AI teardown failed for {Backend}", ai.Kind);
         }
 
         job = nullJob;

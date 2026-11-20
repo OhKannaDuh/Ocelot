@@ -63,6 +63,8 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
 
     private BossModMovementSettings? bakedMovement;
 
+    private DateTime nextPresenceCheckUtc;
+
     public bool OverwriteExisting { get; set; }
 
     public BossModMovementSettings Movement { get; set; } = BossModMovementSettings.Default;
@@ -141,7 +143,13 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         string fate = FateName();
         string ce = CeName();
         string mob = MobFarmName();
-        bool missing = ipc.Get(fate) == null || ipc.Get(ce) == null || ipc.Get(mob) == null;
+        bool missing = false;
+        DateTime now = DateTime.UtcNow;
+        if (now >= nextPresenceCheckUtc)
+        {
+            nextPresenceCheckUtc = now.AddSeconds(1);
+            missing = ipc.Get(fate) == null || ipc.Get(ce) == null || ipc.Get(mob) == null;
+        }
         bool jobChanged = OverwriteExisting && bakedJobId is not null && bakedJobId.Value != jobId;
         bool roleChanged = OverwriteExisting && bakedAsMelee is not null && bakedAsMelee.Value != isMelee;
         bool movementChanged = OverwriteExisting

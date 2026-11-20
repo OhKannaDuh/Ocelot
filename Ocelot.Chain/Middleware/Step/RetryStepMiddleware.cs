@@ -4,9 +4,9 @@ namespace Ocelot.Chain.Middleware.Step;
 
 public class RetryStepMiddleware : IStepMiddleware
 {
-    public int DelayMs { get; init; } = 0;
+    public int DelayMs { get; init; } = 100;
 
-    public int MaxAttempts { get; init; } = int.MaxValue;
+    public int MaxAttempts { get; init; } = 30;
 
     public Func<Exception, bool>? ShouldRetryOnException { get; init; }
 

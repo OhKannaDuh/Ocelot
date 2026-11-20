@@ -22,7 +22,7 @@ public sealed class GateService(IFramework framework) : IGateService
         var bucket = buckets.GetOrCreateValue(owner);
 
         bucket.Elapsed.TryGetValue(scope, out var elapsed);
-        elapsed += framework.UpdateDelta.Milliseconds;
+        elapsed += (long)framework.UpdateDelta.TotalMilliseconds;
 
         if (elapsed >= interval)
         {
