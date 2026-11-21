@@ -15,6 +15,10 @@ public class NullMainRenderer : IMainRenderer
 public interface IConfigRenderer
 {
     void Render();
+
+    void SelectGroup(string groupKey)
+    {
+    }
 }
 
 public class NullConfigRenderer : IConfigRenderer

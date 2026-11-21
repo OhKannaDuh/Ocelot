@@ -13,9 +13,9 @@ public class EventManager(IEnumerable<IEventHost> hosts, ILogger<EventManager> l
     {
         foreach (var host in hosts)
         {
-            logger.Debug($"Starting host: {host.GetType().FullName}");
+            logger.Verbose($"Starting host: {host.GetType().FullName}");
             host.Start();
-            logger.Debug($"Finished starting host: {host.GetType().FullName}");
+            logger.Verbose($"Finished starting host: {host.GetType().FullName}");
         }
     }
 

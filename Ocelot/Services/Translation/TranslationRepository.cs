@@ -71,15 +71,10 @@ public sealed class TranslationRepository(IDalamudPluginInterface plugin, ILogge
                 .Select(p => (p, p.Replace(langFolder, "").Replace("/", ".").Replace("\\", ".").Substring(1)))
                 .ToList();
 
-            foreach (var file in files)
-            {
-                logger.Log(file.Item2);
-            }
+            logger.Debug("Loading {Count} translation files for {Language}", files.Count, lang);
 
             foreach (var file in files)
             {
-                logger.Debug("Loading file {f}", file);
-
                 using var fs = File.OpenRead(file.p);
                 using var doc = JsonDocument.Parse(fs, new JsonDocumentOptions { AllowTrailingCommas = true });
 

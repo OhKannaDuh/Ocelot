@@ -9,5 +9,6 @@
   "yes": "Oui",
   "no": "Non",
   "state": "État",
-  "substate": "Sous-état"
+  "substate": "Sous-état",
+  "search_settings": "Rechercher un réglage..."
 }

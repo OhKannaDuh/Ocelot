@@ -24,6 +24,12 @@ public sealed class ConfigWindow : OcelotWindow, IConfigWindow, IDisposable
         renderer.Render();
     }
 
+    public void OpenGroup(string groupKey)
+    {
+        renderer.SelectGroup(groupKey);
+        IsOpen = true;
+    }
+
     private void UpdateWindowTitle()
     {
         WindowName = translator.T(".title") + "###ocelot.config";

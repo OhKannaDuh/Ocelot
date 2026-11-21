@@ -9,7 +9,7 @@ public class ContextualTranslator<TScope> : ITranslator<TScope>
     public ContextualTranslator(ITranslator inner, ITranslatorContextResolver contextResolver, ILogger<ContextualTranslator<TScope>> logger)
     {
         this.inner = inner.WithScope(contextResolver.ResolveScope(typeof(TScope)));
-        logger.Debug("Resolved translation scope {s} for {t}", Scope, typeof(TScope).FullName ?? typeof(TScope).Name);
+        logger.Verbose("Resolved translation scope {s} for {t}", Scope, typeof(TScope).FullName ?? typeof(TScope).Name);
     }
 
     public event Action? LanguageChanged

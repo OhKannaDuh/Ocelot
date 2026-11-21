@@ -9,5 +9,6 @@
   "yes": "Ja",
   "no": "Nein",
   "state": "Zustand",
-  "substate": "Unterzustand"
+  "substate": "Unterzustand",
+  "search_settings": "Einstellungen durchsuchen..."
 }

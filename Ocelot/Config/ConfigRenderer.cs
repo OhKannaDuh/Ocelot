@@ -25,6 +25,8 @@ public class ConfigRenderer : IConfigRenderer
 
     private IAutoConfig? current;
 
+    private string search = string.Empty;
+
     private readonly List<IAutoConfig> ungrouped = [];
 
     private readonly Dictionary<string, List<IAutoConfig>> grouped = [];
@@ -95,6 +97,15 @@ public class ConfigRenderer : IConfigRenderer
         return (bool)method.Invoke(renderer, [target, prop, attr, owner, translator])!;
     }
 
+    public void SelectGroup(string groupKey)
+    {
+        if (grouped.TryGetValue(groupKey, out var gConfigs) && gConfigs.Count > 0)
+        {
+            current = gConfigs[0];
+            search = string.Empty;
+        }
+    }
+
     public void Render()
     {
         // Font-relative width — a fixed 300px clips labels at large UI scale.
@@ -102,6 +113,14 @@ public class ConfigRenderer : IConfigRenderer
 
         using (ImRaii.Child("##LeftPanel", new Vector2(sidebarWidth, 0), true))
         {
+            ImGui.SetNextItemWidth(-1);
+            ImGui.InputTextWithHint(
+                "##config_search",
+                translator.Has("generic.search_settings") ? translator.T("generic.search_settings") : "Search settings...",
+                ref search,
+                64);
+            ImGui.Spacing();
+
             foreach (var uConfig in ungrouped)
             {
                 var selected = current == uConfig;
@@ -158,25 +177,71 @@ public class ConfigRenderer : IConfigRenderer
         var dirty = false;
         using (ImRaii.Child("##RightPanel", new Vector2(0, 0), true))
         {
-            var type = current.GetType();
-
-            var descKey = current.GetTooltipKey();
-            if (translator.Has(descKey))
+            var filter = search.Trim();
+            if (filter.Length == 0)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, OcelotUi.Muted);
-                ImGui.TextWrapped(translator.T(descKey));
-                ImGui.PopStyleColor();
-                ImGui.Spacing();
-                ImGui.Separator();
-                ImGui.Spacing();
+                dirty = RenderFields(current, null);
             }
+            else
+            {
+                foreach (var config in configs)
+                {
+                    if (config is null || config.GetType().GetCustomAttribute<ConfigHiddenAttribute>() != null)
+                    {
+                        continue;
+                    }
+
+                    ImGui.PushID(config.GetType().Name);
+                    dirty |= RenderFields(config, filter);
+                    ImGui.PopID();
+                }
+            }
+        }
+
+        if (dirty)
+        {
+            saver.Save();
+        }
+    }
+
+    private bool RenderFields(IAutoConfig config, string? filter)
+    {
+        var dirty = false;
+        {
+            var current = config;
+            var type = current.GetType();
 
             var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .Select(prop => (prop, attr: prop.GetCustomAttributes().OfType<UIFieldAttribute>().SingleOrDefault()))
                 .Where(x => x.attr is not null)
+                .Where(x => filter == null || x.prop.Label(type, translator).Contains(filter, StringComparison.CurrentCultureIgnoreCase))
                 .OrderBy(x => x.attr!.Order)
                 .ThenBy(x => x.prop.Name, StringComparer.Ordinal)
                 .ToList();
+
+            if (filter != null)
+            {
+                if (props.Count == 0)
+                {
+                    return false;
+                }
+
+                ImGui.TextColored(OcelotTheme.GoldBright, config.Label(translator));
+                ImGui.Separator();
+            }
+            else
+            {
+                var descKey = current.GetTooltipKey();
+                if (translator.Has(descKey))
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, OcelotUi.Muted);
+                    ImGui.TextWrapped(translator.T(descKey));
+                    ImGui.PopStyleColor();
+                    ImGui.Spacing();
+                    ImGui.Separator();
+                    ImGui.Spacing();
+                }
+            }
 
             var configSnake = type.Name.Replace("Config", "").ToSnakeCase();
             string? lastSection = null;
@@ -255,11 +320,13 @@ public class ConfigRenderer : IConfigRenderer
 
                 ImGui.PopID();
             }
+
+            if (filter != null)
+            {
+                ImGui.Spacing();
+            }
         }
 
-        if (dirty)
-        {
-            saver.Save();
-        }
+        return dirty;
     }
 }

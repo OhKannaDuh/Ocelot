@@ -9,5 +9,6 @@
   "yes": "はい",
   "no": "いいえ",
   "state": "状態",
-  "substate": "詳細"
+  "substate": "詳細",
+  "search_settings": "設定を検索..."
 }

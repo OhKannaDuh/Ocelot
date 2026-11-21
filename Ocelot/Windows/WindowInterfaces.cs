@@ -13,7 +13,10 @@ public interface IWindow
 
 public interface IMainWindow : IWindow;
 
-public interface IConfigWindow : IWindow;
+public interface IConfigWindow : IWindow
+{
+    void OpenGroup(string groupKey);
+}
 
 public interface IMainWindowTitleBarContributor
 {

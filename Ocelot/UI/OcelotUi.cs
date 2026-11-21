@@ -6,7 +6,7 @@ namespace Ocelot.UI;
 public static class OcelotUi
 {
     public static readonly Vector4 Header = new(0.85f, 0.72f, 0.35f, 1f);
-    public static readonly Vector4 Muted = new(0.65f, 0.65f, 0.65f, 1f);
+    public static readonly Vector4 Muted = OcelotTheme.Slate;
 
     public const float FrameRounding = 4f;
     public static readonly Vector2 FramePadding = new(8f, 4f);

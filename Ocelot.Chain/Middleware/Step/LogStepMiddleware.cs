@@ -7,8 +7,9 @@ public class LogStepMiddleware(ILogger logger) : IStepMiddleware
 {
     public async Task<StepResult> InvokeAsync(IChainContext context, IStep step, StepMiddlewareDelegate next)
     {
+        var name = step.ToString() ?? step.GetType().Name;
         var stopwatch = Stopwatch.StartNew();
-        logger.Debug("Step {Step} started (RunId={RunId})", step.GetType().Name, context.RunId);
+        logger.Verbose("Step {Step} started (RunId={RunId})", name, context.RunId);
 
         try
         {
@@ -17,11 +18,11 @@ public class LogStepMiddleware(ILogger logger) : IStepMiddleware
 
             if (result.IsSuccess)
             {
-                logger.Debug("Step {Step} succeeded in {Elapsed} ms", step.GetType().Name, stopwatch.ElapsedMilliseconds);
+                logger.Verbose("Step {Step} succeeded in {Elapsed} ms", name, stopwatch.ElapsedMilliseconds);
             }
             else
             {
-                logger.Warning("Step {Step} failed in {Elapsed} ms: {Error}", step.GetType().Name, stopwatch.ElapsedMilliseconds,
+                logger.Warning("Step {Step} failed in {Elapsed} ms: {Error}", name, stopwatch.ElapsedMilliseconds,
                     result.ErrorMessage ?? "Unknown Error");
             }
 
@@ -30,13 +31,13 @@ public class LogStepMiddleware(ILogger logger) : IStepMiddleware
         catch (OperationCanceledException)
         {
             stopwatch.Stop();
-            logger.Debug("Step {Step} canceled after {Elapsed} ms", step.GetType().Name, stopwatch.ElapsedMilliseconds);
+            logger.Debug("Step {Step} canceled after {Elapsed} ms", name, stopwatch.ElapsedMilliseconds);
             throw;
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            logger.Error("Step {Step} threw after {Elapsed} ms. Error: {Error}", step.GetType().Name, stopwatch.ElapsedMilliseconds, ex.Message);
+            logger.Error("Step {Step} threw after {Elapsed} ms. Error: {Error}", name, stopwatch.ElapsedMilliseconds, ex.Message);
             if (ex.StackTrace != null)
             {
                 logger.Error(ex.StackTrace);

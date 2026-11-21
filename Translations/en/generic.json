@@ -9,5 +9,6 @@
   "yes": "Yes",
   "no": "No",
   "state": "Status",
-  "substate": "Detail"
+  "substate": "Detail",
+  "search_settings": "Search settings..."
 }

@@ -28,6 +28,14 @@ public sealed class MainWindow : OcelotWindow, IMainWindow, IDisposable
         this.translator = translator;
         this.configWindow = configWindow;
 
+        Size = new Vector2(540, 680);
+        SizeCondition = ImGuiCond.FirstUseEver;
+        SizeConstraints = new WindowSizeConstraints
+        {
+            MinimumSize = new Vector2(400, 320),
+            MaximumSize = new Vector2(float.MaxValue, float.MaxValue),
+        };
+
         TitleBarButtons.Add(new TitleBarButton
         {
             Click = m =>
