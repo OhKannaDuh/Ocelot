@@ -22,16 +22,15 @@ public sealed class GateService(IFramework framework) : IGateService
         var bucket = buckets.GetOrCreateValue(owner);
 
         bucket.Elapsed.TryGetValue(scope, out var elapsed);
-        elapsed += (long)framework.UpdateDelta.TotalMilliseconds;
+        bucket.Elapsed[scope] = Advance(elapsed, framework.UpdateDelta, interval, out var due);
+        return due;
+    }
 
-        if (elapsed >= interval)
-        {
-            bucket.Elapsed[scope] = elapsed - interval;
-            return true;
-        }
-
-        bucket.Elapsed[scope] = elapsed;
-        return false;
+    public static long Advance(long elapsed, TimeSpan delta, long interval, out bool due)
+    {
+        elapsed += (long)delta.TotalMilliseconds;
+        due = elapsed >= interval;
+        return due ? elapsed - interval : elapsed;
     }
 
     public bool UpdatesPerSecond(object owner, string scope, int ups)
