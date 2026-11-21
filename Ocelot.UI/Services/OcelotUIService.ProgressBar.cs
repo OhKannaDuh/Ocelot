@@ -7,11 +7,11 @@ public partial class OcelotUIService
 {
     public void ProgressBar(float progress, Vector2 size, string? text = null)
     {
-        ImGui.ProgressBar(progress, size, text);
+        ImGui.ProgressBar(progress, size, text ?? string.Empty);
     }
 
     public void ProgressBar(float progress, string? text = null)
     {
-        ImGui.ProgressBar(progress, text);
+        ImGui.ProgressBar(progress, text ?? string.Empty);
     }
 }
