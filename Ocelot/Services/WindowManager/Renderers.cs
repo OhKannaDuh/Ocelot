@@ -3,6 +3,8 @@
 public interface IMainRenderer
 {
     void Render();
+
+    string? ConfigGroup => null;
 }
 
 public class NullMainRenderer : IMainRenderer

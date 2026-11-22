@@ -45,6 +45,12 @@ public sealed class MainWindow : OcelotWindow, IMainWindow, IDisposable
                     return;
                 }
 
+                if (!configWindow.IsOpen && renderer.ConfigGroup is { } group)
+                {
+                    configWindow.OpenGroup(group);
+                    return;
+                }
+
                 configWindow.Toggle();
             },
             Icon = FontAwesomeIcon.Cog,
