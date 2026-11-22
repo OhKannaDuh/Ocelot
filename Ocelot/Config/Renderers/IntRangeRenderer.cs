@@ -23,6 +23,7 @@ public sealed class IntRangeRenderer : IFieldRenderer<IntRangeAttribute>
         try
         {
             var changed = ImGui.SliderInt(prop.Label(owner, translator), ref value, attr.Min, attr.Max);
+            value = Math.Clamp(value, attr.Min, attr.Max);
 
             prop.Tooltip(owner, translator);
 

@@ -20,16 +20,7 @@ public class LoadHost(IServiceProvider services, ILogger<LoadHost> logger) : Bas
 
     public override void Start()
     {
-        foreach (var hook in loadHooks.Value)
-        {
-            try
-            {
-                hook.OnLoad();
-            }
-            catch (Exception)
-            {
-            }
-        }
+        SafeEach(loadHooks.Value, h => h.OnLoad());
     }
 
     public override void Stop()

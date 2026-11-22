@@ -3,7 +3,7 @@
 public abstract class FlowStateHandler<TState>(TState state) : IFlowStateHandler<TState>
     where TState : struct, Enum
 {
-    private DateTime entered = DateTime.Now;
+    private DateTime entered = DateTime.UtcNow;
 
     public TState Handles
     {
@@ -14,7 +14,7 @@ public abstract class FlowStateHandler<TState>(TState state) : IFlowStateHandler
 
     public virtual void Enter()
     {
-        entered = DateTime.Now;
+        entered = DateTime.UtcNow;
     }
 
     public virtual void Exit(TState next)
@@ -27,6 +27,6 @@ public abstract class FlowStateHandler<TState>(TState state) : IFlowStateHandler
 
     public TimeSpan TimeInState
     {
-        get => DateTime.Now - entered;
+        get => DateTime.UtcNow - entered;
     }
 }

@@ -64,31 +64,31 @@ public class ContextualLogger<TScope>(ILogger inner) : ILogger<TScope>
 
     public void Error(Exception? exception, string format, params object[] args)
     {
-        inner.Error(Context + " " + format, args);
+        inner.Error(exception, Context + " " + format, args);
     }
 
     public void Warn(Exception? exception, string format, params object[] args)
     {
-        inner.Warn(Context + " " + format, args);
+        inner.Warn(exception, Context + " " + format, args);
     }
 
     public void Warning(Exception? exception, string format, params object[] args)
     {
-        inner.Warning(Context + " " + format, args);
+        inner.Warning(exception, Context + " " + format, args);
     }
 
     public void Info(Exception? exception, string format, params object[] args)
     {
-        inner.Info(Context + " " + format, args);
+        inner.Info(exception, Context + " " + format, args);
     }
 
     public void Debug(Exception? exception, string format, params object[] args)
     {
-        inner.Debug(Context + " " + format, args);
+        inner.Debug(exception, Context + " " + format, args);
     }
 
     public void Verbose(Exception? exception, string format, params object[] args)
     {
-        inner.Verbose(Context + " " + format, args);
+        inner.Verbose(exception, Context + " " + format, args);
     }
 }

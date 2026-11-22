@@ -7,7 +7,7 @@ public abstract class ScoreStateHandler<TState, TScore>(TState state) : IScoreSt
     where TState : struct, Enum
     where TScore : IComparable
 {
-    private DateTime entered = DateTime.Now;
+    private DateTime entered = DateTime.UtcNow;
 
     public TState Handles
     {
@@ -20,7 +20,7 @@ public abstract class ScoreStateHandler<TState, TScore>(TState state) : IScoreSt
 
     public virtual void Enter()
     {
-        entered = DateTime.Now;
+        entered = DateTime.UtcNow;
     }
 
     public virtual void Exit(TState next)
@@ -33,6 +33,6 @@ public abstract class ScoreStateHandler<TState, TScore>(TState state) : IScoreSt
 
     public TimeSpan TimeInState
     {
-        get => DateTime.Now - entered;
+        get => DateTime.UtcNow - entered;
     }
 }

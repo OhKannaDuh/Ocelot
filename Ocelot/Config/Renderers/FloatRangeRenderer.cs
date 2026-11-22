@@ -23,6 +23,7 @@ public sealed class FloatRangeRenderer : IFieldRenderer<FloatRangeAttribute>
         try
         {
             var changed = ImGui.SliderFloat(prop.Label(owner, translator), ref value, attr.Min, attr.Max);
+            value = Math.Clamp(value, attr.Min, attr.Max);
 
             prop.Tooltip(owner, translator);
 
