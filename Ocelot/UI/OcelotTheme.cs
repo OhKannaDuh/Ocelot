@@ -86,6 +86,8 @@ public static class OcelotTheme
         (ImGuiCol.ModalWindowDimBg, WithAlpha(Navy, 0.60f)),
     ];
 
+    public static bool Enabled { get; set; } = true;
+
     private const int PushedVars = 6;
 
     public static void Push()

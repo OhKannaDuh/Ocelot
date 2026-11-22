@@ -11,6 +11,11 @@ public abstract class OcelotWindow(string name) : Window(name), IWindow
 
     public override void PreDraw()
     {
+        if (!OcelotTheme.Enabled)
+        {
+            return;
+        }
+
         OcelotTheme.Push();
         themePushed = true;
     }
