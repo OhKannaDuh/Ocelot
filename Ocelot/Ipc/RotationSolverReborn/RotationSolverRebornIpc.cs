@@ -38,6 +38,10 @@ public class RotationSolverRebornIpc(IDalamudPluginInterface plugin) : IRotation
                     changeOperatingMode.InvokeAction(command);
                     return true;
                 }
+                catch when (changeOperatingModeByte.HasAction)
+                {
+                    // An RSR build whose enum call throws can still take the byte call below.
+                }
                 catch
                 {
                     return command == RSRStateCommandType.Off;

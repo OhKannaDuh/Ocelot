@@ -4,7 +4,7 @@ using Ocelot.Services.PlayerState;
 
 namespace Ocelot.Rotation.Services.BossMod;
 
-public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatAiPresetNaming naming)
+public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatAiPresetNaming naming, Func<DateTime>? clock = null)
 {
     private const string LegacyAiPresetName = "BOCCHI AI";
 
@@ -93,12 +93,12 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         wantOwned = true;
 
         // Callers re-enable every frame; asking BossMod for its active preset once a second is enough.
-        if (wantActive && armedActivity == activity && presetsReady && DateTime.UtcNow < nextArmedCheckUtc)
+        if (wantActive && armedActivity == activity && presetsReady && (clock?.Invoke() ?? DateTime.UtcNow) < nextArmedCheckUtc)
         {
             return;
         }
 
-        nextArmedCheckUtc = DateTime.UtcNow.AddSeconds(1);
+        nextArmedCheckUtc = (clock?.Invoke() ?? DateTime.UtcNow).AddSeconds(1);
         bool alreadyArmed = wantActive
                             && armedActivity == activity
                             && presetsReady
@@ -146,6 +146,8 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         if (!ipc.IsAvailable)
         {
             presetsReady = false;
+            // BossMod drops transient strategies when it reloads; forget them so they are applied again.
+            ClearAppliedMovement();
             return;
         }
 
@@ -155,7 +157,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         string ce = CeName();
         string mob = MobFarmName();
         bool missing = false;
-        DateTime now = DateTime.UtcNow;
+        DateTime now = (clock?.Invoke() ?? DateTime.UtcNow);
         if (now >= nextPresenceCheckUtc)
         {
             nextPresenceCheckUtc = now.AddSeconds(1);
@@ -229,7 +231,12 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
             return false;
         }
 
-        presetKind = kind;
+        // A running session keeps its preset kind; switching it here swapped the presets under a live fight.
+        if (!wantOwned)
+        {
+            presetKind = kind;
+        }
+
         armedActivity = null;
         ClearAppliedMovement();
         presetsReady = WriteOwnedPresets(player.IsMelee(), overwrite: true);

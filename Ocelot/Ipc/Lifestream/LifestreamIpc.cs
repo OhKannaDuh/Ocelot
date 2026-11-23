@@ -30,6 +30,11 @@ public class LifestreamIpc(IDalamudPluginInterface plugin) : ILifestreamIpc
 
     public bool IsBusy()
     {
+        if (!isBusy.HasFunction)
+        {
+            return false;
+        }
+
         try
         {
             return isBusy.InvokeFunc();

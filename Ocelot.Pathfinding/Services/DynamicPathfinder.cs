@@ -22,6 +22,9 @@ public class DynamicPathfinder(
         PreUpdate();
     }
 
+    // Re-picking the provider every frame rebuilt the priority lists for nothing; once a second is plenty.
+    public UpdateLimit UpdateLimit => new() { Mode = UpdateLimitMode.Milliseconds, Limit = 1000 };
+
     public void PreUpdate()
     {
         var order = priority.GetPriority().ToList();

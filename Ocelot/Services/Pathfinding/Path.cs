@@ -10,20 +10,7 @@ public class Path
 
     public Path(IEnumerable<Vector3> path, PathfinderConfig config, IPathfinder pathfinder)
     {
-        var nodes = new List<Vector3>();
-        if (config.ShouldSnapToFloor)
-        {
-            foreach (var node in path)
-            {
-                nodes.Add(pathfinder.SnapToMesh(node, config.FloorSnapExtents));
-            }
-        }
-        else
-        {
-            nodes.AddRange(path);
-        }
-
-        Nodes = nodes;
+        Nodes = path.ToList();
         Config = config with { ShouldSnapToFloor = false };
     }
 

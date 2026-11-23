@@ -163,6 +163,12 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
 
             if (IsLeaf(leafType))
             {
+                // Computed read-only values were listed as keys that "set" could never change.
+                if (!p.CanWrite)
+                {
+                    continue;
+                }
+
                 var chain = path.Reverse().Append(p).ToArray();
                 index[fullPrefix] = new Accessor(root, chain);
             }
@@ -229,7 +235,7 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
         }
 
         var v = acc.GetValue();
-        chat.Print($"{acc.DisplayPath} = {v}");
+        chat.Print($"{rawKey} = {v}");
     }
 
     private void DoSet(string rawKey, string rawValue)
@@ -239,6 +245,12 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
             chat.PrintError($"Unknown key: {rawKey}");
             SuggestClosest(rawKey);
             return;
+        }
+
+        // Quotes reach us literally, so "" is the only way to clear a text setting.
+        if (rawValue is "\"\"" or "''")
+        {
+            rawValue = string.Empty;
         }
 
         try
@@ -254,7 +266,7 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
 
             acc.SetValue(converted);
             saver.Save();
-            chat.Print($"Set {acc.DisplayPath} = {acc.GetValue()}");
+            chat.Print($"Set {rawKey} = {acc.GetValue()}");
         }
         catch (Exception ex)
         {
@@ -420,11 +432,6 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
         public PropertyInfo Leaf
         {
             get => chain[^1];
-        }
-
-        public string DisplayPath
-        {
-            get => string.Join(".", chain.Select(s => s.Name.ToSnakeCase()));
         }
 
         public object? GetValue()

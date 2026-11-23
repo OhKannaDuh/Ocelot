@@ -21,9 +21,11 @@ public class EventManager(IEnumerable<IEventHost> hosts, ILogger<EventManager> l
 
     public void Stop()
     {
-        for (var i = hosts.Length - 1; i >= 0; i--)
+        // Start order on purpose: StopHost (Order MinValue) must run last, after the overlay host unhooks Draw;
+        // stopping it first disposed Pictomancy while a frame could still draw, which crashed the game on unload.
+        foreach (var host in hosts)
         {
-            hosts[i].Stop();
+            host.Stop();
         }
 
         disposed = true;

@@ -29,10 +29,10 @@ public class ContextualTranslator<TScope> : ITranslator<TScope>
         get => inner.Scope;
     }
 
+    // Returns a new translator; changing "inner" here rescoped the shared singleton for every user of it.
     public ITranslator WithScope(string scope)
     {
-        inner = inner.WithScope(scope);
-        return this;
+        return inner.WithScope(scope);
     }
 
     public string T(string key)
