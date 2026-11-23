@@ -14,6 +14,8 @@ public sealed class WrathJobRotation(
 
     private DateTime nextOccultRetryUtc;
 
+    private DateTime nextLeaseTouchUtc;
+
     private int occultRetries;
 
     private bool occultSynced;
@@ -103,6 +105,13 @@ public sealed class WrathJobRotation(
         // Wrath suspends leases on job change without telling us; InvalidLease re-arms below.
         if (rotationOn == true && farmingDefaultsApplied && Lease.HasValue)
         {
+            // Callers re-enable every frame; checking the lease once a second is enough.
+            if (DateTime.UtcNow < nextLeaseTouchUtc)
+            {
+                return;
+            }
+
+            nextLeaseTouchUtc = DateTime.UtcNow.AddSeconds(1);
             SetResult touch = WrathIPCWrapper.SetAutoRotationState(Lease.Value, true);
             if (touch != SetResult.InvalidLease)
             {

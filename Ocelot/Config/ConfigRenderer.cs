@@ -79,24 +79,41 @@ public class ConfigRenderer : IConfigRenderer
 
     private bool pendingSave;
 
-    private object GetRenderer(UIFieldAttribute attr)
+    private readonly Dictionary<Type, (object Renderer, MethodInfo Render)> renderers = [];
+
+    private readonly Dictionary<Type, List<(PropertyInfo Prop, UIFieldAttribute Attr)>> fieldsByType = [];
+
+    private (object Renderer, MethodInfo Render) GetRenderer(UIFieldAttribute attr)
     {
-        var serviceType = typeof(IFieldRenderer<>).MakeGenericType(attr.GetType());
-        var service = services.GetService(serviceType);
-        if (service is not null)
+        var attrType = attr.GetType();
+        if (renderers.TryGetValue(attrType, out var cached))
         {
-            return service;
+            return cached;
         }
 
-        return ActivatorUtilities.CreateInstance(services, attr.RendererType);
+        var serviceType = typeof(IFieldRenderer<>).MakeGenericType(attrType);
+        var renderer = services.GetService(serviceType) ?? ActivatorUtilities.CreateInstance(services, attr.RendererType);
+        var type = renderer.GetType().GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFieldRenderer<>));
+        cached = (renderer, type.GetMethod("Render")!);
+        renderers[attrType] = cached;
+        return cached;
     }
 
-    private bool InvokeRenderer(object renderer, object target, PropertyInfo prop, UIFieldAttribute attr, Type owner)
+    private List<(PropertyInfo Prop, UIFieldAttribute Attr)> GetFields(Type type)
     {
-        var type = renderer.GetType().GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFieldRenderer<>));
+        if (!fieldsByType.TryGetValue(type, out var fields))
+        {
+            fields = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Select(prop => (prop, attr: prop.GetCustomAttributes().OfType<UIFieldAttribute>().SingleOrDefault()))
+                .Where(x => x.attr is not null)
+                .OrderBy(x => x.attr!.Order)
+                .ThenBy(x => x.prop.Name, StringComparer.Ordinal)
+                .Select(x => (x.prop, x.attr!))
+                .ToList();
+            fieldsByType[type] = fields;
+        }
 
-        var method = type.GetMethod("Render")!;
-        return (bool)method.Invoke(renderer, [target, prop, attr, owner, translator])!;
+        return fields;
     }
 
     public void SelectGroup(string groupKey)
@@ -163,7 +180,8 @@ public class ConfigRenderer : IConfigRenderer
 
         using (ImRaii.Disabled(requiresDisabled))
         {
-            return InvokeRenderer(GetRenderer(fieldAttr), config, prop, fieldAttr, type);
+            var (renderer, render) = GetRenderer(fieldAttr);
+            return (bool)render.Invoke(renderer, [config, prop, fieldAttr, type, translator])!;
         }
     }
 
@@ -278,13 +296,9 @@ public class ConfigRenderer : IConfigRenderer
             var current = config;
             var type = current.GetType();
 
-            var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .Select(prop => (prop, attr: prop.GetCustomAttributes().OfType<UIFieldAttribute>().SingleOrDefault()))
-                .Where(x => x.attr is not null)
-                .Where(x => filter == null || x.prop.Label(type, translator).Contains(filter, StringComparison.CurrentCultureIgnoreCase))
-                .OrderBy(x => x.attr!.Order)
-                .ThenBy(x => x.prop.Name, StringComparer.Ordinal)
-                .ToList();
+            var props = filter == null
+                ? GetFields(type)
+                : GetFields(type).Where(x => x.Prop.Label(type, translator).Contains(filter, StringComparison.CurrentCultureIgnoreCase)).ToList();
 
             if (filter != null)
             {

@@ -2,20 +2,9 @@
 
 public class ContextualLogger<TScope>(ILogger inner) : ILogger<TScope>
 {
-    private bool IsOcelot
-    {
-        get => typeof(TScope).FullName!.StartsWith("Ocelot");
-    }
-
-    private string Name
-    {
-        get => typeof(TScope).Name.Split('`')[0];
-    }
-
-    private string Context
-    {
-        get => IsOcelot ? $"[Ocelot] [{Name}]" : $"[{Name}]";
-    }
+    private static readonly string Context = typeof(TScope).FullName!.StartsWith("Ocelot")
+        ? $"[Ocelot] [{typeof(TScope).Name.Split('`')[0]}]"
+        : $"[{typeof(TScope).Name.Split('`')[0]}]";
 
     public void Log(string format, params object[] args)
     {

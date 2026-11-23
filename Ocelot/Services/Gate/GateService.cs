@@ -26,11 +26,13 @@ public sealed class GateService(IFramework framework) : IGateService
         return due;
     }
 
-    public static long Advance(long elapsed, TimeSpan delta, long interval, out bool due)
+    // Ticks, not whole milliseconds: at 144 fps cutting each frame to 6 ms made a 500 ms limit fire every ~580 ms.
+    public static long Advance(long elapsedTicks, TimeSpan delta, long intervalMs, out bool due)
     {
-        elapsed += (long)delta.TotalMilliseconds;
-        due = elapsed >= interval;
-        return due ? elapsed - interval : elapsed;
+        long intervalTicks = intervalMs * TimeSpan.TicksPerMillisecond;
+        elapsedTicks += delta.Ticks;
+        due = elapsedTicks >= intervalTicks;
+        return due ? elapsedTicks - intervalTicks : elapsedTicks;
     }
 
     public bool UpdatesPerSecond(object owner, string scope, int ups)

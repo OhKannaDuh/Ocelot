@@ -86,10 +86,19 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
         presetsReady = WriteOwnedPresets(player.IsMelee(), OverwriteExisting);
     }
 
+    private DateTime nextArmedCheckUtc;
+
     public void Enable(CombatActivity activity)
     {
         wantOwned = true;
 
+        // Callers re-enable every frame; asking BossMod for its active preset once a second is enough.
+        if (wantActive && armedActivity == activity && presetsReady && DateTime.UtcNow < nextArmedCheckUtc)
+        {
+            return;
+        }
+
+        nextArmedCheckUtc = DateTime.UtcNow.AddSeconds(1);
         bool alreadyArmed = wantActive
                             && armedActivity == activity
                             && presetsReady
