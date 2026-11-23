@@ -21,6 +21,8 @@ public interface IConfigRenderer
     void SelectGroup(string groupKey)
     {
     }
+
+    bool RenderField(Ocelot.Config.IAutoConfig config, string propertyName) => false;
 }
 
 public class NullConfigRenderer : IConfigRenderer

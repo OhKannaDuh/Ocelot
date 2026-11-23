@@ -105,6 +105,65 @@ public class ConfigRenderer : IConfigRenderer
         {
             current = gConfigs[0];
             search = string.Empty;
+            return;
+        }
+
+        var page = configs.FirstOrDefault(c => c?.GetType().Name.Replace("Config", "").ToSnakeCase() == groupKey);
+        if (page != null)
+        {
+            current = page;
+            search = string.Empty;
+        }
+    }
+
+    public bool RenderField(IAutoConfig config, string propertyName)
+    {
+        var type = config.GetType();
+        var prop = type.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        var attr = prop?.GetCustomAttributes().OfType<UIFieldAttribute>().SingleOrDefault();
+        if (prop == null || attr == null)
+        {
+            return false;
+        }
+
+        ImGui.PushID($"{type.Name}.{propertyName}");
+        var changed = DrawField(config, type, prop, attr);
+        ImGui.PopID();
+
+        pendingSave |= changed;
+        if (pendingSave && !ImGui.IsAnyItemActive())
+        {
+            pendingSave = false;
+            saver.Save();
+        }
+
+        return changed;
+    }
+
+    private bool DrawField(IAutoConfig config, Type type, PropertyInfo prop, UIFieldAttribute fieldAttr)
+    {
+        var requiresDisabled = false;
+        if (!string.IsNullOrEmpty(fieldAttr.Requires))
+        {
+            var required = type.GetProperty(fieldAttr.Requires, BindingFlags.Instance | BindingFlags.Public);
+            if (required?.PropertyType == typeof(bool) && required.GetValue(config) is false)
+            {
+                requiresDisabled = true;
+            }
+        }
+
+        if (!requiresDisabled && !string.IsNullOrEmpty(fieldAttr.DisabledWhen))
+        {
+            var blocker = type.GetProperty(fieldAttr.DisabledWhen, BindingFlags.Instance | BindingFlags.Public);
+            if (blocker?.PropertyType == typeof(bool) && blocker.GetValue(config) is true)
+            {
+                requiresDisabled = true;
+            }
+        }
+
+        using (ImRaii.Disabled(requiresDisabled))
+        {
+            return InvokeRenderer(GetRenderer(fieldAttr), config, prop, fieldAttr, type);
         }
     }
 
@@ -282,39 +341,7 @@ public class ConfigRenderer : IConfigRenderer
                     ImGui.Indent(indentPx);
                 }
 
-                var requiresDisabled = false;
-                if (!string.IsNullOrEmpty(fieldAttr.Requires))
-                {
-                    var required = type.GetProperty(fieldAttr.Requires, BindingFlags.Instance | BindingFlags.Public);
-                    if (required?.PropertyType == typeof(bool) && required.GetValue(current) is false)
-                    {
-                        requiresDisabled = true;
-                    }
-                }
-
-                if (!requiresDisabled && !string.IsNullOrEmpty(fieldAttr.DisabledWhen))
-                {
-                    var blocker = type.GetProperty(fieldAttr.DisabledWhen, BindingFlags.Instance | BindingFlags.Public);
-                    if (blocker?.PropertyType == typeof(bool) && blocker.GetValue(current) is true)
-                    {
-                        requiresDisabled = true;
-                    }
-                }
-
-                bool changed;
-                if (requiresDisabled)
-                {
-                    using (ImRaii.Disabled())
-                    {
-                        var renderer = GetRenderer(fieldAttr);
-                        changed = InvokeRenderer(renderer, current, prop, fieldAttr, type);
-                    }
-                }
-                else
-                {
-                    var renderer = GetRenderer(fieldAttr);
-                    changed = InvokeRenderer(renderer, current, prop, fieldAttr, type);
-                }
+                var changed = DrawField(current, type, prop, fieldAttr);
 
                 if (indentPx > 0f)
                 {
