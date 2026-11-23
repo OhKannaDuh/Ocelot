@@ -30,13 +30,10 @@ public class WaitUntilStep(
 
         IMainThread? mainThread = TryGetMainThread(context);
 
-        DateTimeOffset? deadline = null;
-        if (timeout > TimeSpan.Zero)
-        {
-            var now = DateTimeOffset.UtcNow;
-            var maxAdd = DateTimeOffset.MaxValue - now;
-            deadline = timeout >= maxAdd ? DateTimeOffset.MaxValue : now + timeout;
-        }
+        // A zero timeout checks once; it used to mean "wait forever".
+        var now = DateTimeOffset.UtcNow;
+        var maxAdd = DateTimeOffset.MaxValue - now;
+        DateTimeOffset deadline = timeout >= maxAdd ? DateTimeOffset.MaxValue : now + timeout;
 
         while (true)
         {
@@ -47,7 +44,7 @@ public class WaitUntilStep(
                 return StepResult.Success();
             }
 
-            if (deadline is { } d && DateTimeOffset.UtcNow >= d)
+            if (DateTimeOffset.UtcNow >= deadline)
             {
                 return StepResult.Failure($"WaitUntil timed out after {timeout}.");
             }

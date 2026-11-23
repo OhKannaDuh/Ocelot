@@ -21,10 +21,9 @@ public class EventManager(IEnumerable<IEventHost> hosts, ILogger<EventManager> l
 
     public void Stop()
     {
-        hosts.Reverse();
-        foreach (var host in hosts)
+        for (var i = hosts.Length - 1; i >= 0; i--)
         {
-            host.Stop();
+            hosts[i].Stop();
         }
 
         disposed = true;

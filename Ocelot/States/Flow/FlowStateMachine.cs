@@ -4,7 +4,7 @@ using IUIService = Ocelot.Services.UI.IUIService;
 
 namespace Ocelot.States.Flow;
 
-public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposable
+public sealed class FlowStateMachine<TState> : IStateMachine<TState>
     where TState : struct, Enum
 {
     public TState State { get; private set; }
@@ -100,9 +100,5 @@ public sealed class FlowStateMachine<TState> : IStateMachine<TState>, IDisposabl
     public void Reset()
     {
         SetState(initial);
-    }
-
-    public void Dispose()
-    {
     }
 }

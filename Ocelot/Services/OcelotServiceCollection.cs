@@ -41,17 +41,33 @@ public sealed class OcelotServiceCollection : IServiceCollection
         }
     }
 
-    private void AutoWire(ServiceDescriptor item)
+    // Each class is built once under its own type and the interface points at it; forwarding the class
+    // to the interface returned the last-registered implementation when an interface had several.
+    private void AddWired(ServiceDescriptor item)
     {
-        var implType = item.ImplementationType ?? item.ImplementationInstance?.GetType();
-        if (implType is null)
+        var serviceType = item.ServiceType;
+        if (item.ImplementationType is not { } implType
+            || implType == serviceType
+            || serviceType.IsGenericTypeDefinition
+            || implType.IsGenericTypeDefinition)
         {
+            collection.Add(item);
+            AutoWire(item.ServiceType, item.ImplementationType ?? item.ImplementationInstance?.GetType(), item.Lifetime);
             return;
         }
 
-        var serviceType = item.ServiceType;
+        if (collection.All(d => d.ServiceType != implType))
+        {
+            collection.Add(new ServiceDescriptor(implType, implType, item.Lifetime));
+        }
 
-        if (serviceType.IsGenericTypeDefinition || implType.IsGenericTypeDefinition)
+        collection.Add(new ServiceDescriptor(serviceType, sp => sp.GetRequiredService(implType), item.Lifetime));
+        AutoWire(serviceType, implType, item.Lifetime);
+    }
+
+    private void AutoWire(Type serviceType, Type? implType, ServiceLifetime lifetime)
+    {
+        if (implType is null || serviceType.IsGenericTypeDefinition || implType.IsGenericTypeDefinition)
         {
             return;
         }
@@ -61,7 +77,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
             collection.Add(new ServiceDescriptor(
                 implType,
                 sp => sp.GetRequiredService(serviceType),
-                item.Lifetime));
+                lifetime));
         }
 
         foreach (var hook in HookInterfaces.Distinct())
@@ -76,7 +92,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
                 continue;
             }
 
-            if (!forwards.Add((hook, implType, item.Lifetime)))
+            if (!forwards.Add((hook, implType, lifetime)))
             {
                 continue;
             }
@@ -94,7 +110,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
 
                     return obj;
                 },
-                item.Lifetime));
+                lifetime));
         }
     }
 
@@ -120,8 +136,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
 
     public void Add(ServiceDescriptor item)
     {
-        collection.Add(item);
-        AutoWire(item);
+        AddWired(item);
     }
 
     public void Clear()
@@ -163,7 +178,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
     public void Insert(int index, ServiceDescriptor item)
     {
         collection.Insert(index, item);
-        AutoWire(item);
+        AutoWire(item.ServiceType, item.ImplementationType ?? item.ImplementationInstance?.GetType(), item.Lifetime);
     }
 
     public void RemoveAt(int index)
@@ -178,7 +193,7 @@ public sealed class OcelotServiceCollection : IServiceCollection
         set
         {
             collection[index] = value;
-            AutoWire(value);
+            AutoWire(value.ServiceType, value.ImplementationType ?? value.ImplementationInstance?.GetType(), value.Lifetime);
         }
     }
 }

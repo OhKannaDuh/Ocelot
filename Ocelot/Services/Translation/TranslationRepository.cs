@@ -200,12 +200,18 @@ public sealed class TranslationRepository(IDalamudPluginInterface plugin, ILogge
         TranslationsChanged?.Invoke();
     }
 
+    // English first, the chosen language on top: a key missing in jp/ko/zh shows English, not a key name.
     private static IEnumerable<string> BuildFallbackChain(string language)
     {
         var parts = language.Split('-', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0)
         {
             yield break;
+        }
+
+        if (!string.Equals(parts[0], "en", StringComparison.OrdinalIgnoreCase))
+        {
+            yield return "en";
         }
 
         for (var i = 1; i <= parts.Length; i++)

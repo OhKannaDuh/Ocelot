@@ -5,7 +5,7 @@ using IUIService = Ocelot.Services.UI.IUIService;
 
 namespace Ocelot.States.Score;
 
-public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, IDisposable
+public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>
     where TState : struct, Enum
     where TScore : IComparable
 {
@@ -146,9 +146,5 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
     public void Reset()
     {
         SetState(initial);
-    }
-
-    public void Dispose()
-    {
     }
 }

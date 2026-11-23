@@ -43,21 +43,39 @@ public abstract class OcelotPlugin : IAsyncDalamudPlugin
 
         Bootstrap(collection);
 
-        services = collection.Build();
-        host = services.GetRequiredService<EventManager>();
-        host.Start();
+        try
+        {
+            services = collection.Build();
+            host = services.GetRequiredService<EventManager>();
+            host.Start();
+        }
+        catch
+        {
+            ShutDown();
+            throw;
+        }
 
         return Task.CompletedTask;
     }
 
     public ValueTask DisposeAsync()
     {
-        host?.Stop();
-        host = null;
-
-        services?.Dispose();
-        services = null;
-
+        ShutDown();
         return ValueTask.CompletedTask;
+    }
+
+    // Without the finally a throwing Stop left hooks, windows and IPC alive after unload.
+    private void ShutDown()
+    {
+        try
+        {
+            host?.Stop();
+        }
+        finally
+        {
+            host = null;
+            services?.Dispose();
+            services = null;
+        }
     }
 }
