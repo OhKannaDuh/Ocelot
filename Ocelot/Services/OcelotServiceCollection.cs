@@ -22,25 +22,6 @@ public sealed class OcelotServiceCollection : IServiceCollection
         }
     }
 
-    internal void AutoDiscover()
-    {
-        foreach (var type in Registry.GetTypesWithAttribute<OcelotServiceAttribute>())
-        {
-            var attrs = type.GetCustomAttributes(typeof(OcelotServiceAttribute), false).Cast<OcelotServiceAttribute>();
-
-            foreach (var a in attrs)
-            {
-                var service = a.Service ?? type;
-                if (!service.IsAssignableFrom(type))
-                {
-                    throw new InvalidOperationException($"{service.FullName} is not assignable to {type.FullName}");
-                }
-
-                Add(new ServiceDescriptor(a.Service ?? type, type, a.Lifetime));
-            }
-        }
-    }
-
     // Each class is built once under its own type and the interface points at it; forwarding the class
     // to the interface returned the last-registered implementation when an interface had several.
     private void AddWired(ServiceDescriptor item)

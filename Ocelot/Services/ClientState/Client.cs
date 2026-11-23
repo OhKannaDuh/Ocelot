@@ -79,9 +79,4 @@ public class Client(
     {
         return clientState.IsClientIdle();
     }
-
-    public bool IsPlayerAvailable()
-    {
-        return Player != null;
-    }
 }

@@ -32,6 +32,4 @@ public interface IClient
     bool IsClientIdle(out ConditionFlag blockingFlag);
 
     bool IsClientIdle();
-
-    bool IsPlayerAvailable();
 }

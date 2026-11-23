@@ -18,23 +18,15 @@ public interface IPlayer
 
     ICondition Conditions { get; }
 
-    int GetLevel();
-
     ClassJob? GetClassJob();
 
-    int GetLevel(ClassJob job);
-
     Vector3 GetPosition();
-
-    bool IsMounting();
 
     bool IsMounted();
 
     bool IsCasting();
 
     bool IsBetweenAreas();
-
-    bool IsInteracting();
 
     float GetAttackRange();
 
@@ -43,10 +35,4 @@ public interface IPlayer
     bool IsTank();
 
     bool IsMeleeDps();
-
-    bool IsHealer();
-
-    bool IsCaster();
-
-    bool CanFly();
 }

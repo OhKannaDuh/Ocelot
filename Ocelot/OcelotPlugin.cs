@@ -39,7 +39,6 @@ public abstract class OcelotPlugin : IAsyncDalamudPlugin
 
         collection.LoadDalamudServices(plugin);
         collection.LoadOcelotCore();
-        collection.AutoDiscover();
 
         Bootstrap(collection);
 

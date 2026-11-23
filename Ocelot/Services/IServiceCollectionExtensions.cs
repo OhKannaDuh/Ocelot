@@ -47,14 +47,12 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<IFieldRenderer<CheckboxAttribute>, CheckboxRenderer>();
         services.AddSingleton<IFieldRenderer<FloatRangeAttribute>, FloatRangeRenderer>();
         services.AddSingleton<IFieldRenderer<IntRangeAttribute>, IntRangeRenderer>();
-        services.AddSingleton<IFieldRenderer<StringInputAttribute>, StringInputRenderer>();
 
         services.AddSingleton<ITranslationRepository, TranslationRepository>();
         services.AddSingleton<ITranslator, Translator>();
         services.AddSingleton(typeof(ITranslator<>), typeof(ContextualTranslator<>));
         services.AddSingleton<ITranslatorContextResolver, TranslatorContextResolver>();
 
-        services.AddSingleton(typeof(ICache<,>), typeof(GenericCache<,>));
         services.AddSingleton(typeof(ICache<,>), typeof(ExcelCache<,>));
         services.AddSingleton(typeof(IDataRepository<,>), typeof(DataRepository<,>));
         services.AddSingleton(typeof(IDataRepository<>), typeof(ExcelDataRepository<>));
@@ -116,37 +114,6 @@ public static class IServiceCollectionExtensions
 
                 return value;
             });
-        }
-    }
-
-    public static void AddConfig<TInterface, TConcrete>(this IServiceCollection services, IDalamudPluginInterface plugin)
-        where TInterface : class, IPluginConfiguration
-        where TConcrete : class, TInterface, new()
-    {
-        var cfg = plugin.GetPluginConfig() as TConcrete ?? new TConcrete();
-        services.AddSingleton(cfg);
-        services.AddSingleton<TInterface>(cfg);
-        services.AddSingleton<IPluginConfiguration>(s => s.GetRequiredService<TConcrete>());
-        var properties = typeof(TInterface).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-        foreach (var property in properties)
-        {
-            var prop = property;
-            var propType = prop.PropertyType;
-
-            services.AddSingleton(propType, sp =>
-            {
-                var conf = sp.GetRequiredService<TInterface>();
-                return prop.GetValue(conf)!;
-            });
-
-            if (typeof(IAutoConfig).IsAssignableFrom(propType))
-            {
-                services.AddSingleton(typeof(IAutoConfig), sp =>
-                {
-                    var conf = sp.GetRequiredService<TInterface>();
-                    return prop.GetValue(conf)!;
-                });
-            }
         }
     }
 }

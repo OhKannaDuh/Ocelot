@@ -4,11 +4,6 @@ namespace Ocelot.Config.Fields;
 
 public class CheckboxAttribute() : UIFieldAttribute(typeof(CheckboxRenderer));
 
-public class StringInputAttribute() : UIFieldAttribute(typeof(StringInputRenderer))
-{
-    public int MaxLength { get; set; } = 256;
-}
-
 public sealed class IntRangeAttribute(int min, int max) : UIFieldAttribute(typeof(IntRangeRenderer))
 {
     public int Min { get; } = min;

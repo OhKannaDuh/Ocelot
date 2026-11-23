@@ -41,8 +41,6 @@ public class Player(
 
     public IPlayerCharacter? PlayerCharacter => objects.LocalPlayer;
 
-    public int GetLevel() => PlayerCharacter?.Level ?? 0;
-
     public ClassJob? GetClassJob()
     {
         // Dalamud PlayerState tracks the real ClassJob; LocalPlayer can show phantom jobs in OC.
@@ -74,16 +72,7 @@ public class Player(
         return null;
     }
 
-    public unsafe int GetLevel(ClassJob job)
-    {
-        var ps = DalamudPlayerState.Instance();
-        return ps == null ? 0 : ps->ClassJobLevels[job.ExpArrayIndex];
-    }
-
     public Vector3 GetPosition() => IsAvailable ? PlayerCharacter!.Position : Vector3.Zero;
-
-    public bool IsMounting() =>
-        Conditions[ConditionFlag.Mounting] || Conditions[ConditionFlag.Mounting71];
 
     public bool IsMounted() => Conditions[ConditionFlag.Mounted];
 
@@ -92,12 +81,6 @@ public class Player(
 
     public bool IsBetweenAreas() =>
         Conditions[ConditionFlag.BetweenAreas] || Conditions[ConditionFlag.BetweenAreas51];
-
-    public bool IsInteracting() =>
-        Conditions.Any(
-            ConditionFlag.OccupiedInEvent,
-            ConditionFlag.OccupiedInQuestEvent,
-            ConditionFlag.OccupiedInCutSceneEvent);
 
     public float GetAttackRange() => IsMelee() ? MeleeRange : RangedRange;
 
@@ -127,24 +110,5 @@ public class Player(
         }
 
         return job.Value.Role == 2 || MeleeDpsJobIds.Contains(job.Value.RowId);
-    }
-
-    public bool IsHealer() => GetClassJob()?.Role == 4;
-
-    public bool IsCaster() =>
-        GetClassJob()?.RowId is 7 or 25 or 26 or 27 or 35 or 42;
-
-    public bool CanFly()
-    {
-        if (!IsAvailable)
-        {
-            return false;
-        }
-
-        unsafe
-        {
-            var ps = DalamudPlayerState.Instance();
-            return ps != null && ps->CanFly;
-        }
     }
 }
