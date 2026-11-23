@@ -73,21 +73,24 @@ public class MainCommand : OcelotCommand, IMainCommand
             return (help, showHelp);
         }
 
-        var sb = new StringBuilder(help).AppendLine();
-
-        sb.AppendLine(" subcommands:");
-
+        var sb = new StringBuilder(help);
         foreach (var (keys, del) in delegates)
         {
-            var joined = string.Join('|', keys);
-            sb.Append($"  - {joined}");
+            if (del.Command.Hidden)
+            {
+                continue;
+            }
+
+            sb.AppendLine().Append($"/{Command} {keys[0]}");
+            if (keys.Length > 1)
+            {
+                sb.Append($" ({string.Join(", ", keys.Skip(1))})");
+            }
 
             if (translator.Has(del.Command.HelpKey))
             {
-                sb.Append($" : {translator.T(del.Command.HelpKey)}");
+                sb.Append($" → {translator.T(del.Command.HelpKey)}");
             }
-
-            sb.AppendLine();
         }
 
         return (sb.ToString(), showHelp);
