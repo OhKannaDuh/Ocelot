@@ -6,7 +6,7 @@ public static class TimeSpanExtensions
     {
         public string Format()
         {
-            if (self.TotalHours > 0)
+            if (self.TotalHours >= 1)
             {
                 return $"{(int)self.TotalHours:00}:{self.Minutes:00}:{self.Seconds:00}";
             }

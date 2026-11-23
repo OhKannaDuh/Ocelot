@@ -77,6 +77,8 @@ public class ConfigRenderer : IConfigRenderer
             c is not null && c.GetType().GetCustomAttribute<ConfigHiddenAttribute>() == null);
     }
 
+    private bool pendingSave;
+
     private object GetRenderer(UIFieldAttribute attr)
     {
         var serviceType = typeof(IFieldRenderer<>).MakeGenericType(attr.GetType());
@@ -127,6 +129,7 @@ public class ConfigRenderer : IConfigRenderer
                 if (ImGui.Selectable(uConfig.Label(translator), selected))
                 {
                     current = uConfig;
+                    search = string.Empty;
                 }
             }
 
@@ -144,6 +147,7 @@ public class ConfigRenderer : IConfigRenderer
                     if (ImGui.Selectable(only.Label(translator), selected))
                     {
                         current = only;
+                        search = string.Empty;
                     }
 
                     continue;
@@ -159,6 +163,7 @@ public class ConfigRenderer : IConfigRenderer
                     if (ImGui.Selectable(gConfig.Label(translator), selected))
                     {
                         current = gConfig;
+                        search = string.Empty;
                     }
                 }
 
@@ -198,8 +203,11 @@ public class ConfigRenderer : IConfigRenderer
             }
         }
 
-        if (dirty)
+        // Save once the slider or text box is let go, not on every frame it changes.
+        pendingSave |= dirty;
+        if (pendingSave && !ImGui.IsAnyItemActive())
         {
+            pendingSave = false;
             saver.Save();
         }
     }

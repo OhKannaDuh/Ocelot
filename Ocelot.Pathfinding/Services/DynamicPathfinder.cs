@@ -16,6 +16,7 @@ public class DynamicPathfinder(
 
     private IPathfinder? current;
 
+
     public void OnStart()
     {
         PreUpdate();

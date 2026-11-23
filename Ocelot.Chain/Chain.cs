@@ -165,7 +165,7 @@ public class Chain(string name, IServiceProvider services) : IChain
             }
             catch (Exception ex)
             {
-                return ChainResult.Failure($"Step {step.GetType().Name} threw an exception: {ex.Message}");
+                return ChainResult.Failure(new InvalidOperationException($"Step {step} threw: {ex.Message}", ex));
             }
         }
 

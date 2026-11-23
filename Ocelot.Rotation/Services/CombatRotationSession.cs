@@ -55,8 +55,11 @@ public sealed class CombatRotationSession : ICombatRotationSession
         set => bossModPresets.Movement = value;
     }
 
+    public int Generation { get; private set; }
+
     public void Prepare(CombatRotationRecipe recipe)
     {
+        Generation++;
         if (ActiveRecipe.IsActive)
         {
             Teardown();

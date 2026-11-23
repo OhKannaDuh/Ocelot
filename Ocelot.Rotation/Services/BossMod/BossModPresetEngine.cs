@@ -51,6 +51,8 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
 
     private bool presetsReady;
 
+    private DateTime nextRewriteUtc;
+
     private CombatActivity activeActivity = CombatActivity.Fate;
 
     private CombatActivity? armedActivity;
@@ -156,13 +158,15 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
                                && bakedMovement is not null
                                && bakedMovement != Movement;
 
-        if (!presetsReady || missing || jobChanged || roleChanged || movementChanged)
+        // A preset BossMod refuses would otherwise be deleted and written again every frame.
+        if ((!presetsReady || missing || jobChanged || roleChanged || movementChanged) && now >= nextRewriteUtc)
         {
             bool wasActive = wantActive || IsAnyOwnedPresetActive();
             armedActivity = null;
             bool overwrite = OverwriteExisting
                              && (jobChanged || roleChanged || movementChanged || !presetsReady);
             presetsReady = WriteOwnedPresets(isMelee, overwrite);
+            nextRewriteUtc = presetsReady ? DateTime.MinValue : now.AddSeconds(5);
             if (presetsReady && wasActive)
             {
                 wantActive = true;

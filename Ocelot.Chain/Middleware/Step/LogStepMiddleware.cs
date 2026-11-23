@@ -20,6 +20,10 @@ public class LogStepMiddleware(ILogger logger) : IStepMiddleware
             {
                 logger.Verbose("Step {Step} succeeded in {Elapsed} ms", name, stopwatch.ElapsedMilliseconds);
             }
+            else if (result.IsCanceled)
+            {
+                logger.Debug("Step {Step} canceled after {Elapsed} ms", name, stopwatch.ElapsedMilliseconds);
+            }
             else
             {
                 logger.Warning("Step {Step} failed in {Elapsed} ms: {Error}", name, stopwatch.ElapsedMilliseconds,

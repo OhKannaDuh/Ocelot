@@ -1,5 +1,6 @@
 using System.Collections;
 using System.ComponentModel;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
@@ -30,10 +31,13 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
 
     private readonly ILogger logger;
 
+    private readonly IConfigSaver saver;
+
     public ConfigCommand(
         IConfigWindow window,
         IChatGui chat,
         ILogger<ConfigCommand> logger,
+        IConfigSaver saver,
         IEnumerable<IPluginConfiguration> pluginConfigurations,
         ITranslator<ConfigCommand> translator
     ) : base(translator)
@@ -41,6 +45,7 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
         this.window = window;
         this.chat = chat;
         this.logger = logger;
+        this.saver = saver;
         Command = "config";
         Aliases = ["cfg", "c"];
 
@@ -248,6 +253,7 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
             }
 
             acc.SetValue(converted);
+            saver.Save();
             chat.Print($"Set {acc.DisplayPath} = {acc.GetValue()}");
         }
         catch (Exception ex)
@@ -311,41 +317,43 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
 
         if (t.IsEnum)
         {
-            if (Enum.TryParse(t, value, true, out var e))
+            // TryParse also accepts any number; only listed values may be stored.
+            if (Enum.TryParse(t, value, true, out var e) && Enum.IsDefined(t, e!))
             {
-                return e;
+                return e!;
             }
 
             var names = string.Join(", ", Enum.GetNames(t));
             throw new ArgumentException($"Expected one of: {names}");
         }
 
-        if (t == typeof(int) && int.TryParse(value, out var i))
+        var inv = CultureInfo.InvariantCulture;
+        if (t == typeof(int) && int.TryParse(value, NumberStyles.Integer, inv, out var i))
         {
             return i;
         }
 
-        if (t == typeof(long) && long.TryParse(value, out var l))
+        if (t == typeof(long) && long.TryParse(value, NumberStyles.Integer, inv, out var l))
         {
             return l;
         }
 
-        if (t == typeof(float) && float.TryParse(value, out var f))
+        if (t == typeof(float) && float.TryParse(value, NumberStyles.Float, inv, out var f) && float.IsFinite(f))
         {
             return f;
         }
 
-        if (t == typeof(double) && double.TryParse(value, out var d))
+        if (t == typeof(double) && double.TryParse(value, NumberStyles.Float, inv, out var d) && double.IsFinite(d))
         {
             return d;
         }
 
-        if (t == typeof(decimal) && decimal.TryParse(value, out var m))
+        if (t == typeof(decimal) && decimal.TryParse(value, NumberStyles.Float, inv, out var m))
         {
             return m;
         }
 
-        return Convert.ChangeType(value, t);
+        return Convert.ChangeType(value, t, inv);
     }
 
     private static string? ValidateAgainstAttributes(PropertyInfo p, object value)
@@ -355,6 +363,19 @@ public class ConfigCommand : OcelotCommand, IConfigCommand
             if ((Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType) != typeof(bool))
             {
                 return $"[{nameof(CheckboxAttribute)}] requires a bool.";
+            }
+        }
+
+        if (p.GetCustomAttribute<FloatRangeAttribute>() is { } floatRange && value is float f)
+        {
+            if (f < floatRange.Min)
+            {
+                return $"{p.Name.ToSnakeCase()} must be ≥ {floatRange.Min.ToString(CultureInfo.InvariantCulture)}.";
+            }
+
+            if (f > floatRange.Max)
+            {
+                return $"{p.Name.ToSnakeCase()} must be ≤ {floatRange.Max.ToString(CultureInfo.InvariantCulture)}.";
             }
         }
 

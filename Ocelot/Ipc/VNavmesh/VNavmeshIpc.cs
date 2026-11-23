@@ -111,7 +111,7 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
 
     public Task<List<Vector3>> Pathfind(Vector3 start, Vector3 end, bool fly, CancellationToken? cancel = null)
     {
-        if (!pathfind.HasFunction)
+        if (!(cancel != null ? pathfindCancelable.HasFunction : pathfind.HasFunction))
         {
             return Task.FromResult(new List<Vector3>());
         }

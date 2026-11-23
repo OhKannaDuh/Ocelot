@@ -42,6 +42,8 @@ public interface ICombatRotationSession
 {
     CombatRotationRecipe ActiveRecipe { get; }
 
+    int Generation { get; }
+
     bool OverwriteBossModPresets { get; set; }
 
     bool BossModPresetsAvailable { get; }

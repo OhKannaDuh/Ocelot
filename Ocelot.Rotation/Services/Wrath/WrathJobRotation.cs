@@ -27,6 +27,16 @@ public sealed class WrathJobRotation(
 
     private bool? rotationOn;
 
+    private const int MaxEnableRetries = 10;
+
+    private bool wantOn;
+
+    private CombatActivity wantedActivity;
+
+    private int enableRetries;
+
+    private DateTime nextEnableRetryUtc;
+
     private uint? trackedPhantomJobId;
 
     public JobRotationBackendKind Kind => JobRotationBackendKind.Wrath;
@@ -75,7 +85,8 @@ public sealed class WrathJobRotation(
 
     public void Enable(CombatActivity activity)
     {
-        _ = activity;
+        wantOn = true;
+        wantedActivity = activity;
 
         // Wrath suspends leases on job change without telling us; InvalidLease re-arms below.
         if (rotationOn == true && farmingDefaultsApplied && Lease.HasValue)
@@ -94,6 +105,7 @@ public sealed class WrathJobRotation(
             return;
         }
 
+        enableRetries = 0;
         rotationOn = true;
         EnsureCurrentJobReady();
         ApplyFarmingDefaults();
@@ -101,6 +113,8 @@ public sealed class WrathJobRotation(
 
     public void Disable()
     {
+        wantOn = false;
+        enableRetries = 0;
         if (rotationOn == false)
         {
             return;
@@ -113,6 +127,20 @@ public sealed class WrathJobRotation(
     // Set job-ready once in Enable/Prepare. Re-calling every tick spams Wrath if the lease dies.
     public void Refresh()
     {
+        // An enable that failed (Wrath not ready yet) is retried a few times, slowly, instead of never.
+        if (!wantOn || rotationOn == true || enableRetries >= MaxEnableRetries || DateTime.UtcNow < nextEnableRetryUtc)
+        {
+            return;
+        }
+
+        enableRetries++;
+        nextEnableRetryUtc = DateTime.UtcNow.AddSeconds(2);
+        if (!Lease.HasValue)
+        {
+            DropDeadLease();
+        }
+
+        Enable(wantedActivity);
     }
 
     public void ClearAppliedCache() => rotationOn = null;
@@ -149,6 +177,20 @@ public sealed class WrathJobRotation(
 
     public void Teardown()
     {
+        bool leaseCreated;
+        lock (gate)
+        {
+            leaseCreated = lease.IsValueCreated;
+        }
+
+        // Without a lease there is nothing to switch off; reading it here would register one just to release it.
+        if (!leaseCreated)
+        {
+            wantOn = false;
+            rotationOn = null;
+            return;
+        }
+
         Disable();
         lock (gate)
         {

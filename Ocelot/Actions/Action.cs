@@ -19,7 +19,8 @@ public unsafe class Action(ActionType type, uint id)
 
     public bool CanCast()
     {
-        return GetRecastTime() <= 0f && ActionManager.Instance()->GetActionStatus(Type, Id) <= 0f;
+        // The recast timer covers all charges, so it reads "not ready" while charges are left; the status already checks recast.
+        return ActionManager.Instance()->GetActionStatus(Type, Id) == 0;
     }
 
     public bool Cast() => Cast(0xE0000000);

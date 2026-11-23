@@ -43,7 +43,13 @@ public sealed class TranslationRepository(IDalamudPluginInterface plugin, ILogge
             throw new ArgumentNullException(nameof(language));
         }
 
-        loadedDirectories.Add((directory, language));
+        lock (gate)
+        {
+            if (!loadedDirectories.Contains((directory, language)))
+            {
+                loadedDirectories.Add((directory, language));
+            }
+        }
 
         directory = Path.Combine(plugin.AssemblyLocation.DirectoryName!, directory);
 
@@ -75,8 +81,20 @@ public sealed class TranslationRepository(IDalamudPluginInterface plugin, ILogge
 
             foreach (var file in files)
             {
-                using var fs = File.OpenRead(file.p);
-                using var doc = JsonDocument.Parse(fs, new JsonDocumentOptions { AllowTrailingCommas = true });
+                // One broken or locked file must not stop the language loading, or it is retried every frame.
+                JsonDocument doc;
+                try
+                {
+                    using var fs = File.OpenRead(file.p);
+                    doc = JsonDocument.Parse(fs, new JsonDocumentOptions { AllowTrailingCommas = true });
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, "Could not read translation file {File}; its texts show as key names", file.p);
+                    continue;
+                }
+
+                using var _ = doc;
 
                 var prefix = Path.GetFileNameWithoutExtension(file.Item2);
                 if (prefix.StartsWith("ocelot."))

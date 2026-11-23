@@ -1,4 +1,5 @@
 using Ocelot.Extensions;
+using Ocelot.Services.Logger;
 using Ocelot.Services.Translation;
 using IUIService = Ocelot.Services.UI.IUIService;
 
@@ -23,6 +24,10 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
 
     private readonly IReadOnlyDictionary<TState, IScoreStateHandler<TState, TScore>> handlers;
 
+    private readonly ILogger logger;
+
+    private readonly HashSet<string> loggedErrors = [];
+
     private IScoreStateHandler<TState, TScore> Current
     {
         get => handlers.TryGetValue(State, out var h)
@@ -34,9 +39,11 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
         TState initial,
         ITranslator<ScoreStateMachine<TState, TScore>> translator,
         IUIService ui,
-        IEnumerable<IScoreStateHandler<TState, TScore>> handlers
+        IEnumerable<IScoreStateHandler<TState, TScore>> handlers,
+        ILogger logger
     )
     {
+        this.logger = logger;
         this.initial = initial;
         State = initial;
 
@@ -69,15 +76,28 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
 
     public void Update()
     {
-        Current.Handle();
+        // One handler that throws must not freeze every state change (not even Dead could take over).
+        Guard(State, () => Current.Handle());
 
-        var scores = handlers
-            .ToDictionary(h => h.Key, h => h.Value.GetScore())
-            .OrderByDescending(h => h.Value);
+        var scores = new List<KeyValuePair<TState, TScore>>();
+        foreach (var (state, handler) in handlers)
+        {
+            if (Guard(state, () => scores.Add(new(state, handler.GetScore()))))
+            {
+                continue;
+            }
+        }
 
-        var next = scores.First();
+        if (scores.Count == 0)
+        {
+            return;
+        }
 
-        if (EqualityComparer<TState>.Default.Equals(next.Key, State))
+        var next = scores.OrderByDescending(h => h.Value).First();
+
+        // On a tie the current state stays; otherwise the winner would depend on registration order.
+        if (EqualityComparer<TState>.Default.Equals(next.Key, State)
+            || scores.Any(s => EqualityComparer<TState>.Default.Equals(s.Key, State) && s.Value.CompareTo(next.Value) == 0))
         {
             return;
         }
@@ -85,6 +105,24 @@ public sealed class ScoreStateMachine<TState, TScore> : IStateMachine<TState>, I
         Current.Exit(next.Key);
         State = next.Key;
         Current.Enter();
+    }
+
+    private bool Guard(TState state, Action action)
+    {
+        try
+        {
+            action();
+            return false;
+        }
+        catch (Exception ex)
+        {
+            if (loggedErrors.Add($"{state}:{ex.GetType().Name}:{ex.Message}"))
+            {
+                logger.Error(ex, "State {State} failed; skipping it this frame", state);
+            }
+
+            return true;
+        }
     }
 
     public void Render()

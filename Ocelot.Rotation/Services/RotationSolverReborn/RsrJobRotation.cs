@@ -58,7 +58,7 @@ public sealed class RsrJobRotation(IRotationSolverRebornIpc ipc) : IJobRotationB
         }
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        if (now < nextAttemptUtc)
+        if (desired != RSRStateCommandType.Off && now < nextAttemptUtc)
         {
             return;
         }
