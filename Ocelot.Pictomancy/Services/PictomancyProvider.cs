@@ -7,6 +7,8 @@ public class PictomancyProvider : IPictomancyProvider, IOnPreRender, IOnPostRend
 {
     private PctDrawList? current;
 
+    private bool failed;
+
     public bool HasDrawList
     {
         get => current is not null;
@@ -38,7 +40,21 @@ public class PictomancyProvider : IPictomancyProvider, IOnPreRender, IOnPostRend
             current = null;
         }
 
-        current = PctService.Draw();
+        if (failed)
+        {
+            return;
+        }
+
+        // After a failed start (e.g. a game patch) stop calling it; the host logs the error once.
+        try
+        {
+            current = PctService.Draw();
+        }
+        catch
+        {
+            failed = true;
+            throw;
+        }
     }
 
     public void PostRender()

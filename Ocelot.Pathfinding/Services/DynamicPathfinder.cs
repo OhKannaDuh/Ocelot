@@ -54,9 +54,9 @@ public class DynamicPathfinder(
     }
 
 
-    public void PathfindAndMoveTo(PathfinderConfig config)
+    public bool PathfindAndMoveTo(PathfinderConfig config)
     {
-        current?.PathfindAndMoveTo(config);
+        return current?.PathfindAndMoveTo(config) ?? false;
     }
 
     public Task<Path> Pathfind(PathfinderConfig config)

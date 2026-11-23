@@ -35,17 +35,11 @@ public class NavmeshPathfinder(
         return PathfindingState.Idle;
     }
 
-    public void PathfindAndMoveTo(PathfinderConfig config)
+    public bool PathfindAndMoveTo(PathfinderConfig config)
     {
         if (!nav.IsNavmeshReady())
         {
-            return;
-        }
-
-        // Don't stack SimpleMove requests — vnavmesh logs ERR and drops the new destination.
-        if (nav.IsPathfinding())
-        {
-            return;
+            return false;
         }
 
         if (config.TerritoryType.HasValue && config.TerritoryType.Value.RowId != client.CurrentTerritoryId)
@@ -59,14 +53,9 @@ public class NavmeshPathfinder(
             destination = nav.FindPointOnFloor(destination, config.FloorSnapExtents);
         }
 
-        if (config.DistanceThreshold > 0f)
-        {
-            nav.PathfindAndMoveCloseTo(destination, config.AllowFlying, config.DistanceThreshold);
-        }
-        else
-        {
-            nav.PathfindAndMoveTo(destination, config.AllowFlying);
-        }
+        return config.DistanceThreshold > 0f
+            ? nav.PathfindAndMoveCloseTo(destination, config.AllowFlying, config.DistanceThreshold)
+            : nav.PathfindAndMoveTo(destination, config.AllowFlying);
     }
 
     public async Task<Path> Pathfind(PathfinderConfig config)

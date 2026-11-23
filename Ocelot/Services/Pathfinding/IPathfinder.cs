@@ -6,7 +6,7 @@ public interface IPathfinder
 {
     PathfindingState GetState();
 
-    void PathfindAndMoveTo(PathfinderConfig config);
+    bool PathfindAndMoveTo(PathfinderConfig config);
 
     Task<Path> Pathfind(PathfinderConfig config);
 

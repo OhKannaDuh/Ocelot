@@ -1,4 +1,5 @@
 using Dalamud.Plugin;
+using Ocelot.Services.Logger;
 using WrathCombo.API;
 using WrathCombo.API.Enum;
 
@@ -6,8 +7,19 @@ namespace Ocelot.Rotation.Services.Wrath;
 
 public sealed class WrathJobRotation(
     IDalamudPluginInterface pluginInterface,
-    OcelotPlugin plugin) : IJobRotationBackend, IDisposable
+    OcelotPlugin plugin,
+    ILogger<WrathJobRotation> logger) : IJobRotationBackend, IDisposable
 {
+    private const int MaxOccultRetries = 10;
+
+    private DateTime nextOccultRetryUtc;
+
+    private int occultRetries;
+
+    private bool occultSynced;
+
+    private bool loggedOccultFailure;
+
     public static readonly IReadOnlySet<string> BuiltInOccultOptionsLeftOff = new HashSet<string>(StringComparer.Ordinal)
     {
         "Phantom_Chemist_OccultElixir",
@@ -156,11 +168,21 @@ public sealed class WrathJobRotation(
         {
             if (trackedPhantomJobId == contentJobId)
             {
+                if (!occultSynced
+                    && contentJobId is { } same
+                    && occultRetries < MaxOccultRetries
+                    && DateTime.UtcNow >= nextOccultRetryUtc)
+                {
+                    LockOccult(Lease.Value, same);
+                }
+
                 return;
             }
 
             uint? previous = trackedPhantomJobId;
             trackedPhantomJobId = contentJobId;
+            occultRetries = 0;
+            occultSynced = contentJobId is null;
 
             // Release the job we are leaving or the lease keeps every phantom job enabled.
             if (previous is { } old && old != contentJobId)
@@ -170,8 +192,25 @@ public sealed class WrathJobRotation(
 
             if (contentJobId is { } next)
             {
-                TryLockOccultOptimal(Lease.Value, next);
+                LockOccult(Lease.Value, next);
             }
+        }
+    }
+
+    private void LockOccult(Guid leaseId, uint phantomJobId)
+    {
+        if (TryLockOccultOptimal(leaseId, phantomJobId))
+        {
+            occultSynced = true;
+            return;
+        }
+
+        occultRetries++;
+        nextOccultRetryUtc = DateTime.UtcNow.AddSeconds(5);
+        if (!loggedOccultFailure)
+        {
+            loggedOccultFailure = true;
+            logger.Warning("Wrath did not take the phantom job options for job {Job}; retrying every 5 s, up to {Max} times", phantomJobId, MaxOccultRetries);
         }
     }
 
@@ -333,25 +372,28 @@ public sealed class WrathJobRotation(
         }
     }
 
-    private void TryLockOccultOptimal(Guid leaseId, uint phantomJobId)
+    private bool TryLockOccultOptimal(Guid leaseId, uint phantomJobId)
     {
         try
         {
             string? parent = WrathIPCWrapper.GetOccultParentComboName(phantomJobId);
             if (string.IsNullOrEmpty(parent))
             {
-                return;
+                return true;
             }
 
             List<string>? options = WrathIPCWrapper.GetOccultOptionNames(phantomJobId);
 
             bool bulk = IsOk(WrathIPCWrapper.SetOccultReadyForPhantomJob(leaseId, phantomJobId, enabled: true));
 
-            WrathIPCWrapper.SetComboState(leaseId, parent, comboState: true, autoState: true);
+            if (!IsAcceptable(WrathIPCWrapper.SetComboState(leaseId, parent, comboState: true, autoState: true)))
+            {
+                return false;
+            }
 
             if (options == null)
             {
-                return;
+                return true;
             }
 
             foreach (string option in options)
@@ -371,9 +413,12 @@ public sealed class WrathJobRotation(
                     WrathIPCWrapper.SetComboOptionState(leaseId, option, comboState: true);
                 }
             }
+
+            return true;
         }
         catch
         {
+            return false;
         }
     }
 }

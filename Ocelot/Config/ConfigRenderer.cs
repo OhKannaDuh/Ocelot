@@ -341,7 +341,17 @@ public class ConfigRenderer : IConfigRenderer
                     ImGui.Indent(indentPx);
                 }
 
-                var changed = DrawField(current, type, prop, fieldAttr);
+                // A renderer that throws would skip the Unindent / PopID below and blank the rest of the page.
+                bool changed;
+                try
+                {
+                    changed = DrawField(current, type, prop, fieldAttr);
+                }
+                catch (Exception ex)
+                {
+                    changed = false;
+                    ImGui.TextColored(Color.Red.ToRgba(), $"{prop.Name}: {(ex.InnerException ?? ex).Message}");
+                }
 
                 if (indentPx > 0f)
                 {

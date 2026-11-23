@@ -1,11 +1,14 @@
 using System.Numerics;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
+using Ocelot.Lifecycle;
 
 namespace Ocelot.Ipc.VNavmesh;
 
-public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
+public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc, IOnUpdate
 {
+    private DateTime stopPlanningUntil = DateTime.MinValue;
+
     private readonly ICallGateSubscriber<bool> navIsReady = plugin.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
 
     private readonly ICallGateSubscriber<bool> isPathfinding = plugin.GetIpcSubscriber<bool>("vnavmesh.Nav.PathfindInProgress");
@@ -152,6 +155,7 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
             return;
         }
 
+        stopPlanningUntil = DateTime.MinValue;
         try
         {
             followPath.InvokeAction(path, fly);
@@ -161,47 +165,41 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
         }
     }
 
-    public void PathfindAndMoveTo(Vector3 destination, bool shouldFly)
+    public bool PathfindAndMoveTo(Vector3 destination, bool shouldFly)
     {
-        if (!pathfindAndMoveTo.HasFunction)
-        {
-            return;
-        }
-
         // AsyncMoveRequest rejects stacked SimpleMove calls with ERR "Pathfinding task is in progress...".
         // Path.Stop does not clear that pending task — skip until the current one finishes.
-        if (IsPathfinding())
+        if (!pathfindAndMoveTo.HasFunction || IsSimpleMovePlanning())
         {
-            return;
+            return false;
         }
 
+        stopPlanningUntil = DateTime.MinValue;
         try
         {
-            pathfindAndMoveTo.InvokeFunc(destination, shouldFly);
+            return pathfindAndMoveTo.InvokeFunc(destination, shouldFly);
         }
         catch
         {
+            return false;
         }
     }
 
-    public void PathfindAndMoveCloseTo(Vector3 destination, bool shouldFly, float range)
+    public bool PathfindAndMoveCloseTo(Vector3 destination, bool shouldFly, float range)
     {
-        if (!pathfindAndMoveCloseTo.HasFunction)
+        if (!pathfindAndMoveCloseTo.HasFunction || IsSimpleMovePlanning())
         {
-            return;
+            return false;
         }
 
-        if (IsPathfinding())
-        {
-            return;
-        }
-
+        stopPlanningUntil = DateTime.MinValue;
         try
         {
-            pathfindAndMoveCloseTo.InvokeFunc(destination, shouldFly, range);
+            return pathfindAndMoveCloseTo.InvokeFunc(destination, shouldFly, range);
         }
         catch
         {
+            return false;
         }
     }
 
@@ -272,6 +270,35 @@ public class VNavmeshIpc(IDalamudPluginInterface plugin) : IVNavmeshIpc
         }
         catch
         {
+        }
+
+        // Path.Stop leaves a SimpleMove path that is still being planned; it starts walking once planning ends.
+        stopPlanningUntil = IsSimpleMovePlanning() ? DateTime.UtcNow.AddSeconds(30) : DateTime.MinValue;
+    }
+
+    public void Update()
+    {
+        if (stopPlanningUntil == DateTime.MinValue || IsSimpleMovePlanning() && DateTime.UtcNow < stopPlanningUntil)
+        {
+            return;
+        }
+
+        stopPlanningUntil = DateTime.MinValue;
+        if (IsRunning())
+        {
+            Stop();
+        }
+    }
+
+    private bool IsSimpleMovePlanning()
+    {
+        try
+        {
+            return simpleMovePathfindInProgress.HasFunction && simpleMovePathfindInProgress.InvokeFunc();
+        }
+        catch
+        {
+            return false;
         }
     }
 }

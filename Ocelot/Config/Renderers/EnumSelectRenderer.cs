@@ -50,10 +50,6 @@ public class EnumSelectRenderer<TEnum, TDisplay, TFilter>(TDisplay display, TFil
         var value = (TEnum)(prop.GetValue(target) ?? 0);
 
         var index = Array.IndexOf(cache.Keys, value);
-        if (index < 0)
-        {
-            index = 0;
-        }
 
         var label = prop.Label(owner, translator);
 

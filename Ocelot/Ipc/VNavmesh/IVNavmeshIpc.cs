@@ -18,9 +18,9 @@ public interface IVNavmeshIpc
 
     void FollowPath(List<Vector3> path, bool fly);
 
-    void PathfindAndMoveTo(Vector3 destination, bool shouldFly);
+    bool PathfindAndMoveTo(Vector3 destination, bool shouldFly);
 
-    void PathfindAndMoveCloseTo(Vector3 destination, bool shouldFly, float range);
+    bool PathfindAndMoveCloseTo(Vector3 destination, bool shouldFly, float range);
 
     Vector3 FindPointOnFloor(Vector3 origin, float halfExtentXZ);
 
