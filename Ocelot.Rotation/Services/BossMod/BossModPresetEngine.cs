@@ -489,7 +489,7 @@ public sealed class BossModPresetEngine(IBossModIpc ipc, IPlayer player, CombatA
             module.EndsWith("VeynWAR", StringComparison.Ordinal)
                 ? """
                   [
-                        { "Track": "AOE", "Option": "ForceAOE" },
+                        { "Track": "AOE", "Option": "AutoFinishCombo" },
                         { "Track": "Burst", "Option": "Spend" },
                         { "Track": "Potion", "Option": "Manual" },
                         { "Track": "FC", "Option": "Automatic" },

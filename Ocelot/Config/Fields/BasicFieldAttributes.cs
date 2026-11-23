@@ -21,4 +21,6 @@ public sealed class FloatRangeAttribute(float min, float max) : UIFieldAttribute
     public float Min { get; } = min;
 
     public float Max { get; } = max;
+
+    public string Format { get; init; } = "%.3f";
 }

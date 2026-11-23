@@ -22,7 +22,7 @@ public sealed class FloatRangeRenderer : IFieldRenderer<FloatRangeAttribute>
         OcelotUi.PushFieldStyle();
         try
         {
-            var changed = ImGui.SliderFloat(prop.Label(owner, translator), ref value, attr.Min, attr.Max);
+            var changed = ImGui.SliderFloat(prop.Label(owner, translator), ref value, attr.Min, attr.Max, attr.Format);
             value = Math.Clamp(value, attr.Min, attr.Max);
 
             prop.Tooltip(owner, translator);
